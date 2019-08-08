@@ -4,5 +4,3 @@ skip_tags: true
 configuration: Release
 build_script:
 - ps: dotnet restore
-build:
-  project: .\TeleBillingAPI.sln

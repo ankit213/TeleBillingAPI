@@ -6,9 +6,11 @@ environment:
  COVERALLS_REPO_TOKEN:
    secure: EUMspW33GYW5M5sNskOBWO4ElP1tKWOUI
 build_script:
- - tree /F
  - dotnet restore
  - dotnet build
- - cd ./TeleBillingAPIXUnit.Tests && dotnet test && cd..
+ - cd ./TeleBillingAPIXUnit.Tests && dotnet test && cd.. && cd.. && cd.. && cd project
+ - tree /F
+ - cd..
+ -tree /F
 test_script:
 

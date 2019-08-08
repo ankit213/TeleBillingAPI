@@ -12,3 +12,5 @@
 /TeleBillingRepository/bin
 /TeleBillingUtility/bin
 /TeleBillingUtility/obj
+/TeleBillingAPIXUnit.Tests/bin/Debug/netcoreapp2.2
+/TeleBillingAPIXUnit.Tests/obj

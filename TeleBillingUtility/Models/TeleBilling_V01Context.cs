@@ -25,7 +25,9 @@ namespace TeleBillingUtility.Models
         public virtual DbSet<EmployeeBillMaster> EmployeeBillMaster { get; set; }
         public virtual DbSet<EmployeeBillServicePackage> EmployeeBillServicePackage { get; set; }
         public virtual DbSet<ExcelDetail> ExcelDetail { get; set; }
+        public virtual DbSet<ExcelDetailPbx> ExcelDetailPbx { get; set; }
         public virtual DbSet<ExcelUploadLog> ExcelUploadLog { get; set; }
+        public virtual DbSet<ExcelUploadLogPbx> ExcelUploadLogPbx { get; set; }
         public virtual DbSet<ExcelUploadLogServiceType> ExcelUploadLogServiceType { get; set; }
         public virtual DbSet<FixAssignType> FixAssignType { get; set; }
         public virtual DbSet<FixBillEmployeeStatus> FixBillEmployeeStatus { get; set; }
@@ -84,7 +86,7 @@ namespace TeleBillingUtility.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("ProductVersion", "2.2.4-servicing-10062");
+            modelBuilder.HasAnnotation("ProductVersion", "2.2.6-servicing-10079");
 
             modelBuilder.Entity<BillDelegate>(entity =>
             {
@@ -540,6 +542,75 @@ namespace TeleBillingUtility.Models
                     .HasConstraintName("FK_ExcelDetail_Fix_ServiceType");
             });
 
+            modelBuilder.Entity<ExcelDetailPbx>(entity =>
+            {
+                entity.Property(e => e.Band)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CallAmount).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.CallDate).HasColumnType("datetime");
+
+                entity.Property(e => e.CallType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ClassificationCode)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CodeNumber)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ConnectingParty)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DestinationType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DistantNumber)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Name1)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Name2)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Name3)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Name4)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.OtherParty)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Place)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Rate)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.ExcelUploadLog)
+                    .WithMany(p => p.ExcelDetailPbx)
+                    .HasForeignKey(d => d.ExcelUploadLogId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ExcelDetailPbx_ExcelUploadLogPbx");
+            });
+
             modelBuilder.Entity<ExcelUploadLog>(entity =>
             {
                 entity.Property(e => e.ExcelFileName)
@@ -566,6 +637,33 @@ namespace TeleBillingUtility.Models
                     .WithMany(p => p.ExcelUploadLog)
                     .HasForeignKey(d => d.ProviderId)
                     .HasConstraintName("FK_ExcelUploadLog_Provider");
+            });
+
+            modelBuilder.Entity<ExcelUploadLogPbx>(entity =>
+            {
+                entity.Property(e => e.ExcelFileName)
+                    .IsRequired()
+                    .IsUnicode(false);
+
+                entity.Property(e => e.FileNameGuid)
+                    .IsRequired()
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TotalImportedBillAmount).HasColumnType("decimal(18, 0)");
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedDateInt).HasComputedColumnSql("((datepart(year,[UpdatedDate])*(10000)+datepart(month,[UpdatedDate])*(100))+datepart(day,[UpdatedDate]))");
+
+                entity.Property(e => e.UploadDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UploadDateInt).HasComputedColumnSql("((datepart(year,[UploadDate])*(10000)+datepart(month,[UploadDate])*(100))+datepart(day,[UploadDate]))");
+
+                entity.HasOne(d => d.Device)
+                    .WithMany(p => p.ExcelUploadLogPbx)
+                    .HasForeignKey(d => d.DeviceId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ExcelUploadLogPbx_Fix_Device");
             });
 
             modelBuilder.Entity<ExcelUploadLogServiceType>(entity =>

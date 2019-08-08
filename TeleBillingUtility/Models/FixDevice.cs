@@ -7,6 +7,7 @@ namespace TeleBillingUtility.Models
     {
         public FixDevice()
         {
+            ExcelUploadLogPbx = new HashSet<ExcelUploadLogPbx>();
             MappingExcelPbx = new HashSet<MappingExcelPbx>();
             MappingServiceTypeFieldPbx = new HashSet<MappingServiceTypeFieldPbx>();
         }
@@ -17,6 +18,7 @@ namespace TeleBillingUtility.Models
         public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
 
+        public virtual ICollection<ExcelUploadLogPbx> ExcelUploadLogPbx { get; set; }
         public virtual ICollection<MappingExcelPbx> MappingExcelPbx { get; set; }
         public virtual ICollection<MappingServiceTypeFieldPbx> MappingServiceTypeFieldPbx { get; set; }
     }

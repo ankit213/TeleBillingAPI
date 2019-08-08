@@ -1,0 +1,26 @@
+Field Label,Field Name,Vertical,Data Type,Order,Min Length,Maximum Length,Column Width,Show in Reports,PrePing Instructions,Posting Instructions,Ping Required,Post Required,Validated,Related,Default
+First Name,first_name,Home Improvement,String,1,0,500,100,Yes,Yes,Yes,No,Yes,No,No,Yes
+Last Name,last_name,Home Improvement,String,2,0,500,100,Yes,Yes,Yes,No,Yes,No,No,Yes
+Phone Home,phone_home,Home Improvement,US Phone,3,0,500,100,Yes,Yes,Yes,No,Yes,No,No,Yes
+Phone Cell,phone_cell,Home Improvement,US Phone,4,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+Phone Work,phone_work,Home Improvement,US Phone,5,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+Phone Ext,phone_ext,Home Improvement,Number,6,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+Address,address,Home Improvement,US Address,7,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+Unit / Apt / Suite,address2,Home Improvement,String,8,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+City,city,Home Improvement,US City,9,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+State,state,Home Improvement,US State,10,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+Zip Code,zip_code,Home Improvement,US Zip Code,11,0,500,100,Yes,Yes,Yes,Yes,Yes,No,No,Yes
+County,county,Home Improvement,String,12,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+Country,country,Home Improvement,String,13,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+E-Mail Address,email_address,Home Improvement,E-Mail,14,0,500,100,Yes,Yes,Yes,No,Yes,No,No,Yes
+Date of Birth,dob,Home Improvement,Date,15,0,500,100,Yes,Yes,Yes,No,No,Yes,No,Yes
+IP Address,ip_address,Home Improvement,IP,16,0,500,100,Yes,Yes,Yes,No,No,No,No,Yes
+TCPA Optin,tcpa_optin,Home Improvement,Bool,50,0,500,100,Yes,Yes,Yes,No,Yes,No,No,No
+TCPA Text,tcpa_text,Home Improvement,Text,50,0,500,100,Yes,Yes,Yes,No,Yes,No,No,No
+Jornaya Lead ID,jornaya_lead_id,Home Improvement,String,50,0,500,100,Yes,Yes,Yes,Yes,Yes,No,No,No
+Lead Generated Date,lead_generated_date,Home Improvement,Date,50,0,500,100,Yes,Yes,Yes,Yes,Yes,Yes,No,No
+Vendor Lead ID,vendor_lead_id,Home Improvement,String,50,0,500,100,Yes,Yes,Yes,Yes,Yes,No,No,No
+Url,url,Home Improvement,URL,50,0,500,100,Yes,Yes,Yes,No,Yes,No,No,No
+Project,project,Home Improvement,List,50,0,500,100,Yes,Yes,Yes,Yes,Yes,Yes,No,No
+Phone Last 4,phone_last4,Home Improvement,Number,50,0,500,100,Yes,Yes,Yes,No,No,No,No,No
+OwnRent,OwnRent,Home Improvement,List,50,0,250,100,No,Yes,Yes,No,No,No,No,No

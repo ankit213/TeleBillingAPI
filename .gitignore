@@ -3,3 +3,12 @@
 ################################################################################
 
 /.vs/TeleBillingAPI/v15/Server/sqlite3
+/TeleBillingAPI/bin
+/TeleBillingAPI/obj
+/TeleBillingAPI/Properties
+/TeleBillingBillCloseService/bin/Debug/netcoreapp2.2
+/TeleBillingBillCloseService/obj
+/TeleBillingRepository/obj
+/TeleBillingRepository/bin
+/TeleBillingUtility/bin
+/TeleBillingUtility/obj

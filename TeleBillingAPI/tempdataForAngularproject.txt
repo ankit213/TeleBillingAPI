@@ -1,0 +1,2 @@
+Scaffold-DbContext "Server=WS-SRV-NET;Database=TeleBilling_V01;User ID=sa;Password=Admin@net;persist security info=True;Connect Timeout=200;Max Pool Size=200;Min Pool Size=5;Pooling=true;Connection Lifetime=300" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -force
+

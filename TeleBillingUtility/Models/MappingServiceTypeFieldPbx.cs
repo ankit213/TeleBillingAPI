@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace TeleBillingUtility.Models
+{
+    public partial class MappingServiceTypeFieldPbx
+    {
+        public MappingServiceTypeFieldPbx()
+        {
+            MappingExcelColumnPbx = new HashSet<MappingExcelColumnPbx>();
+        }
+
+        public long Id { get; set; }
+        public long DeviceId { get; set; }
+        public string DbtableName { get; set; }
+        public string DbcolumnName { get; set; }
+        public string DisplayFieldName { get; set; }
+        public bool IsRequired { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsSpecial { get; set; }
+
+        public virtual FixDevice Device { get; set; }
+        public virtual ICollection<MappingExcelColumnPbx> MappingExcelColumnPbx { get; set; }
+    }
+}

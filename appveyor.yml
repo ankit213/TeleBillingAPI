@@ -8,6 +8,7 @@ environment:
 build_script:
  - dotnet restore
  - dotnet build
- - cd ./TeleBillingAPIXUnit.Tests && dotnet test && cd ./bin/Debug/
+ - cd ./TeleBillingAPIXUnit.Tests && dotnet test
+ - cd.. && cd.. && cd.. && cd.. && cd Users tree /F
 test_script:
- - .\packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -register:user -target:"%xunit20%\xunit.console.x86.exe" -targetargs:"TeleBillingAPIXUnit.Tests.dll -noshadow" -output:"coverage.xml"
+

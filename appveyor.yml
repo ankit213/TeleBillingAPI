@@ -8,5 +8,5 @@ environment:
 build_script:
  - dotnet restore
  - dotnet build
- - cd ./TeleBillingAPIXUnit.Tests && dotnet test && cd.. && cd.. && cd.. && tree /F
+ - cd ./TeleBillingAPIXUnit.Tests && dotnet test && cd.. && cd.. && cd.. && cd package
 

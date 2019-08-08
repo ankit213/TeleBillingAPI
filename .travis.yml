@@ -1,20 +1,9 @@
 language: csharp
-node_js:
-- 6
-- stable
-os: linux		
-dist: trusty		
+mono: none
 sudo: required
+dist: xenial
 dotnet: 2.2
-install:
-- dotnet restore
-before_script:
-solution: "./TeleBillingAPI.sln"
-notifications:
-  email:
-    on_success: change
-    on_failure: always
 script:
-- dotnet build ./TeleBillingAPI/TeleBillingAPI -c Release
-
- 
+    - dotnet restore
+    - dotnet build
+   

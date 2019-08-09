@@ -2,10 +2,12 @@ version: 1.0.{build}
 os: Visual Studio 2017
 skip_tags: true
 configuration: Release
-environment:
- COVERALLS_REPO_TOKEN:
-   secure: EUMspW33GYW5M5sNskOBWO4ElP1tKWOUI
+before_build:
+- choco install opencover.portable
+- choco install codecov
 build_script:
  - dotnet restore
  - dotnet build
- - cd ./TeleBillingAPIXUnit.Tests && dotnet test && cd.. && cd.. && tree /F
+ - cd ./TeleBillingAPIXUnit.Tests && dotnet test
+ - OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test --logger:trx;LogFileName=results.trx /p:DebugType=full TeleBillingAPIXUnit.Tests.csproj" -filter:"+[TeleBillingRepository*]* -[TeleBillingAPIXUnit.Tests*]*" -output:".\my_app_coverage.xml"
+ - codecov -f .\my_app_coverage.xml -t $(dc2a8fb7-a819-496f-bfe8-c4d8b55d5dad)

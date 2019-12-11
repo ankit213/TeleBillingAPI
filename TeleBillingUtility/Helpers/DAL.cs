@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
@@ -16,10 +17,17 @@ namespace TeleBillingUtility.Helpers
 {
     public class DAL
     {
-         // public static string _ConnString = ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString;
-        public static string _ConnString = "Server=192.168.1.4;Database=TeleBilling_V01;User ID=sa;Password=Admin@net;persist security info=True;Connect Timeout=200;Max Pool Size=200;Min Pool Size=5;Pooling=true;Connection Lifetime=300";
+		public readonly string _ConnString;
+		public DAL()
+		{
+			var builder = new ConfigurationBuilder()
+					.AddJsonFile("appsettings.json", true, true);
 
-        public SqlDataReader GetDataReader(string sSQL)
+			IConfigurationRoot configuration = builder.Build();
+
+			_ConnString = configuration.GetConnectionString("DefaultConnection");
+		}
+		public SqlDataReader GetDataReader(string sSQL)
         {
             // Create Instance of Connection and Command Object
             SqlConnection myConnection = new SqlConnection(_ConnString);
@@ -650,7 +658,7 @@ namespace TeleBillingUtility.Helpers
                         myConnection.Close();
                     }
                 }
-                catch (Exception ex2)
+                catch (Exception  ex2)
                 {
                     //ErrorHandler.WriteError(Convert.ToString(ex2));
                     return null;

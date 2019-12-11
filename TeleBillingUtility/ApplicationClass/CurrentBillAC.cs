@@ -50,6 +50,9 @@ namespace TeleBillingUtility.ApplicationClass
 		[JsonProperty("managername")]
 		public string ManagerName {  get; set;}
 
+		[JsonProperty("isdelegateduser")]
+		public bool IsDelegatedUser { get; set;}
+
 		[JsonProperty("isallowreimbrusment")]
 		public bool IsAllowToReImbrusment { get; set; }
 		
@@ -64,6 +67,12 @@ namespace TeleBillingUtility.ApplicationClass
 	
 		[JsonProperty("isallowidentificatication")]
 		public bool IsAllowIdentificatication { get; set; }
-		
+
+		[JsonProperty("deductionamount")]
+		public decimal? DeductionAmount { get; set; }
+
+		[JsonProperty("olddeductionamount")]
+		public decimal? OldDeductionAmount { get; set; }
+
 	}
 }

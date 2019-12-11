@@ -15,8 +15,20 @@ namespace TeleBillingUtility.ApplicationClass
         public long Id { get; set; }
         [JsonProperty("provider")]
         public string Provider { get; set; }
+
         [JsonProperty("servicetype")]
         public string ServiceType { get; set; }
+
+
+
+        [JsonProperty("servicetypeidinline")]
+        public List<DrpResponseAC> ServiceTypeIdInline { get; set; }
+
+
+        [JsonProperty("servicetypesinline")]
+        public string ServiceTypesInline { get; set; }
+
+
         [JsonProperty("providerid")]
         public long ProviderId { get; set; }
         [JsonProperty("servicetypeid")]
@@ -33,6 +45,8 @@ namespace TeleBillingUtility.ApplicationClass
         public string ExcelColumnNameForTitle { get; set; }
         [JsonProperty("excelreadingcolumn")]
         public string ExcelReadingColumn { get; set; }
+
+
 
         public List<MappingServiceTypeFieldAC> dbfieldList { get; set; }
     }

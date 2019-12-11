@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using JqueryDataTables.ServerSide.AspNetCoreWeb.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TeleBillingUtility.ApplicationClass;
 
@@ -29,17 +30,19 @@ namespace TeleBillingRepository.Repository.BillProcess
 		/// </summary>
 		/// <param name="billIdentificationAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> BillIdentificationSave(BillIdentificationAC billIdentificationAC,long userId);
+		Task<ResponseAC> BillIdentificationSave(BillIdentificationAC billIdentificationAC,long userId,string loginUserName);
 
 
 		/// <summary>
 		/// This method used for bill process
 		/// </summary>
 		/// <param name="billIdentificationAC"></param>
-		/// <param name="userId"></param>
+		/// <param name="userId"></param
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> BillProcess(BillIdentificationAC billIdentificationAC, long userId);
+		Task<ResponseAC> BillProcess(BillIdentificationAC billIdentificationAC, long userId,string loginUserName);
 
 
 		/// <summary>
@@ -55,39 +58,45 @@ namespace TeleBillingRepository.Repository.BillProcess
 		/// </summary>
 		/// <param name="lineManagerApprovalAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> LineManagerApproval(LineManagerApprovalAC lineManagerApprovalAC,long userId);
+		Task<ResponseAC> LineManagerApproval(LineManagerApprovalAC lineManagerApprovalAC,long userId, string loginUserName);
 
 		/// <summary>
 		/// This method used for get my staff bills
 		/// </summary>
+		/// <param name="param"></param>
 		/// <param name="userId"></param>
 		/// <returns></returns>
-		Task<List<CurrentBillAC>> GetMyStaffBills(long userId);
+		Task<JqueryDataTablesPagedResults<CurrentBillAC>> GetMyStaffBills(JqueryDataWithExtraParameterAC param, long userId);
 
 
 		/// <summary>
 		/// This method used for get previous period bills
 		/// </summary>
+		/// <param name="param"></param>
 		/// <param name="userId"></param>
 		/// <returns></returns>
-		Task<List<CurrentBillAC>> GetPreviousPeriodBills(long userId);
+		Task<JqueryDataTablesPagedResults<CurrentBillAC>> GetPreviousPeriodBills(JqueryDataWithExtraParameterAC param, long userId);
+
 
 		/// <summary>
 		/// This method used for reidentification and return new employeebillid.
 		/// </summary>
 		/// <param name="userId"></param>
-		/// <param name="employeebillmasterid"></param>
+		/// <param name="employeebillmasterid"></param
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<long> ReIdentificationRequest(long userId, long employeebillmasterid);
+		Task<long> ReIdentificationRequest(long userId, long employeebillmasterid, string loginUserName);
 
 		/// <summary>
 		/// This method used for request to reimbursement request  
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="reImbursementRequestAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> ReImbursementRequest(long userId, ReImbursementRequestAC reImbursementRequestAC);
+		Task<ResponseAC> ReImbursementRequest(long userId, ReImbursementRequestAC reImbursementRequestAC,string loginUserName);
 
 		/// <summary>
 		/// This function used for get reimburse bills
@@ -100,8 +109,9 @@ namespace TeleBillingRepository.Repository.BillProcess
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="reImburseBillApprovalAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> ReImburseBillApproval(long userId, ReImburseBillApprovalAC reImburseBillApprovalAC);
+		Task<ResponseAC> ReImburseBillApproval(long userId, ReImburseBillApprovalAC reImburseBillApprovalAC,string loginUserName);
 
 
 		/// <summary>
@@ -115,7 +125,25 @@ namespace TeleBillingRepository.Repository.BillProcess
 		/// </summary>
 		/// <param name="changeBillStatusACs"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> ChangeBillStatus(List<ChangeBillStatusAC> changeBillStatusACs, long userId);
+		Task<ResponseAC> ChangeBillStatus(List<ChangeBillStatusAC> changeBillStatusACs, long userId,string loginUserName);
+
+
+		/// <summary>
+		/// This method used for get my staff export list.
+		/// </summary>
+		/// <param name="searchMyStaffAC"></param>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		List<ExportMyStaffBillsAC> GetMyStaffExportList(SearchMyStaffAC searchMyStaffAC, long userId);
+		
+		/// <summary>
+		/// This method used for export the previous period bills
+		/// </summary>
+		/// <param name="searchMyStaffAC"></param>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		List<ExportPreviousPeriodBillsAC> GetExportPreviousPeriodBills(SearchMyStaffAC searchMyStaffAC, long userId);
 	}
 }

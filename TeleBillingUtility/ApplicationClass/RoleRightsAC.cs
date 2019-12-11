@@ -22,9 +22,12 @@ namespace TeleBillingUtility.ApplicationClass
 		[JsonProperty("isview")]
 		public bool IsView  { get; set;}
 
-		[JsonProperty("isviewonly")]
-		public bool IsViewOnly { get; set; }
+		[JsonProperty("isreadOnly")]
+		public bool IsReadOnly { get; set; }
 
+		[JsonProperty("iseditable")]
+		public bool IsEditable { get; set; }
+		
 		[JsonProperty("isadd")]
 		public bool IsAdd { get; set; }
 

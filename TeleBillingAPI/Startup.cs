@@ -1,5 +1,4 @@
-﻿using System.Text;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,39 +8,43 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
+using System.Collections.Generic;
+using System.Text;
+using TeleBillingAPI.Helpers;
 using TeleBillingRepository.Repository.Account;
-using TeleBillingRepository.Repository.Master.RoleManagement;
-using TeleBillingUtility.Models;
-using TeleBillingRepository.Service;
-using TeleBillingRepository.Service.Constants;
-using TeleBillingRepository.Repository.Provider;
-using TeleBillingRepository.Service.LogMangement;
-using TeleBillingRepository.Repository.StaticData;
+using TeleBillingRepository.Repository.BillDelegate;
+using TeleBillingRepository.Repository.BillMemo;
+using TeleBillingRepository.Repository.BillProcess;
+using TeleBillingRepository.Repository.BillUpload;
+using TeleBillingRepository.Repository.Configuration;
+using TeleBillingRepository.Repository.Employee;
 using TeleBillingRepository.Repository.Master.ExcelMapping;
-using TeleBillingRepository.Repository.Package;
 using TeleBillingRepository.Repository.Master.HandsetManagement;
+using TeleBillingRepository.Repository.Master.InternetDevice;
+using TeleBillingRepository.Repository.Master.RoleManagement;
+using TeleBillingRepository.Repository.Operator;
+using TeleBillingRepository.Repository.Package;
+using TeleBillingRepository.Repository.Provider;
+using TeleBillingRepository.Repository.Report;
+using TeleBillingRepository.Repository.StaticData;
 using TeleBillingRepository.Repository.Telephone;
 using TeleBillingRepository.Repository.Template;
-using TeleBillingRepository.Repository.BillUpload;
-using System.Collections.Generic;
-using TeleBillingRepository.Repository.Operator;
-using TeleBillingRepository.Repository.Configuration;
-using TeleBillingRepository.Repository.Master.InternetDevice;
-using TeleBillingRepository.Repository.BillProcess;
-using TeleBillingRepository.Repository.BillDelegate;
-using TeleBillingRepository.Repository.Employee;
-using TeleBillingRepository.Repository.BillMemo;
+using TeleBillingRepository.Service;
+using TeleBillingRepository.Service.Constants;
+using TeleBillingRepository.Service.LogMangement;
+using TeleBillingUtility.Models;
 
 namespace TeleBillingAPI
 {
 	public class Startup
 	{
+		public IConfiguration Configuration { get; }
+
+
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
 		}
-
-		public IConfiguration Configuration { get; }
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
@@ -50,7 +53,7 @@ namespace TeleBillingAPI
 			{
 				options.AddPolicy("CORS", corsPolicyBuilder => corsPolicyBuilder.AllowAnyOrigin()
 
-					.WithOrigins("http://localhost:4200", "http://ws-srv-net.in.webmyne.com/Applications/TeleBilling/TeleBillingApp")
+					.WithOrigins(Configuration["OriginUrlLive"], Configuration["OriginUrlLocal"])
 					// Apply CORS policy for any type of origin  
 					.AllowAnyMethod()
 					// Apply CORS policy for any type of http methods  
@@ -61,8 +64,8 @@ namespace TeleBillingAPI
 			});
 
 			//Add framework services.
-			services.AddDbContext<TeleBilling_V01Context>(options =>
-			options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+			services.AddDbContext<telebilling_v01Context>(options =>
+			options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
 
 
 			//Register application services
@@ -80,17 +83,21 @@ namespace TeleBillingAPI
 			services.AddScoped<IBillUploadRepository, BillUploadRepository>();
 			services.AddScoped<ITemplateRepository, TemplateRepository>();
 			services.AddScoped<IOperatorRepository, OperatorRepository>();
-			services.AddScoped<IConfigurationRepository,ConfigurationRepository>();
+			services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 			services.AddScoped<IinternetDeviceRepositoy, InternetDeviceRepositoy>();
 			services.AddScoped<IBillProcessRepository, BillProcessRepository>();
-            services.AddScoped<IBillDelegateRepository, BillDelegateRepository>();
-            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-			services.AddScoped<IBillMemoRepository,BillMemoRepository>();
+			services.AddScoped<IBillDelegateRepository, BillDelegateRepository>();
+			services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+			services.AddScoped<IBillMemoRepository, BillMemoRepository>();
+            services.AddScoped<IReportRepository, ReportRepository>();
 
-            // Automapper
-            services.AddAutoMapper();
+			// Automapper
+			services.AddAutoMapper();
 
 			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+			services.AddMvc().AddMvcOptions(x => x.Filters.Add(new GlobalExceptionFilter()));
+
 
 			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 		   .AddJwtBearer(jwtBearerOptions =>
@@ -140,6 +147,7 @@ namespace TeleBillingAPI
 				app.UseDeveloperExceptionPage();
 			}
 
+
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger();
 
@@ -149,16 +157,21 @@ namespace TeleBillingAPI
 			{
 				app.UseSwaggerUI(c =>
 				{
-					c.SwaggerEndpoint("/Applications/telebilling/telebillingAPI/swagger/v1/swagger.json", "Tele Billing API");
+					c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tele Billing API");
 					c.RoutePrefix = string.Empty; //"swagger";
-					c.InjectStylesheet("/Applications/telebilling/telebillingAPI/swagger/custom.css");
+					c.InjectStylesheet("/swagger/custom.css");
+
+					//c.SwaggerEndpoint("/Applications/telebilling/telebillingAPI/swagger/v1/swagger.json", "Tele Billing API");
+					//c.RoutePrefix = string.Empty; //"swagger";
+					//c.InjectStylesheet("/Applications/telebilling/telebillingAPI/swagger/custom.css");
 				});
 			}
 			else if (env.IsDevelopment())
 			{
-				app.UseSwaggerUI(c => {
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tele Billing API");
-				c.RoutePrefix = string.Empty; //"swagger";
+				app.UseSwaggerUI(c =>
+				{
+					c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tele Billing API");
+					c.RoutePrefix = string.Empty; //"swagger";
 					c.InjectStylesheet("/swagger/custom.css");
 				});
 			}

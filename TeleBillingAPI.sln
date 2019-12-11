@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2035
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29326.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeleBillingAPI", "TeleBillingAPI\TeleBillingAPI.csproj", "{94F4D8DB-07B4-419A-B190-2B1EE4BB7F72}"
 EndProject
@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeleBillingUtility", "TeleB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeleBillingRepository", "TeleBillingRepository\TeleBillingRepository.csproj", "{BE63D877-EA5C-47CC-B693-060CBBC445C0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeleBillingBillCloseService", "TeleBillingBillCloseService\TeleBillingBillCloseService.csproj", "{32F7552D-BF6D-4B7D-9C0F-5BE43153FAAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeleBillingRemiderService", "TeleBillingRemiderService\TeleBillingRemiderService.csproj", "{85BF1B0E-229C-4824-AEEC-A1BC0B07A908}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeleBillingAPIXUnit.Tests", "TeleBillingAPIXUnit.Tests\TeleBillingAPIXUnit.Tests.csproj", "{9B78F89D-377D-4004-8BD1-5065C2716ED2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeleBillingBillCloseService", "TeleBillingBillCloseService\TeleBillingBillCloseService.csproj", "{4377A633-E80D-43C5-9A63-47D16644BE08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,19 +31,40 @@ Global
 		{BE63D877-EA5C-47CC-B693-060CBBC445C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE63D877-EA5C-47CC-B693-060CBBC445C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE63D877-EA5C-47CC-B693-060CBBC445C0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{32F7552D-BF6D-4B7D-9C0F-5BE43153FAAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32F7552D-BF6D-4B7D-9C0F-5BE43153FAAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32F7552D-BF6D-4B7D-9C0F-5BE43153FAAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32F7552D-BF6D-4B7D-9C0F-5BE43153FAAF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9B78F89D-377D-4004-8BD1-5065C2716ED2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9B78F89D-377D-4004-8BD1-5065C2716ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9B78F89D-377D-4004-8BD1-5065C2716ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9B78F89D-377D-4004-8BD1-5065C2716ED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85BF1B0E-229C-4824-AEEC-A1BC0B07A908}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85BF1B0E-229C-4824-AEEC-A1BC0B07A908}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85BF1B0E-229C-4824-AEEC-A1BC0B07A908}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85BF1B0E-229C-4824-AEEC-A1BC0B07A908}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4377A633-E80D-43C5-9A63-47D16644BE08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4377A633-E80D-43C5-9A63-47D16644BE08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4377A633-E80D-43C5-9A63-47D16644BE08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4377A633-E80D-43C5-9A63-47D16644BE08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {32AF1A43-B770-40F0-8553-533515E5AD5C}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 6
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://192.168.1.4:8080/tfs/webmyne%20systems%20tfs%20collection
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = TeleBillingAPI\\TeleBillingAPI.csproj
+		SccProjectName1 = TeleBillingAPI
+		SccLocalPath1 = TeleBillingAPI
+		SccProjectUniqueName2 = TeleBillingRepository\\TeleBillingRepository.csproj
+		SccProjectName2 = TeleBillingRepository
+		SccLocalPath2 = TeleBillingRepository
+		SccProjectUniqueName3 = TeleBillingUtility\\TeleBillingUtility.csproj
+		SccProjectName3 = TeleBillingUtility
+		SccLocalPath3 = TeleBillingUtility
+		SccProjectUniqueName4 = TeleBillingRemiderService\\TeleBillingRemiderService.csproj
+		SccProjectName4 = TeleBillingRemiderService
+		SccLocalPath4 = TeleBillingRemiderService
+		SccProjectUniqueName5 = TeleBillingBillCloseService\\TeleBillingBillCloseService.csproj
+		SccProjectName5 = TeleBillingBillCloseService
+		SccLocalPath5 = TeleBillingBillCloseService
 	EndGlobalSection
 EndGlobal

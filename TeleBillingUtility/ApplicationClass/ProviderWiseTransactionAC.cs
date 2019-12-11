@@ -20,12 +20,15 @@ namespace TeleBillingUtility.ApplicationClass
 		public string TransactionType { get; set; }
 
 		[JsonProperty("settypeas")]
-		public long? SetTypeAs { get; set; }
+		public int? SetTypeAs { get; set; }
 
 		[JsonProperty("typeas")]
 		public string TypeAs { get; set; }
 
 		[JsonProperty("transactiontypelist")]
 		public List<DrpResponseAC> TransactionTypeList { get; set; }
+		
+		[JsonProperty("isactive")]
+		public bool IsActive { get; set;}
 	}
 }

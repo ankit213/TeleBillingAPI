@@ -30,7 +30,5 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("formatfield")]
         public string FormatField { get; set; }
-
-
-    }
+	}
 }

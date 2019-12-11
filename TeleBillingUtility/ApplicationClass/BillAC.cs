@@ -7,6 +7,9 @@ namespace TeleBillingUtility.ApplicationClass
 		 [JsonProperty("provider")]
 		 public string Provider { get; set;}
 
+		 [JsonProperty("billnumber")]
+		 public string BillNumber { get;set;}
+
 		 [JsonProperty("providerid")]
 		 public long ProviderId { get; set;}
 

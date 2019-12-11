@@ -24,7 +24,7 @@ namespace TeleBillingAPI.Controllers
 		#endregion
 
 		#region Constructor
-		public ConfigurationController(IConfigurationRepository iConfigurationRepository,IBillUploadRepository iBillUploadRepository)
+		public ConfigurationController(IConfigurationRepository iConfigurationRepository, IBillUploadRepository iBillUploadRepository)
 		{
 			_iConfigurationRepository = iConfigurationRepository;
 			_iBillUploadRepository = iBillUploadRepository;
@@ -38,9 +38,9 @@ namespace TeleBillingAPI.Controllers
 		[Route("add")]
 		public async Task<IActionResult> AddConfiguration(TeleBillingUtility.Models.Configuration configuration)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iConfigurationRepository.AddConfiguration(Convert.ToInt64(userId), configuration));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iConfigurationRepository.AddConfiguration(Convert.ToInt64(userId), configuration, fullname));
 		}
 
 		[HttpGet]
@@ -65,9 +65,9 @@ namespace TeleBillingAPI.Controllers
 		[Route("transaction/add")]
 		public async Task<IActionResult> AddProviderWiseTransaction(ProviderWiseTransactionAC providerWiseTransactionAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iConfigurationRepository.AddProviderWiseTransaction(Convert.ToInt64(userId), providerWiseTransactionAC));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iConfigurationRepository.AddProviderWiseTransaction(Convert.ToInt64(userId), providerWiseTransactionAC, fullname));
 		}
 
 
@@ -75,18 +75,27 @@ namespace TeleBillingAPI.Controllers
 		[Route("transaction/edit")]
 		public async Task<IActionResult> EditProviderWiseTransaction(ProviderWiseTransactionAC providerWiseTransactionAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iConfigurationRepository.UpdateProviderWiseTransaction(Convert.ToInt64(userId), providerWiseTransactionAC));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iConfigurationRepository.UpdateProviderWiseTransaction(Convert.ToInt64(userId), providerWiseTransactionAC, fullname));
 		}
 
 		[HttpGet]
 		[Route("transaction/delete/{id}")]
 		public async Task<IActionResult> DeleteProviderWiseTransaction(long id)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iConfigurationRepository.DeleteProviderWiseTransaction(Convert.ToInt64(userId), id));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iConfigurationRepository.DeleteProviderWiseTransaction(Convert.ToInt64(userId), id, fullname));
+		}
+
+		[HttpGet]
+		[Route("transaction/changestatus/{id}")]
+		public async Task<IActionResult> ChangeProviderWiseTransactionStatus(long id)
+		{
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iConfigurationRepository.ChangeProviderWiseTransactionStatus(id, Convert.ToInt64(userId), fullname));
 		}
 
 		[HttpGet]
@@ -106,9 +115,9 @@ namespace TeleBillingAPI.Controllers
 			excelFileAC.File = file;
 			excelFileAC.FolderName = "TempUpload";
 			ExcelUploadResponseAC exceluploadDetail = _iBillUploadRepository.UploadNewExcel(excelFileAC);
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iConfigurationRepository.BulkUploadProviderWiseTrans(Convert.ToInt64(userId), exceluploadDetail, Convert.ToInt64(providerId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iConfigurationRepository.BulkUploadProviderWiseTrans(Convert.ToInt64(userId), exceluploadDetail, Convert.ToInt64(providerId), fullname));
 		}
 
 
@@ -116,9 +125,9 @@ namespace TeleBillingAPI.Controllers
 		[Route("transactiontypesetting/update")]
 		public async Task<IActionResult> UpdateTransactionTypeSetting(ProviderWiseTransactionAC providerWiseTransactionAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iConfigurationRepository.UpdateTransactionTypeSetting(Convert.ToInt64(userId), providerWiseTransactionAC));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iConfigurationRepository.UpdateTransactionTypeSetting(Convert.ToInt64(userId), providerWiseTransactionAC, fullname));
 		}
 
 		#endregion

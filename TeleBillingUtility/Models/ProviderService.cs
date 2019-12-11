@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class ProviderService
+    public partial class Providerservice
     {
         public long Id { get; set; }
         public long ProviderId { get; set; }
@@ -11,6 +11,6 @@ namespace TeleBillingUtility.Models
         public bool IsDelete { get; set; }
 
         public virtual Provider Provider { get; set; }
-        public virtual FixServiceType ServiceType { get; set; }
+        public virtual FixServicetype ServiceType { get; set; }
     }
 }

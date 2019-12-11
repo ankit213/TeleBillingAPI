@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class MappingServiceTypeField
+    public partial class Mappingservicetypefield
     {
-        public MappingServiceTypeField()
+        public Mappingservicetypefield()
         {
-            MappingExcelColumn = new HashSet<MappingExcelColumn>();
+            Mappingexcelcolumn = new HashSet<Mappingexcelcolumn>();
         }
 
         public long Id { get; set; }
@@ -19,7 +19,7 @@ namespace TeleBillingUtility.Models
         public int DisplayOrder { get; set; }
         public bool IsSpecial { get; set; }
 
-        public virtual FixServiceType ServiceType { get; set; }
-        public virtual ICollection<MappingExcelColumn> MappingExcelColumn { get; set; }
+        public virtual FixServicetype ServiceType { get; set; }
+        public virtual ICollection<Mappingexcelcolumn> Mappingexcelcolumn { get; set; }
     }
 }

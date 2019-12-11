@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class FixEmailTemplateTag
+    public partial class FixEmailtemplatetag
     {
-        public long Id { get; set; }
+        public int Id { get; set; }
         public string TemplateTag { get; set; }
         public string TemplateText { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
 }

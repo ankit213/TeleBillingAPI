@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class BillReImburse
+    public partial class Billreimburse
     {
         public long Id { get; set; }
         public long BillMasterId { get; set; }
@@ -15,14 +16,16 @@ namespace TeleBillingUtility.Models
         public long? ApprovedBy { get; set; }
         public string ApprovalComment { get; set; }
         public DateTime? ApprovalDate { get; set; }
-        public int? ApproveDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? ApproveDateInt { get; set; }
         public bool IsDelete { get; set; }
-        public long? CreatedBy { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public int? CreatedDateInt { get; set; }
+        public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? CreatedDateInt { get; set; }
         public long? TransactionId { get; set; }
 
-        public virtual BillMaster BillMaster { get; set; }
-        public virtual EmployeeBillMaster EmployeeBill { get; set; }
+        public virtual Billmaster BillMaster { get; set; }
+        public virtual Employeebillmaster EmployeeBill { get; set; }
     }
 }

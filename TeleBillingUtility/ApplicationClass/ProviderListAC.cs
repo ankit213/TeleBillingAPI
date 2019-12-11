@@ -15,7 +15,7 @@ namespace TeleBillingUtility.ApplicationClass
 		public string ServiceTypes { get; set; }
 
 		[JsonProperty("updateddate")]
-		public DateTime UpdatedDate { get; set; }
+		public DateTime? UpdatedDate { get; set; }
 
 		[JsonProperty("currency")]
 		public string Currency { get; set; }

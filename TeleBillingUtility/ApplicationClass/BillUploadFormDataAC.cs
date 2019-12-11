@@ -12,4 +12,12 @@ namespace TeleBillingUtility.ApplicationClass
 
         public IFormFile Fileavaya { get; set; }
     }
+
+    public class PbxBillUploadFormDataAC
+    {
+        public string PbxBillUploadAc { get; set; }
+
+        public IFormFile File { get; set; }
+        
+    }
 }

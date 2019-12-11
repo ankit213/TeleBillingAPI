@@ -34,15 +34,17 @@ namespace TeleBillingRepository.Repository.Master.InternetDevice
 		/// </summary>
 		/// <param name="internetDeviceAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddInternetDevice(InternetDeviceAC internetDeviceAC, long userId);
+		Task<ResponseAC> AddInternetDevice(InternetDeviceAC internetDeviceAC, long userId,string loginUserName);
 
 		/// <summary>
 		/// This method used fo delete internet device detail
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeleteInternetDevice(long id, long userId);
+		Task<bool> DeleteInternetDevice(long id, long userId, string loginUserName);
 	}
 }

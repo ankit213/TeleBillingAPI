@@ -24,6 +24,19 @@ namespace TeleBillingRepository.Repository.StaticData
         /// </summary>
         /// <returns></returns>
         Task<List<DrpResponseAC>> ProviderServiceTypeList(long providerid);
+        /// <summary>
+        /// Provider Not Mapped Service Type List
+        /// </summary>
+        /// <param name="providerid"></param>
+        /// <returns></returns>
+        List<DrpResponseAC> ProviderNotMappedServiceTypeList(long providerid);
+
+        /// <summary>
+        /// Get Provider Common Service Type & not mapped service List
+        /// </summary>
+        /// <param name="providerid"></param>
+        /// <returns></returns>
+        List<DrpResponseAC> ProviderCommonServiceTypeList(long providerid, long mappingid);
 
 
         /// <summary>
@@ -139,14 +152,20 @@ namespace TeleBillingRepository.Repository.StaticData
 		/// <returns></returns>
 		Task<List<EmployeeAC>> GetEmployeeListByName(string name);
 
+        /// <summary>
+        /// Get Line Manager Employee List By Name where Emailid is not null
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        Task<List<EmployeeAC>> GetLineManagerEmployeeListByName(string name);
 
-		/// <summary>
-		/// This method used for get telephone number list
-		/// </summary>
-		/// <param name="number"></param>
-		/// <param name="id"></param> 
-		/// <returns></returns>
-		Task<List<TelephoneNumberAC>> GetNumberList(string number,long id);
+        /// <summary>
+        /// This method used for get telephone number list
+        /// </summary>
+        /// <param name="number"></param>
+        /// <param name="id"></param> 
+        /// <returns></returns>
+        Task<List<TelephoneNumberAC>> GetNumberList(string number,long id);
 		
 		/// <summary>
 		/// This method used for get package list for drop down
@@ -213,5 +232,49 @@ namespace TeleBillingRepository.Repository.StaticData
 		/// </summary>
 		/// <returns></returns>
 		Task<List<DrpResponseAC>> GetInternetDevices();
-	}
+
+		/// <summary>
+		/// This function used for get notifications
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		NotificationObjAC GetNotifications(long userId);
+
+		///// <summary>
+		///// This function used for get all notifications
+		///// </summary>
+		///// <param name="userId"></param>
+		///// <returns></returns>
+		//Task<List<NotificationAC>> GetAllNotifications(long userId);
+
+		/// <summary>
+		/// This function used for set isreadnotification=true flag
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		//Task<long> ReadNotification(long id);
+
+		/// <summary>
+		/// This fucntion used for read all notification
+		/// </summary>
+		/// <param name="lstNotification"></param>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		Task<bool> ReadAllNotification(long userId);
+
+		/// <summary>
+		/// This method use for get packages by provider
+		/// </summary>
+		/// <param name="serviceTypeId"></param>
+		/// <param name="providerId"></param>
+		/// <returns></returns>
+		Task<List<DrpResponseAC>> GetServicePackagesByProvider(long serviceTypeId, long providerId);
+
+        /// <summary>
+        /// ActionList of Audit activity log
+        /// </summary>
+        /// <returns></returns>
+        Task<List<DrpResponseAC>> ActionList();
+
+    }
 }

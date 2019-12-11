@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using TeleBillingRepository.Service.Constants;
 using TeleBillingRepository.Service.LogMangement;
 using TeleBillingUtility.ApplicationClass;
+using TeleBillingUtility.Helpers;
 using TeleBillingUtility.Helpers.Enums;
 using TeleBillingUtility.Models;
 
@@ -17,14 +19,15 @@ namespace TeleBillingRepository.Repository.Package
 	public class PackageRepository : IPackageRepository
 	{
 		#region "Private Variable(s)"
-		private readonly TeleBilling_V01Context _dbTeleBilling_V01Context;
+		private readonly telebilling_v01Context  _dbTeleBilling_V01Context;
 		private readonly ILogManagement _iLogManagement;
 		private readonly IStringConstant _iStringConstant;
 		private readonly IMapper _mapper;
+		private readonly DALMySql _objDalmysql = new DALMySql();
 		#endregion
 
 		#region "Constructor"
-		public PackageRepository(TeleBilling_V01Context dbTeleBilling_V01Context, IMapper mapper, IStringConstant iStringConstant,
+		public PackageRepository(telebilling_v01Context  dbTeleBilling_V01Context, IMapper mapper, IStringConstant iStringConstant,
 			ILogManagement iLogManagement)
 		{
 			_dbTeleBilling_V01Context = dbTeleBilling_V01Context;
@@ -37,17 +40,17 @@ namespace TeleBillingRepository.Repository.Package
 		#region Public Method(s)
 
 		public async Task<List<PackageAC>> GetPackageList() {
-			List<ProviderPackage> lstProviderPackage = await _dbTeleBilling_V01Context.ProviderPackage.Where(x=>!x.IsDelete).Include(x=>x.Provider).Include(x=>x.ServiceType).OrderByDescending(x=>x.CreatedDate).ToListAsync();
+			List<Providerpackage> lstProviderPackage = await _dbTeleBilling_V01Context.Providerpackage.Where(x=>!x.IsDelete).Include(x=>x.Provider).Include(x=>x.ServiceType).OrderByDescending(x=>x.Id).ToListAsync();
 			return _mapper.Map<List<PackageAC>>(lstProviderPackage);
 		}
 
 
-		public async Task<ResponseAC> AddPackage(long userId, PackageDetailAC packageDetailAC) {
+		public async Task<ResponseAC> AddPackage(long userId, PackageDetailAC packageDetailAC, string loginUserName) {
 			ResponseAC responseAC = new ResponseAC();
-			if (!await _dbTeleBilling_V01Context.ProviderPackage.AnyAsync(x => x.Name.ToLower() == packageDetailAC.Name.ToLower() && !x.IsDelete)) {
+			if (!await _dbTeleBilling_V01Context.Providerpackage.AnyAsync(x => x.Name.ToLower() == packageDetailAC.Name.ToLower() && !x.IsDelete)) {
 			
-				ProviderPackage providerPackage = new ProviderPackage();
-				providerPackage = _mapper.Map<ProviderPackage>(packageDetailAC);
+				Providerpackage providerPackage = new Providerpackage();
+				providerPackage = _mapper.Map<Providerpackage>(packageDetailAC);
 				providerPackage.CreatedBy = userId;
 				providerPackage.IsActive = true;
 				providerPackage.CreatedDate = DateTime.Now;
@@ -55,6 +58,8 @@ namespace TeleBillingRepository.Repository.Package
 			
 				await _dbTeleBilling_V01Context.AddAsync(providerPackage);
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddPackage, loginUserName, userId, "Package(" + providerPackage.Name + ")", (int)EnumList.ActionTemplateTypes.Add, providerPackage.Id);
 
 				responseAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
 				responseAC.Message = _iStringConstant.PackageAddedSuccessfully;
@@ -67,23 +72,27 @@ namespace TeleBillingRepository.Repository.Package
 			return responseAC;
 		}
 
-		public async Task<bool> DeletePackage(long userId, long id) {
-			ProviderPackage providerPackage = await _dbTeleBilling_V01Context.ProviderPackage.FirstOrDefaultAsync(x => x.Id == id);
-			if (providerPackage != null)
+		public async Task<bool> DeletePackage(long userId, long id, string loginUserName) {
+			Providerpackage providerPackage = await _dbTeleBilling_V01Context.Providerpackage.FirstOrDefaultAsync(x => x.Id == id);
+			SortedList sl = new SortedList();
+			sl.Add("p_packageid", id);
+			int result = Convert.ToInt16(_objDalmysql.ExecuteScaler("usp_GetPackageExists",sl));
+			if (result == 0)
 			{
 				providerPackage.IsDelete = true;
 				providerPackage.UpdatedBy = userId;
 				providerPackage.UpdatedDate = DateTime.Now;
 				_dbTeleBilling_V01Context.Update(providerPackage);
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeletePackage, loginUserName, userId, "Package(" + providerPackage.Name + ")", (int)EnumList.ActionTemplateTypes.Delete, providerPackage.Id);
 				return true;
 			}
 			return false;
-
 		}
 
-		public async Task<bool> ChangePackageStatus(long userId, long id) {
-			ProviderPackage providerPackage = await _dbTeleBilling_V01Context.ProviderPackage.FirstOrDefaultAsync(x => x.Id == id);
+		public async Task<bool> ChangePackageStatus(long userId, long id, string loginUserName) {
+			Providerpackage providerPackage = await _dbTeleBilling_V01Context.Providerpackage.FirstOrDefaultAsync(x => x.Id == id);
 			if (providerPackage != null)
 			{
 				#region Transaction Log Entry
@@ -99,6 +108,12 @@ namespace TeleBillingRepository.Repository.Package
 				providerPackage.UpdatedDate = DateTime.Now;
 				_dbTeleBilling_V01Context.Update(providerPackage);
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				if(providerPackage.IsActive)
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ActivePackage, loginUserName, userId, "Package(" + providerPackage.Name + ")", (int)EnumList.ActionTemplateTypes.Active, providerPackage.Id);
+				else
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeactivePackage, loginUserName, userId, "Package(" + providerPackage.Name + ")", (int)EnumList.ActionTemplateTypes.Deactive, providerPackage.Id);
+
 				return true;
 			}
 			return false;
@@ -106,7 +121,7 @@ namespace TeleBillingRepository.Repository.Package
 		
 		public async Task<PackageDetailAC> GetPackageById(long id) {
 
-			ProviderPackage providerPackage = await _dbTeleBilling_V01Context.ProviderPackage.FirstOrDefaultAsync(x=>x.Id == id);
+			Providerpackage providerPackage = await _dbTeleBilling_V01Context.Providerpackage.FirstOrDefaultAsync(x=>x.Id == id);
 			PackageDetailAC packageDetailAC = _mapper.Map<PackageDetailAC>(providerPackage);
 
 			if (!string.IsNullOrEmpty(packageDetailAC.HandsetDetailIds))
@@ -116,7 +131,7 @@ namespace TeleBillingRepository.Repository.Package
 				foreach(string handsetId in lstHandsetIds) {
 					DrpResponseAC drpResponseAC = new DrpResponseAC();
 					long newHandsetId = Convert.ToInt64(handsetId);
-					MstHandsetDetail handsetDetail = await _dbTeleBilling_V01Context.MstHandsetDetail.FirstOrDefaultAsync(x=>x.Id == newHandsetId && !x.IsDelete);
+					MstHandsetdetail handsetDetail = await _dbTeleBilling_V01Context.MstHandsetdetail.FirstOrDefaultAsync(x=>x.Id == newHandsetId && !x.IsDelete);
 					drpResponseAC.Id = handsetDetail.Id;
 					drpResponseAC.Name = handsetDetail.Name;
 					packageDetailAC.HandsetList.Add(drpResponseAC);

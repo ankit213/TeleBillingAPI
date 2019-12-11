@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
@@ -16,8 +17,10 @@ namespace TeleBillingUtility.Models
         public string EmailBcc { get; set; }
         public bool IsSent { get; set; }
         public DateTime? SendDate { get; set; }
-        public int? SendDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? SendDateInt { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int? CreatedDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? CreatedDateInt { get; set; }
     }
 }

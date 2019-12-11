@@ -19,8 +19,9 @@ namespace TeleBillingRepository.Repository.Template
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="templateDetailAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> UpdateTemplate(long userId, TemplateDetailAC templateDetailAC);
+		Task<ResponseAC> UpdateTemplate(long userId, TemplateDetailAC templateDetailAC, string loginUserName);
 
 
 
@@ -29,8 +30,9 @@ namespace TeleBillingRepository.Repository.Template
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="templateDetailAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddTemplate(long userId, TemplateDetailAC templateDetailAC);
+		Task<ResponseAC> AddTemplate(long userId, TemplateDetailAC templateDetailAC, string loginUserName);
 		
 		
 		/// <summary>

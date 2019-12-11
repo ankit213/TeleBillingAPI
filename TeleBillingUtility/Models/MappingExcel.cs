@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class MappingExcel
+    public partial class Mappingexcel
     {
-        public MappingExcel()
+        public Mappingexcel()
         {
-            MappingExcelColumn = new HashSet<MappingExcelColumn>();
+            Mappingexcelcolumn = new HashSet<Mappingexcelcolumn>();
         }
 
         public long Id { get; set; }
@@ -24,14 +25,22 @@ namespace TeleBillingUtility.Models
         public bool IsDelete { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int? CreatedDateInt { get; set; }
+
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-        public int? UpdatedDateInt { get; set; }
+
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
+        // Added ON 2019/10/04
+        public bool? IsCommonMapped { get; set; }
+        public long? MappedMappingId { get; set; }
+        public long? MappedServiceTypeId { get; set; }          
 
         public virtual Provider Provider { get; set; }
-        public virtual FixServiceType ServiceType { get; set; }
-        public virtual ICollection<MappingExcelColumn> MappingExcelColumn { get; set; }
+        public virtual FixServicetype ServiceType { get; set; }
+        public virtual ICollection<Mappingexcelcolumn> Mappingexcelcolumn { get; set; }
     }
 }

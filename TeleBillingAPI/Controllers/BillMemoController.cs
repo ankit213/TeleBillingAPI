@@ -14,7 +14,8 @@ namespace TeleBillingAPI.Controllers
 	[Authorize]
 	[Route("api/[controller]")]
 	[ApiController]
-	public class BillMemoController : ControllerBase {
+	public class BillMemoController : ControllerBase
+	{
 
 		#region "Private Variable(s)"
 		private readonly IBillMemoRepository _iBillMemoRepository;
@@ -22,7 +23,8 @@ namespace TeleBillingAPI.Controllers
 		#endregion
 
 		#region "Constructor"
-		public BillMemoController(IBillMemoRepository iBillMemoRepository, IHostingEnvironment hostingEnvironment) {
+		public BillMemoController(IBillMemoRepository iBillMemoRepository, IHostingEnvironment hostingEnvironment)
+		{
 			_iBillMemoRepository = iBillMemoRepository;
 			_hostingEnvironment = hostingEnvironment;
 		}
@@ -31,7 +33,7 @@ namespace TeleBillingAPI.Controllers
 
 
 		#region "Public Method(s)"
-		
+
 		[HttpGet]
 		[Route("list")]
 		public async Task<IActionResult> GetMemoList()
@@ -43,9 +45,9 @@ namespace TeleBillingAPI.Controllers
 
 		[HttpGet]
 		[Route("memobills/{month}/{year}/{providerid}")]
-		public async Task<IActionResult> GetMemoBills(int month,int year,int providerid)
+		public async Task<IActionResult> GetMemoBills(int month, int year, int providerid)
 		{
-			return Ok(await _iBillMemoRepository.GetMemoBills(month,year,providerid));
+			return Ok(await _iBillMemoRepository.GetMemoBills(month, year, providerid));
 		}
 
 
@@ -53,18 +55,18 @@ namespace TeleBillingAPI.Controllers
 		[Route("add")]
 		public async Task<IActionResult> AddMemo(MemoAC memoAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillMemoRepository.AddMemo(memoAC,Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillMemoRepository.AddMemo(memoAC, Convert.ToInt64(userId), fullname));
 		}
 
 		[HttpGet]
 		[Route("delete/{id}")]
 		public async Task<IActionResult> DeleteMemoBills(long id)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillMemoRepository.DeleteMemoBills(id, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillMemoRepository.DeleteMemoBills(id, Convert.ToInt64(userId), fullname));
 		}
 
 		[HttpGet]
@@ -76,37 +78,29 @@ namespace TeleBillingAPI.Controllers
 
 		[HttpPost]
 		[Route("memoapproval")]
-		public async Task<IActionResult> MemoApproval(MemoApprovalAC memoApprovalAC) {
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillMemoRepository.MemoApproval(memoApprovalAC,Convert.ToInt64(userId)));
+		public async Task<IActionResult> MemoApproval(MemoApprovalAC memoApprovalAC)
+		{
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillMemoRepository.MemoApproval(memoApprovalAC, Convert.ToInt64(userId),fullname));
 		}
-
-		
-		[HttpGet]
-		[Route("file/{id}")]
-		public async Task<IActionResult> GetFile(int id)	{
-			if(id == 0)
-			{
-				return File("~/TempUpload/1234568790123456789.Pdf", "application/pdf");
-			}
-			else if(id == 1)
-			{
-				return File("~/TempUpload/123456789.xlsx","application/vnd.ms-excel");
-			}
-			else
-				return File("~/TempUpload/123456879.docx", "application/vnd.ms-word");
-		}
-
 
 		#region Account Memo List
 
 		[HttpGet]
 		[Route("memo-list")]
-		public async Task<IActionResult> GetAccountMemoList() {
+		public async Task<IActionResult> GetAccountMemoList()
+		{
 			return Ok(await _iBillMemoRepository.GetAccountMemoList());
 		}
 
+
+		[HttpGet]
+		[Route("exportmemodetail/{id}")]
+		public IActionResult GetMemoExportDetail(long id)
+		{
+			return Ok(_iBillMemoRepository.GetMemoExportDetail(id));
+		}
 
 		#endregion
 

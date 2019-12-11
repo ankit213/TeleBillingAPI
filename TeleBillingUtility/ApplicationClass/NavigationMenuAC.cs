@@ -17,7 +17,8 @@ namespace TeleBillingUtility.ApplicationClass
 		public long LinkId { get;set; }
 		public long LinkViewIndex { get;set; }
 		public bool IsView { get; set; }
-		public bool IsViewOnly { get; set; }
+		public bool IsReadOnly { get; set; }
+		public bool IsEditable { get; set; }
 		public bool IsAdd { get; set; }
 		public bool IsEdit { get; set; }
 		public bool IsDelete { get; set; }

@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using TeleBillingRepository.Repository.Template;
 using TeleBillingUtility.ApplicationClass;
 
@@ -15,7 +14,8 @@ namespace TeleBillingAPI.Controllers
 	[Authorize]
 	[Route("api/[controller]")]
 	[ApiController]
-	public class TemplateController : ControllerBase {
+	public class TemplateController : ControllerBase
+	{
 
 		#region "Private Variable(s)"
 		private readonly ITemplateRepository _iTemplateRepository;
@@ -29,7 +29,7 @@ namespace TeleBillingAPI.Controllers
 		#endregion
 
 		#region Public Method(s)
-		
+
 		[HttpGet]
 		[Route("list")]
 		public async Task<IActionResult> GetTemplateList()
@@ -42,18 +42,18 @@ namespace TeleBillingAPI.Controllers
 		[Route("add")]
 		public async Task<IActionResult> AddTemplate(TemplateDetailAC templateDetailAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iTemplateRepository.AddTemplate(Convert.ToInt64(userId), templateDetailAC));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iTemplateRepository.AddTemplate(Convert.ToInt64(userId), templateDetailAC,fullname));
 		}
 
 		[HttpPut]
 		[Route("edit")]
 		public async Task<IActionResult> EditTemplate(TemplateDetailAC templateDetailAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iTemplateRepository.UpdateTemplate(Convert.ToInt64(userId), templateDetailAC));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iTemplateRepository.UpdateTemplate(Convert.ToInt64(userId), templateDetailAC,fullname));
 		}
 
 		[HttpGet]

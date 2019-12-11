@@ -14,8 +14,8 @@ namespace TeleBillingUtility.Models
         public string Name { get; set; }
         public long CurrencyId { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
 
         public virtual MstCurrency Currency { get; set; }
         public virtual ICollection<Provider> Provider { get; set; }

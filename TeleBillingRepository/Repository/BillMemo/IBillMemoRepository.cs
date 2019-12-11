@@ -29,16 +29,18 @@ namespace TeleBillingRepository.Repository.BillMemo
 		/// </summary>
 		/// <param name="memoAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddMemo(MemoAC memoAC, long userId);
+		Task<ResponseAC> AddMemo(MemoAC memoAC, long userId, string loginUserName);
 
 		/// <summary>
 		/// This method used for delete memo bills
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeleteMemoBills(long id, long userId);
+		Task<bool> DeleteMemoBills(long id, long userId, string loginUserName);
 
 		/// <summary>
 		/// This method used for get approval memo list.
@@ -51,8 +53,9 @@ namespace TeleBillingRepository.Repository.BillMemo
 		/// </summary>
 		/// <param name="memoApprovalAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> MemoApproval(MemoApprovalAC memoApprovalAC, long userId);
+		Task<ResponseAC> MemoApproval(MemoApprovalAC memoApprovalAC, long userId, string loginUserName);
 
 
 		/// <summary>
@@ -60,6 +63,12 @@ namespace TeleBillingRepository.Repository.BillMemo
 		/// </summary>
 		/// <returns></returns>
 		Task<List<BillMemoAC>> GetAccountMemoList();
-		
+
+		/// <summary>
+		/// This method used for export the memo
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		ExportMemoAC GetMemoExportDetail(long id);
 	}
 }

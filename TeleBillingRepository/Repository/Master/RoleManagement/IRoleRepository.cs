@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using TeleBillingUtility.ApplicationClass;
 
@@ -26,8 +24,9 @@ namespace TeleBillingRepository.Repository.Master.RoleManagement
 		/// </summary>
 		/// <param name="roleAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddRole(RoleAC roleAC,long userId);
+		Task<ResponseAC> AddRole(RoleAC roleAC,long userId,string loginUserName);
 
 
 		/// <summary>
@@ -35,24 +34,27 @@ namespace TeleBillingRepository.Repository.Master.RoleManagement
 		/// </summary>
 		/// <param name="roleAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> EditRole(RoleAC roleAC, long userId);
+		Task<ResponseAC> EditRole(RoleAC roleAC, long userId,string loginUserName);
 
 		/// <summary>
 		/// This method used for delete exitst role
 		/// </summary>
 		/// <param name="roleId"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeleteRole(long roleId, long userId);
+		Task<bool> DeleteRole(long roleId, long userId, string loginUserName);
 
 		/// <summary>
 		/// This method used for change exitst role status
 		/// </summary>
 		/// <param name="roleId"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> ChangeRoleStatus(long roleId, long userId);
+		Task<bool> ChangeRoleStatus(long roleId, long userId, string loginUserName);
 
 
 		/// <summary>
@@ -75,7 +77,15 @@ namespace TeleBillingRepository.Repository.Master.RoleManagement
 		/// </summary>
 		/// <param name="roleRightsAC"></param>
 		/// <param name="userId"></param> 
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> UpdateRoleRights(long userId,List<RoleRightsAC> roleRightsAC);
+		Task<ResponseAC> UpdateRoleRights(long userId,List<RoleRightsAC> roleRightsAC, string loginUserName);
+		
+		
+		/// <summary>
+		/// This method used for get service type list
+		/// </summary>
+		/// <returns></returns>
+		Task<List<ServiceTypeAC>> GetServiceTypes();
 	}
 }

@@ -13,5 +13,14 @@ namespace TeleBillingUtility.ApplicationClass
 		[JsonProperty("telephonenumber")]
 		public string TelephoneNumber1 { get; set; }
 
+		[JsonProperty("providerid")]
+		public long ProviderId { get; set; }
+		
+		[JsonProperty("providername")]
+		public string ProviderName { get; set; }
+
+		[JsonProperty("isdelete")]
+		public bool IsDelete { get; set;}
+
 	}
 }

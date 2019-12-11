@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,5 +28,6 @@ namespace TeleBillingUtility.ApplicationClass
 
 		[JsonProperty("calltypeid")]
 		public long CallTypeId { get; set; }
+		
 	}
 }

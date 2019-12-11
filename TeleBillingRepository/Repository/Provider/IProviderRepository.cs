@@ -12,13 +12,14 @@ namespace TeleBillingRepository.Repository.Provider
         /// <returns></returns>
         Task<List<ProviderListAC>> GetProviders();
 
-        /// <summary>
-        /// This method used for add new provider 
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="providerAC"></param>
-        /// <returns></returns>
-        Task<ResponseAC> AddProvider(long userId, ProviderAC providerAC);
+		/// <summary>
+		/// This method used for add new provider 
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <param name="providerAC"></param>
+		/// <param name="loginUserName"></param>
+		/// <returns></returns>
+		Task<ResponseAC> AddProvider(long userId, ProviderAC providerAC,string loginUserName);
 
 
 		/// <summary>
@@ -39,24 +40,35 @@ namespace TeleBillingRepository.Repository.Provider
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="id"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeleteProvider(long userId, long id);
+		Task<bool> DeleteProvider(long userId, long id, string loginUserName);
+
+
+		/// <summary>
+		/// This method used for get all(active/inactive) provider list for drop down.
+		/// </summary>
+		/// <returns></returns>
+		Task<List<DrpResponseAC>> AllProviderList();
+
 
 		/// <summary>
 		/// This method used for change exists provider status
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="id"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> ChangeProviderStatus(long userId,long id);
+		Task<bool> ChangeProviderStatus(long userId,long id, string loginUserName);
 
 		/// <summary>
 		/// This method used for add new provider 
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="providerAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> UpdateProvider(long userId, ProviderAC providerAC);
+		Task<ResponseAC> UpdateProvider(long userId, ProviderAC providerAC, string loginUserName);
 
 	}
 }

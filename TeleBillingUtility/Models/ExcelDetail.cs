@@ -3,10 +3,12 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class ExcelDetail
+    public partial class Exceldetail
     {
         public long Id { get; set; }
         public long ExcelUploadLogId { get; set; }
+        public long? MergeExcelUploadId { get; set; }
+        
         public long ServiceTypeId { get; set; }
         public DateTime? CallDate { get; set; }
         public TimeSpan? CallTime { get; set; }
@@ -16,10 +18,12 @@ namespace TeleBillingUtility.Models
         public string ReceiverNumber { get; set; }
         public string ReceiverName { get; set; }
         public decimal? CallAmount { get; set; }
+        public decimal? CallDataKB { get; set; }
+        public long? MessageCount { get; set; }
         public long? CurrencyId { get; set; }
         public long? CallTransactionTypeId { get; set; }
         public string TransType { get; set; }
-        public string Destiantion { get; set; }
+        public string Destination { get; set; }
         public long? GroupId { get; set; }
         public string SubscriptionType { get; set; }
         public bool? CallWithinGroup { get; set; }
@@ -44,12 +48,12 @@ namespace TeleBillingUtility.Models
         public decimal? InitialDiscountedSavingMonthlyKd { get; set; }
         public decimal? InitialDiscountedSavingYearlyKd { get; set; }
 
-        public virtual FixAssignType AssignTypeNavigation { get; set; }
-        public virtual MstBusinessUnit BusinessUnitNavigation { get; set; }
-        public virtual TransactionTypeSetting CallTransactionType { get; set; }
-        public virtual MstCostCenter CostCenter { get; set; }
+        public virtual FixAssigntype AssignTypeNavigation { get; set; }
+        public virtual MstBusinessunit BusinessUnitNavigation { get; set; }
+        public virtual Transactiontypesetting CallTransactionType { get; set; }
+        public virtual MstCostcenter CostCenter { get; set; }
         public virtual MstCurrency Currency { get; set; }
         public virtual MstEmployee Employee { get; set; }
-        public virtual FixServiceType ServiceType { get; set; }
+        public virtual FixServicetype ServiceType { get; set; }
     }
 }

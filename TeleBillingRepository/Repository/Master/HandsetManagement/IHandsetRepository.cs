@@ -41,15 +41,17 @@ namespace TeleBillingRepository.Repository.Master.HandsetManagement
 		/// </summary>
 		/// <param name="handsetDetailAC"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddHandset(HandsetDetailAC handsetDetailAC, long userId);
+		Task<ResponseAC> AddHandset(HandsetDetailAC handsetDetailAC, long userId, string loginUserName);
 
 		/// <summary>
 		/// This method used fo delete handset detail
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeleteHandset(long id, long userId);
+		Task<bool> DeleteHandset(long id, long userId, string loginUserName);
 	}
 }

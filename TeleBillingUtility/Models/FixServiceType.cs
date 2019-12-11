@@ -3,38 +3,38 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class FixServiceType
+    public partial class FixServicetype
     {
-        public FixServiceType()
+        public FixServicetype()
         {
-            BillDetails = new HashSet<BillDetails>();
-            BillMasterServiceType = new HashSet<BillMasterServiceType>();
-            EmployeeBillServicePackage = new HashSet<EmployeeBillServicePackage>();
-            ExcelDetail = new HashSet<ExcelDetail>();
-            ExcelUploadLogServiceType = new HashSet<ExcelUploadLogServiceType>();
-            MappingExcel = new HashSet<MappingExcel>();
-            MappingServiceTypeField = new HashSet<MappingServiceTypeField>();
-            ProviderPackage = new HashSet<ProviderPackage>();
-            ProviderService = new HashSet<ProviderService>();
-            SkypeExcelDetail = new HashSet<SkypeExcelDetail>();
+            Billdetails = new HashSet<Billdetails>();
+            BillmasterServicetype = new HashSet<BillmasterServicetype>();
+            Employeebillservicepackage = new HashSet<Employeebillservicepackage>();
+            Exceldetail = new HashSet<Exceldetail>();
+            ExceluploadlogServicetype = new HashSet<ExceluploadlogServicetype>();
+            Mappingexcel = new HashSet<Mappingexcel>();
+            Mappingservicetypefield = new HashSet<Mappingservicetypefield>();
+            Providerpackage = new HashSet<Providerpackage>();
+            Providerservice = new HashSet<Providerservice>();
+            Skypeexceldetail = new HashSet<Skypeexceldetail>();
         }
 
         public long Id { get; set; }
         public string Name { get; set; }
         public bool IsActive { get; set; }
         public bool IsBusinessOnly { get; set; }
-        public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
 
-        public virtual ICollection<BillDetails> BillDetails { get; set; }
-        public virtual ICollection<BillMasterServiceType> BillMasterServiceType { get; set; }
-        public virtual ICollection<EmployeeBillServicePackage> EmployeeBillServicePackage { get; set; }
-        public virtual ICollection<ExcelDetail> ExcelDetail { get; set; }
-        public virtual ICollection<ExcelUploadLogServiceType> ExcelUploadLogServiceType { get; set; }
-        public virtual ICollection<MappingExcel> MappingExcel { get; set; }
-        public virtual ICollection<MappingServiceTypeField> MappingServiceTypeField { get; set; }
-        public virtual ICollection<ProviderPackage> ProviderPackage { get; set; }
-        public virtual ICollection<ProviderService> ProviderService { get; set; }
-        public virtual ICollection<SkypeExcelDetail> SkypeExcelDetail { get; set; }
+        public virtual ICollection<Billdetails> Billdetails { get; set; }
+        public virtual ICollection<BillmasterServicetype> BillmasterServicetype { get; set; }
+        public virtual ICollection<Employeebillservicepackage> Employeebillservicepackage { get; set; }
+        public virtual ICollection<Exceldetail> Exceldetail { get; set; }
+        public virtual ICollection<ExceluploadlogServicetype> ExceluploadlogServicetype { get; set; }
+        public virtual ICollection<Mappingexcel> Mappingexcel { get; set; }
+        public virtual ICollection<Mappingservicetypefield> Mappingservicetypefield { get; set; }
+        public virtual ICollection<Providerpackage> Providerpackage { get; set; }
+        public virtual ICollection<Providerservice> Providerservice { get; set; }
+        public virtual ICollection<Skypeexceldetail> Skypeexceldetail { get; set; }
     }
 }

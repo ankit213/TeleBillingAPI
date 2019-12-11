@@ -19,24 +19,27 @@ namespace TeleBillingRepository.Repository.Package
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="packageDetailAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddPackage(long userId, PackageDetailAC packageDetailAC);
+		Task<ResponseAC> AddPackage(long userId, PackageDetailAC packageDetailAC, string loginUserName);
 
 		/// <summary>
 		/// This method used for delete package
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="id"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeletePackage(long userId, long id);
+		Task<bool> DeletePackage(long userId, long id, string loginUserName);
 
 		/// <summary>
 		/// This method used for change package status
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="id"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> ChangePackageStatus(long userId, long id);
+		Task<bool> ChangePackageStatus(long userId, long id, string loginUserName);
 		
 		
 		/// <summary>

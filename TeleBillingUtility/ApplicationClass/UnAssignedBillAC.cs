@@ -43,6 +43,9 @@ namespace TeleBillingUtility.ApplicationClass {
 
 		[JsonProperty("isautoassigned")]
 		public bool IsAutoAssigned { get; set;}
-		
+
+		[JsonProperty("callernumber")]
+		public string CallerNumber { get; set; }
+
 	}
 }

@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using JqueryDataTables.ServerSide.AspNetCoreWeb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using TeleBillingRepository.Repository.BillProcess;
@@ -13,16 +17,19 @@ namespace TeleBillingAPI.Controllers
 	[EnableCors("CORS")]
 	[Authorize]
 	[Route("api/[controller]")]
-    [ApiController]
-    public class BillProcessController : ControllerBase
-    {
+	[ApiController]
+	public class BillProcessController : ControllerBase
+	{
 		#region "Private Variable(s)"
 		private readonly IBillProcessRepository _iBillProcessRepository;
+		private readonly IHostingEnvironment _hostingEnviorment;
 		#endregion
-		
+
 		#region "Constructor"
-		public BillProcessController(IBillProcessRepository iBillProcessRepository) {
+		public BillProcessController(IBillProcessRepository iBillProcessRepository, IHostingEnvironment hostingEnviorment)
+		{
 			_iBillProcessRepository = iBillProcessRepository;
+			_hostingEnviorment = hostingEnviorment;
 		}
 
 		#endregion
@@ -31,7 +38,8 @@ namespace TeleBillingAPI.Controllers
 
 		[HttpGet]
 		[Route("currentbills")]
-		public async Task<IActionResult> GetCurrentBills() {
+		public async Task<IActionResult> GetCurrentBills()
+		{
 			var currentUser = HttpContext.User;
 			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
 			return Ok(await _iBillProcessRepository.GetCurrentBills(Convert.ToInt64(userId)));
@@ -39,16 +47,19 @@ namespace TeleBillingAPI.Controllers
 
 		[HttpGet]
 		[Route("viewbilldetails/{employeebillmasterid}")]
-		public async Task<IActionResult> GetViewBillDetailsByEmpId(long employeebillmasterid) {
+		public async Task<IActionResult> GetViewBillDetailsByEmpId(long employeebillmasterid)
+		{
 			return Ok(await _iBillProcessRepository.GetViewBillDetails(employeebillmasterid));
 		}
 
 		[HttpPost]
 		[Route("billidentificationsave")]
-		public async Task<IActionResult> BillIdentificationSave(BillIdentificationAC billIdentificationAC) {
+		public async Task<IActionResult> BillIdentificationSave(BillIdentificationAC billIdentificationAC)
+		{
 			var currentUser = HttpContext.User;
 			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillProcessRepository.BillIdentificationSave(billIdentificationAC,Convert.ToInt64(userId)));
+			string fullname = currentUser.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillProcessRepository.BillIdentificationSave(billIdentificationAC, Convert.ToInt64(userId), fullname));
 		}
 
 
@@ -58,12 +69,13 @@ namespace TeleBillingAPI.Controllers
 		{
 			var currentUser = HttpContext.User;
 			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillProcessRepository.BillProcess(billIdentificationAC, Convert.ToInt64(userId)));
+			string fullname = currentUser.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillProcessRepository.BillProcess(billIdentificationAC, Convert.ToInt64(userId), fullname));
 		}
 
 
 		#region Line Manager Approval
-		
+
 
 		[HttpGet]
 		[Route("linemanageapprovallist")]
@@ -80,7 +92,8 @@ namespace TeleBillingAPI.Controllers
 		{
 			var currentUser = HttpContext.User;
 			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillProcessRepository.LineManagerApproval(lineManagerApprovalAC, Convert.ToInt64(userId)));
+			string fullname = currentUser.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillProcessRepository.LineManagerApproval(lineManagerApprovalAC, Convert.ToInt64(userId), fullname));
 		}
 
 
@@ -88,69 +101,138 @@ namespace TeleBillingAPI.Controllers
 
 		#region My Staff Bills
 
-		[HttpGet]
+		[HttpPost]
 		[Route("mystaffbills")]
-		public async Task<IActionResult> GetMyStaffBills()
+		public async Task<IActionResult> GetMyStaffBills([FromBody]JqueryDataWithExtraParameterAC param)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillProcessRepository.GetMyStaffBills(Convert.ToInt64(userId)));
+			string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			var results = await _iBillProcessRepository.GetMyStaffBills(param, Convert.ToInt64(userId));
+			return new JsonResult(new JqueryDataTablesResult<CurrentBillAC>
+			{
+				Draw = param.DataTablesParameters.Draw,
+				Data = results.Items,
+				RecordsFiltered = results.TotalSize,
+				RecordsTotal = results.TotalSize
+			});
 		}
+
+
+
+		[HttpPost]
+		[Route("exportmystaffbills")]
+		public IActionResult ExportMyStaffBillsList(SearchMyStaffAC searchMyStaffAC)
+		{
+			string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			var results = _iBillProcessRepository.GetMyStaffExportList(searchMyStaffAC, Convert.ToInt64(userId));
+			string fileName = "MyStaffBills.xlsx";
+			string folderPath = Path.Combine(_hostingEnviorment.WebRootPath, "TempUploadTelePhone");
+			string filePath = Path.Combine(folderPath, fileName);
+			if (!Directory.Exists(folderPath))
+				Directory.CreateDirectory(folderPath);
+			if (System.IO.File.Exists(filePath))
+			{
+				System.IO.File.Delete(filePath);
+			}
+			FileInfo file = new FileInfo(Path.Combine(folderPath, fileName));
+			using (var package = new ExcelPackage(file))
+			{
+				var workSheet = package.Workbook.Worksheets.Add("MyStaffBills");
+				workSheet.Cells.LoadFromCollection(results, true);
+				package.Save();
+			}
+			return Ok();
+		}
+
 
 		#endregion
 
 		#region Previous Period Bills 
 
-		[HttpGet]
+		[HttpPost]
 		[Route("previousperiodbills")]
-		public async Task<IActionResult> GetPreviousPeriodBills()
+		public async Task<IActionResult> GetPreviousPeriodBills([FromBody]JqueryDataWithExtraParameterAC param)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillProcessRepository.GetPreviousPeriodBills(Convert.ToInt64(userId)));
+			string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			var results = await _iBillProcessRepository.GetPreviousPeriodBills(param, Convert.ToInt64(userId));
+			return new JsonResult(new JqueryDataTablesResult<CurrentBillAC>
+			{
+				Draw = param.DataTablesParameters.Draw,
+				Data = results.Items,
+				RecordsFiltered = results.TotalSize,
+				RecordsTotal = results.TotalSize
+			});
 		}
 
 
+		[HttpPost]
+		[Route("exportpreviousperiodbills")]
+		public IActionResult ExportPreviousPeriodBillList(SearchMyStaffAC searchMyStaffAC)
+		{
+			string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			var results = _iBillProcessRepository.GetExportPreviousPeriodBills(searchMyStaffAC, Convert.ToInt64(userId));
+			string fileName = "PreviousPeriodBills.xlsx";
+			string folderPath = Path.Combine(_hostingEnviorment.WebRootPath, "TempUploadTelePhone");
+			string filePath = Path.Combine(folderPath, fileName);
+			if (!Directory.Exists(folderPath))
+				Directory.CreateDirectory(folderPath);
+			if (System.IO.File.Exists(filePath))
+			{
+				System.IO.File.Delete(filePath);
+			}
+			FileInfo file = new FileInfo(Path.Combine(folderPath, fileName));
+			using (var package = new ExcelPackage(file))
+			{
+				var workSheet = package.Workbook.Worksheets.Add("PreviousPeriodBills");
+				workSheet.Cells.LoadFromCollection(results, true);
+				package.Save();
+			}
+			return Ok();
+		}
+
 		[HttpGet]
 		[Route("reidentificationrequest/{employeebillmasterid}")]
-		public async Task<IActionResult> ReIdentificationRequest(long employeebillmasterid) {
+		public async Task<IActionResult> ReIdentificationRequest(long employeebillmasterid)
+		{
 			var currentUser = HttpContext.User;
 			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillProcessRepository.ReIdentificationRequest(Convert.ToInt64(userId),employeebillmasterid));
+			string fullname = currentUser.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillProcessRepository.ReIdentificationRequest(Convert.ToInt64(userId), employeebillmasterid, fullname));
 		}
 
 		#endregion
 
 		#region Re-Imburse Request
-			[HttpPost]
-			[Route("reimbursementrequest")]
-			public async Task<IActionResult> ReImbursementRequest(ReImbursementRequestAC reImbursementRequestAC)
-			{
-				var currentUser = HttpContext.User;
-				string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-				return Ok(await _iBillProcessRepository.ReImbursementRequest(Convert.ToInt64(userId), reImbursementRequestAC));
-			}
+		[HttpPost]
+		[Route("reimbursementrequest")]
+		public async Task<IActionResult> ReImbursementRequest(ReImbursementRequestAC reImbursementRequestAC)
+		{
+			var currentUser = HttpContext.User;
+			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname = currentUser.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillProcessRepository.ReImbursementRequest(Convert.ToInt64(userId), reImbursementRequestAC, fullname));
+		}
 
-			[HttpGet]
-			[Route("reimbursebills")]
-			public async Task<IActionResult> GetReImburseBills()
-			{
-				return Ok(await _iBillProcessRepository.GetReImburseBills());
-			}
+		[HttpGet]
+		[Route("reimbursebills")]
+		public async Task<IActionResult> GetReImburseBills()
+		{
+			return Ok(await _iBillProcessRepository.GetReImburseBills());
+		}
 
-			[HttpPost]
-			[Route("reimbursebillapproval")]
-			public async Task<IActionResult> GetReImburseBills(ReImburseBillApprovalAC reImburseBillApprovalAC)
-			{
-				var currentUser = HttpContext.User;
-				string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-				return Ok(await _iBillProcessRepository.ReImburseBillApproval(Convert.ToInt64(userId), reImburseBillApprovalAC));
-			}
+		[HttpPost]
+		[Route("reimbursebillapproval")]
+		public async Task<IActionResult> ReImburseBillApproval(ReImburseBillApprovalAC reImburseBillApprovalAC)
+		{
+			var currentUser = HttpContext.User;
+			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname = currentUser.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillProcessRepository.ReImburseBillApproval(Convert.ToInt64(userId), reImburseBillApprovalAC, fullname));
+		}
 
 		#endregion
 
 		#region Change Bill Status
-		
+
 		[HttpGet]
 		[Route("changebillstatuslist")]
 		public async Task<IActionResult> GetChangeBillStatusList()
@@ -166,13 +248,13 @@ namespace TeleBillingAPI.Controllers
 		{
 			var currentUser = HttpContext.User;
 			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillProcessRepository.ChangeBillStatus(changeBillStatusACs,Convert.ToInt64(userId)));
+			string fullname = currentUser.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iBillProcessRepository.ChangeBillStatus(changeBillStatusACs, Convert.ToInt64(userId), fullname));
 		}
 
 
 
 		#endregion
-
 
 		#endregion
 

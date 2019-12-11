@@ -3,19 +3,19 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class FixLineType
+    public partial class FixLinetype
     {
-        public FixLineType()
+        public FixLinetype()
         {
-            TelephoneNumber = new HashSet<TelephoneNumber>();
+            Telephonenumber = new HashSet<Telephonenumber>();
         }
 
-        public long Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
 
-        public virtual ICollection<TelephoneNumber> TelephoneNumber { get; set; }
+        public virtual ICollection<Telephonenumber> Telephonenumber { get; set; }
     }
 }

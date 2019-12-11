@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class SkypeExcelDetail
+    public partial class Skypeexceldetail
     {
         public long Id { get; set; }
         public long ExcelUploadLogId { get; set; }
@@ -20,7 +20,7 @@ namespace TeleBillingUtility.Models
         public string Description { get; set; }
 
         public virtual MstCurrency Currency { get; set; }
-        public virtual ExcelUploadLog ExcelUploadLog { get; set; }
-        public virtual FixServiceType ServiceType { get; set; }
+        public virtual Exceluploadlog ExcelUploadLog { get; set; }
+        public virtual FixServicetype ServiceType { get; set; }
     }
 }

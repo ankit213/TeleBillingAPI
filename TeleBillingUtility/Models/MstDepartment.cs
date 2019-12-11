@@ -14,10 +14,10 @@ namespace TeleBillingUtility.Models
         public string Name { get; set; }
         public long BusinessUnitId { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
 
-        public virtual MstBusinessUnit BusinessUnit { get; set; }
+        public virtual MstBusinessunit BusinessUnit { get; set; }
         public virtual ICollection<MstEmployee> MstEmployee { get; set; }
     }
 }

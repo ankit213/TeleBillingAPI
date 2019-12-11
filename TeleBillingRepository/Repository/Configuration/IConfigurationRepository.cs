@@ -12,8 +12,9 @@ namespace TeleBillingRepository.Repository.Configuration
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="configuration"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddConfiguration(long userId, TeleBillingUtility.Models.Configuration configuration);
+		Task<ResponseAC> AddConfiguration(long userId, TeleBillingUtility.Models.Configuration configuration, string loginUserName);
 		
 		
 		/// <summary>
@@ -33,24 +34,27 @@ namespace TeleBillingRepository.Repository.Configuration
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="providerWiseTransactionAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionAC);
+		Task<ResponseAC> AddProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionA, string loginUserName);
 
 		/// <summary>
 		///  This method sued for update provider wise transaction 
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="providerWiseTransactionAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> UpdateProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionAC);
+		Task<ResponseAC> UpdateProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionAC, string loginUserName);
 
 		/// <summary>
 		/// This method sued for delete provider wise transaction 
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="id"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeleteProviderWiseTransaction(long userId, long id);
+		Task<bool> DeleteProviderWiseTransaction(long userId, long id, string loginUserName);
 
 		/// <summary>
 		/// This method sued for get provider wise transaction 
@@ -66,15 +70,28 @@ namespace TeleBillingRepository.Repository.Configuration
 		/// <param name="userId"></param>
 		/// <param name="exceluploadDetail"></param>
 		/// <param name="providerId"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<BulkAssignTelephoneResponseAC> BulkUploadProviderWiseTrans(long userId, ExcelUploadResponseAC exceluploadDetail, long providerId);
-		
+		Task<BulkAssignTelephoneResponseAC> BulkUploadProviderWiseTrans(long userId, ExcelUploadResponseAC exceluploadDetail, long providerId, string loginUserName);
+
 		/// <summary>
 		/// This method used for update transaction setting
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="providerWiseTransactionAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> UpdateTransactionTypeSetting(long userId, ProviderWiseTransactionAC providerWiseTransactionAC);
+		Task<ResponseAC> UpdateTransactionTypeSetting(long userId, ProviderWiseTransactionAC providerWiseTransactionAC, string loginUserName);
+
+
+
+		/// <summary>
+		/// This method used for active or inactive provider wise transaction status
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="userId"></param>
+		/// <param name="loginUserName"></param>
+		/// <returns></returns>
+		Task<bool> ChangeProviderWiseTransactionStatus(long id, long userId, string loginUserName);
 	}
 }

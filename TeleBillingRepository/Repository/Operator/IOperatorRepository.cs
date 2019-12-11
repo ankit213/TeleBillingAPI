@@ -20,8 +20,9 @@ namespace TeleBillingRepository.Repository.Operator
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="operatorCallLogDetailAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> AddOperatorCallLog(long userId, OperatorCallLogDetailAC operatorCallLogDetailAC);
+		Task<ResponseAC> AddOperatorCallLog(long userId, OperatorCallLogDetailAC operatorCallLogDetailAC, string loginUserName);
 
 
 		/// <summary>
@@ -29,8 +30,9 @@ namespace TeleBillingRepository.Repository.Operator
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="id"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<bool> DeleteOperatorCallLog(long userId, long id);
+		Task<bool> DeleteOperatorCallLog(long userId, long id, string loginUserName);
 
 
 		/// <summary>
@@ -38,8 +40,9 @@ namespace TeleBillingRepository.Repository.Operator
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="operatorCallLogDetailAC"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<ResponseAC> EditOperatorCallLog(long userId, OperatorCallLogDetailAC operatorCallLogDetailAC);
+		Task<ResponseAC> EditOperatorCallLog(long userId, OperatorCallLogDetailAC operatorCallLogDetailAC, string loginUserName);
 		
 
 		/// <summary>
@@ -53,9 +56,10 @@ namespace TeleBillingRepository.Repository.Operator
 		/// <summary>
 		/// This method sued for bulk upload perator call log
 		/// </summary>
-		/// <param name="v"></param>
+		/// <param name="userId"></param>
 		/// <param name="exceluploadDetail"></param>
+		/// <param name="loginUserName"></param>
 		/// <returns></returns>
-		Task<BulkAssignTelephoneResponseAC> BulkUploadOperatorCallLog(long v, ExcelUploadResponseAC exceluploadDetail);
+		Task<BulkAssignTelephoneResponseAC> BulkUploadOperatorCallLog(long userId, ExcelUploadResponseAC exceluploadDetail, string loginUserName);
 	}
 }

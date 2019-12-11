@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class FixAssignType
+    public partial class FixAssigntype
     {
-        public FixAssignType()
+        public FixAssigntype()
         {
-            EmployeeBillMaster = new HashSet<EmployeeBillMaster>();
-            ExcelDetail = new HashSet<ExcelDetail>();
-            TelephoneNumberAllocation = new HashSet<TelephoneNumberAllocation>();
+            Employeebillmaster = new HashSet<Employeebillmaster>();
+            Exceldetail = new HashSet<Exceldetail>();
+            Telephonenumberallocation = new HashSet<Telephonenumberallocation>();
         }
 
         public long Id { get; set; }
@@ -18,8 +18,8 @@ namespace TeleBillingUtility.Models
         public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
 
-        public virtual ICollection<EmployeeBillMaster> EmployeeBillMaster { get; set; }
-        public virtual ICollection<ExcelDetail> ExcelDetail { get; set; }
-        public virtual ICollection<TelephoneNumberAllocation> TelephoneNumberAllocation { get; set; }
+        public virtual ICollection<Employeebillmaster> Employeebillmaster { get; set; }
+        public virtual ICollection<Exceldetail> Exceldetail { get; set; }
+        public virtual ICollection<Telephonenumberallocation> Telephonenumberallocation { get; set; }
     }
 }

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class LogAuditTrial
+    public partial class LogAudittrial
     {
         public long AuditTrialLogId { get; set; }
         public long UserId { get; set; }
@@ -14,8 +15,9 @@ namespace TeleBillingUtility.Models
         public string Version { get; set; }
         public bool IsMobile { get; set; }
         public DateTime AuditDate { get; set; }
-        public int? AuditDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? AuditDateInt { get; set; }
 
-        public virtual FixLogType LogType { get; set; }
+        public virtual FixLogtype LogType { get; set; }
     }
 }

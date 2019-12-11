@@ -18,14 +18,14 @@ namespace TeleBillingRepository.Repository.Configuration
 	public class ConfigurationRepository : IConfigurationRepository
 	{
 		#region "Private Variable(s)"
-		private readonly TeleBilling_V01Context _dbTeleBilling_V01Context;
+		private readonly telebilling_v01Context _dbTeleBilling_V01Context;
 		private readonly ILogManagement _iLogManagement;
 		private readonly IStringConstant _iStringConstant;
 		private readonly IMapper _mapper;
 		#endregion
 
 		#region "Constructor"
-		public ConfigurationRepository(TeleBilling_V01Context dbTeleBilling_V01Context, IStringConstant iStringConstant,
+		public ConfigurationRepository(telebilling_v01Context dbTeleBilling_V01Context, IStringConstant iStringConstant,
 			ILogManagement iLogManagement, IMapper mapper)
 		{
 			_dbTeleBilling_V01Context = dbTeleBilling_V01Context;
@@ -38,7 +38,7 @@ namespace TeleBillingRepository.Repository.Configuration
 		#region Public Method(s)
 
 		#region Notification & Reminder
-		public async Task<ResponseAC> AddConfiguration(long userId, TeleBillingUtility.Models.Configuration configuration)
+		public async Task<ResponseAC> AddConfiguration(long userId, TeleBillingUtility.Models.Configuration configuration, string loginUserName)
 		{
 			ResponseAC responseAC = new ResponseAC();
 			if (configuration.Id == 0)
@@ -71,6 +71,7 @@ namespace TeleBillingRepository.Repository.Configuration
 				responseAC.Message = _iStringConstant.ConfigurationUpdateSuccessfully;
 			}
 			responseAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
+			await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.UpdateReminderNotificaiton, loginUserName, userId, "Reminder & notification", (int)EnumList.ActionTemplateTypes.ReminderNotificaiton, configuration.Id);
 			return responseAC;
 		}
 
@@ -83,18 +84,19 @@ namespace TeleBillingRepository.Repository.Configuration
 		#region Provider Wise Transaction 
 		public async Task<List<ProviderWiseTransactionAC>> GetProviderWiseTransaction()
 		{
-			List<TransactionTypeSetting> transactionTypeSettings = await _dbTeleBilling_V01Context.TransactionTypeSetting.Where(x => !x.IsDelete).Include(x=>x.Provider).Include(x=>x.SetTypeAsNavigation).OrderByDescending(x => x.CreatedDate).ToListAsync();
+			List<Transactiontypesetting> transactionTypeSettings = await _dbTeleBilling_V01Context.Transactiontypesetting.Where(x => !x.IsDelete).Include(x => x.Provider).Include(x => x.SetTypeAsNavigation).OrderByDescending(x => x.Id).ToListAsync();
 			return _mapper.Map<List<ProviderWiseTransactionAC>>(transactionTypeSettings);
 		}
 
-		public async Task<ResponseAC> AddProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionAC)
+		public async Task<ResponseAC> AddProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionAC, string loginUserName)
 		{
 			ResponseAC response = new ResponseAC();
-			if (!await _dbTeleBilling_V01Context.TransactionTypeSetting.AnyAsync(x => !x.IsDelete && x.ProviderId == providerWiseTransactionAC.ProviderId && x.TransactionType.ToLower().Trim() == providerWiseTransactionAC.TransactionType.ToLower().Trim()))
+			if (!await _dbTeleBilling_V01Context.Transactiontypesetting.AnyAsync(x => !x.IsDelete && x.ProviderId == providerWiseTransactionAC.ProviderId && x.TransactionType.ToLower().Trim() == providerWiseTransactionAC.TransactionType.ToLower().Trim()))
 			{
-				TransactionTypeSetting transactionTypeSetting = _mapper.Map<TransactionTypeSetting>(providerWiseTransactionAC);
+				Transactiontypesetting transactionTypeSetting = _mapper.Map<Transactiontypesetting>(providerWiseTransactionAC);
 
 				transactionTypeSetting.CreatedBy = userId;
+				transactionTypeSetting.IsActive = true;
 				transactionTypeSetting.CreatedDate = DateTime.Now;
 				transactionTypeSetting.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
 
@@ -103,6 +105,7 @@ namespace TeleBillingRepository.Repository.Configuration
 
 				response.Message = _iStringConstant.ProviderWiseTransactionTypeAddedSuccessfully;
 				response.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddProviderWiseTransactionType, loginUserName, userId, "Provider wise transaction(" + transactionTypeSetting.TransactionType + ")", (int)EnumList.ActionTemplateTypes.Add, transactionTypeSetting.Id);
 			}
 			else
 			{
@@ -112,12 +115,12 @@ namespace TeleBillingRepository.Repository.Configuration
 			return response;
 		}
 
-		public async Task<ResponseAC> UpdateProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionAC)
+		public async Task<ResponseAC> UpdateProviderWiseTransaction(long userId, ProviderWiseTransactionAC providerWiseTransactionAC, string loginUserName)
 		{
 			ResponseAC response = new ResponseAC();
-			if (!await _dbTeleBilling_V01Context.TransactionTypeSetting.AnyAsync(x => !x.IsDelete && x.Id != providerWiseTransactionAC.Id && x.ProviderId == providerWiseTransactionAC.ProviderId && x.TransactionType.ToLower().Trim() == providerWiseTransactionAC.TransactionType.ToLower().Trim()))
+			if (!await _dbTeleBilling_V01Context.Transactiontypesetting.AnyAsync(x => !x.IsDelete && x.Id != providerWiseTransactionAC.Id && x.ProviderId == providerWiseTransactionAC.ProviderId && x.TransactionType.ToLower().Trim() == providerWiseTransactionAC.TransactionType.ToLower().Trim()))
 			{
-				TransactionTypeSetting transactionTypeSetting = await _dbTeleBilling_V01Context.TransactionTypeSetting.FirstOrDefaultAsync(x => x.Id == providerWiseTransactionAC.Id);
+				Transactiontypesetting transactionTypeSetting = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.Id == providerWiseTransactionAC.Id);
 
 				#region Transaction Log Entry
 				if (transactionTypeSetting.TransactionId == null)
@@ -136,6 +139,7 @@ namespace TeleBillingRepository.Repository.Configuration
 
 				response.Message = _iStringConstant.ProviderWiseTransactionTypeUpdatedSuccessfully;
 				response.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
+				//await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddProviderWiseTransactionType, loginUserName, userId, "Provider wise transaction(" + transactionTypeSetting.TransactionType + ")", (int)EnumList.ActionTemplateTypes.Edit, transactionTypeSetting.Id);
 			}
 			else
 			{
@@ -144,31 +148,34 @@ namespace TeleBillingRepository.Repository.Configuration
 			}
 			return response;
 		}
-		
-		public async Task<bool> DeleteProviderWiseTransaction(long userId, long id)
+
+		public async Task<bool> DeleteProviderWiseTransaction(long userId, long id, string loginUserName)
 		{
-			TransactionTypeSetting transactionTypeSetting = await _dbTeleBilling_V01Context.TransactionTypeSetting.FirstOrDefaultAsync(x =>x.Id == id);		
+			Transactiontypesetting transactionTypeSetting = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.Id == id);
 			transactionTypeSetting.IsDelete = true;
 			transactionTypeSetting.UpdatedBy = userId;
 			transactionTypeSetting.UpdatedDate = DateTime.Now;
 
 			_dbTeleBilling_V01Context.Update(transactionTypeSetting);
 			await _dbTeleBilling_V01Context.SaveChangesAsync();
+			//await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.provider, loginUserName, userId, "Provider wise transaction(" + transactionTypeSetting.TransactionType + ")", (int)EnumList.ActionTemplateTypes.Edit, transactionTypeSetting.Id);
 			return true;
 		}
 
-		public async Task<ProviderWiseTransactionAC> GetProviderWiseTransactionById(long id) {
+		public async Task<ProviderWiseTransactionAC> GetProviderWiseTransactionById(long id)
+		{
 			ProviderWiseTransactionAC providerWiseTransaction = new ProviderWiseTransactionAC();
-			
-			TransactionTypeSetting transactionTypeSetting = await _dbTeleBilling_V01Context.TransactionTypeSetting.FirstOrDefaultAsync(x =>x.Id == id);
-		    providerWiseTransaction = _mapper.Map(transactionTypeSetting,providerWiseTransaction);
+
+			Transactiontypesetting transactionTypeSetting = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.Id == id);
+			providerWiseTransaction = _mapper.Map(transactionTypeSetting, providerWiseTransaction);
 			return providerWiseTransaction;
 		}
 
-		public async Task<BulkAssignTelephoneResponseAC> BulkUploadProviderWiseTrans(long userId, ExcelUploadResponseAC exceluploadDetail, long providerId) {
+		public async Task<BulkAssignTelephoneResponseAC> BulkUploadProviderWiseTrans(long userId, ExcelUploadResponseAC exceluploadDetail, long providerId, string loginUserName)
+		{
 			BulkAssignTelephoneResponseAC bulkAssignTelephoneResponseAC = new BulkAssignTelephoneResponseAC();
 			List<ExcelUploadResult> excelUploadResultList = new List<ExcelUploadResult>();
-			List<TransactionTypeSetting> transactionTypeSettingList = new List<TransactionTypeSetting>();
+			List<Transactiontypesetting> transactionTypeSettingList = new List<Transactiontypesetting>();
 			FileInfo fileinfo = new FileInfo(Path.Combine(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid));
 			try
 			{
@@ -182,12 +189,12 @@ namespace TeleBillingRepository.Repository.Configuration
 						int totalColums = workSheet.Dimension.Columns;
 						for (int j = 1; j <= totalRows - 1; j++)
 						{
-							TransactionTypeSetting transactionTypeSetting = new TransactionTypeSetting();
+							Transactiontypesetting transactionTypeSetting = new Transactiontypesetting();
 							bulkAssignTelephoneResponseAC.TotalRecords += 1;
-							string transactionType = workSheet.Cells[j + 1, 1].Value.ToString();
+							string transactionType = workSheet.Cells[j + 1, 1].Value != null ? workSheet.Cells[j + 1, 1].Value.ToString() : string.Empty;
 							if (!string.IsNullOrEmpty(transactionType))
 							{
-								if (!await _dbTeleBilling_V01Context.TransactionTypeSetting.AnyAsync(x => x.ProviderId == providerId && !x.IsDelete && x.TransactionType.ToLower().Trim() == transactionType.ToLower().Trim()))
+								if (!await _dbTeleBilling_V01Context.Transactiontypesetting.AnyAsync(x => x.ProviderId == providerId && !x.IsDelete && x.TransactionType.ToLower().Trim() == transactionType.ToLower().Trim()))
 								{
 									transactionTypeSetting.ProviderId = providerId;
 									transactionTypeSetting.TransactionType = transactionType.Trim();
@@ -223,6 +230,8 @@ namespace TeleBillingRepository.Repository.Configuration
 				{
 					await _dbTeleBilling_V01Context.AddRangeAsync(transactionTypeSettingList);
 					await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BulkUploadTransactionType, loginUserName, userId, "Provider wise transaction", (int)EnumList.ActionTemplateTypes.Upload, null);
 				}
 				bulkAssignTelephoneResponseAC.excelUploadResultList = excelUploadResultList;
 				return bulkAssignTelephoneResponseAC;
@@ -234,22 +243,62 @@ namespace TeleBillingRepository.Repository.Configuration
 				throw ex;
 			}
 		}
-		
-		public async Task<ResponseAC> UpdateTransactionTypeSetting(long userId, ProviderWiseTransactionAC providerWiseTransactionAC) {
+
+		public async Task<ResponseAC> UpdateTransactionTypeSetting(long userId, ProviderWiseTransactionAC providerWiseTransactionAC, string loginUserName)
+		{
 			ResponseAC response = new ResponseAC();
-			foreach(var item in providerWiseTransactionAC.TransactionTypeList) {
-				TransactionTypeSetting transactionTypeSetting = await _dbTeleBilling_V01Context.TransactionTypeSetting.FirstOrDefaultAsync(x=>x.ProviderId == providerWiseTransactionAC.ProviderId && x.TransactionType.Trim().ToLower() == item.Name.Trim().ToLower() && x.Id == item.Id);
+			foreach (var item in providerWiseTransactionAC.TransactionTypeList)
+			{
+				Transactiontypesetting transactionTypeSetting = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == providerWiseTransactionAC.ProviderId && x.TransactionType.Trim().ToLower() == item.Name.Trim().ToLower() && x.Id == item.Id);
 				transactionTypeSetting.SetTypeAs = providerWiseTransactionAC.SetTypeAs;
 				transactionTypeSetting.UpdatedBy = userId;
 				transactionTypeSetting.UpdatedDate = DateTime.Now;
 
 				_dbTeleBilling_V01Context.Update(transactionTypeSetting);
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				string setType= string.Empty;
+				if(providerWiseTransactionAC.SetTypeAs == ((int)EnumList.AssignType.Employee))
+					setType = "Personal";
+				else
+					setType = "Business";
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.SetTypeOfTransactionTypeSetting, loginUserName, userId, "Provider wise transaction(transaction type: '" + transactionTypeSetting.TransactionType + "'; and set as type: '"+setType+"')", (int)EnumList.ActionTemplateTypes.SetTransactionType, transactionTypeSetting.Id);
 			}
 			response.Message = _iStringConstant.TransactionTypeSettingUpdatedSuccessfully;
 			response.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
 			return response;
 		}
+
+		public async Task<bool> ChangeProviderWiseTransactionStatus(long id, long userId, string loginUserName)
+		{
+			Transactiontypesetting transactiontypesetting = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.Id == id);
+			if (transactiontypesetting != null)
+			{
+				#region Transaction Log Entry
+				if (transactiontypesetting.TransactionId == null)
+					transactiontypesetting.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
+
+				var jsonSerailzeObj = JsonConvert.SerializeObject(transactiontypesetting);
+				await _iLogManagement.SaveRequestTraseLog(Convert.ToInt64(transactiontypesetting.TransactionId), userId, Convert.ToInt64(EnumList.TransactionTraseLog.ChangeStatus), jsonSerailzeObj);
+				#endregion
+
+				transactiontypesetting.IsActive = !transactiontypesetting.IsActive;
+				transactiontypesetting.UpdatedBy = userId;
+				transactiontypesetting.UpdatedDate = DateTime.Now;
+				_dbTeleBilling_V01Context.Update(transactiontypesetting);
+				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				if (transactiontypesetting.IsActive)
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ActiveProviderWiseTransactionType, loginUserName, userId, "Provider wise transaction(" + transactiontypesetting.TransactionType + ")", (int)EnumList.ActionTemplateTypes.Active, transactiontypesetting.Id);
+				else
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeactiveProviderWiseTransactinType, loginUserName, userId, "Provider wise transaction(" + transactiontypesetting.TransactionType + ")", (int)EnumList.ActionTemplateTypes.Deactive, transactiontypesetting.Id);
+
+				return true;
+			}
+			return false;
+
+		}
+
 		#endregion
 
 		#endregion

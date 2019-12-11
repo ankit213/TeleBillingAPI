@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class ExcelDetailPbx
+    public partial class Exceldetailpbx
     {
         public long Id { get; set; }
         public long ExcelUploadLogId { get; set; }
@@ -29,8 +29,8 @@ namespace TeleBillingUtility.Models
         public string DestinationType { get; set; }
         public string DistantNumber { get; set; }
         public int? RingingTime { get; set; }
-        public string Description { get; set; }
+        public byte[] Description { get; set; }
 
-        public virtual ExcelUploadLogPbx ExcelUploadLog { get; set; }
+        public virtual Exceluploadlogpbx ExcelUploadLog { get; set; }
     }
 }

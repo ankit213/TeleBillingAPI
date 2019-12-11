@@ -7,24 +7,26 @@ namespace TeleBillingUtility.Models
     {
         public MstCurrency()
         {
-            BillMaster = new HashSet<BillMaster>();
-            EmployeeBillMaster = new HashSet<EmployeeBillMaster>();
-            ExcelDetail = new HashSet<ExcelDetail>();
+            Billmaster = new HashSet<Billmaster>();
+            Employeebillmaster = new HashSet<Employeebillmaster>();
+            Exceldetail = new HashSet<Exceldetail>();
             MstCountry = new HashSet<MstCountry>();
-            SkypeExcelDetail = new HashSet<SkypeExcelDetail>();
+            Provider = new HashSet<Provider>();
+            Skypeexceldetail = new HashSet<Skypeexceldetail>();
         }
 
         public long Id { get; set; }
         public string Name { get; set; }
         public string Code { get; set; }
-        public long IsActive { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public bool IsActive { get; set; }
         public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
 
-        public virtual ICollection<BillMaster> BillMaster { get; set; }
-        public virtual ICollection<EmployeeBillMaster> EmployeeBillMaster { get; set; }
-        public virtual ICollection<ExcelDetail> ExcelDetail { get; set; }
+        public virtual ICollection<Billmaster> Billmaster { get; set; }
+        public virtual ICollection<Employeebillmaster> Employeebillmaster { get; set; }
+        public virtual ICollection<Exceldetail> Exceldetail { get; set; }
         public virtual ICollection<MstCountry> MstCountry { get; set; }
-        public virtual ICollection<SkypeExcelDetail> SkypeExcelDetail { get; set; }
+        public virtual ICollection<Provider> Provider { get; set; }
+        public virtual ICollection<Skypeexceldetail> Skypeexceldetail { get; set; }
     }
 }

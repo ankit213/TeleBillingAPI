@@ -15,8 +15,9 @@ namespace TeleBillingAPI.Controllers
 	[EnableCors("CORS")]
 	[Authorize]
 	[Route("api/[controller]")]
-    [ApiController]
-    public class MasterController : ControllerBase {
+	[ApiController]
+	public class MasterController : ControllerBase
+	{
 
 		#region "Private Variable(s)"
 		private readonly IRoleRepository _iRoleRepository;
@@ -25,7 +26,8 @@ namespace TeleBillingAPI.Controllers
 		#endregion
 
 		#region "Constructor"
-		public MasterController(IRoleRepository iRoleRepository, IHandsetRepository iHandsetRepository, IinternetDeviceRepositoy iInternetDeviceRepositoy) {
+		public MasterController(IRoleRepository iRoleRepository, IHandsetRepository iHandsetRepository, IinternetDeviceRepositoy iInternetDeviceRepositoy)
+		{
 			_iRoleRepository = iRoleRepository;
 			_iHandsetRepository = iHandsetRepository;
 			_iInternetDeviceRepositoy = iInternetDeviceRepositoy;
@@ -33,14 +35,14 @@ namespace TeleBillingAPI.Controllers
 		#endregion
 
 		#region "Public Method(s)"
-		
+
 		#region Menu Binding
 		[HttpGet]
 		[Route("menulist")]
-		public async Task<IActionResult> GetMenuList() {
-			var currentUser = HttpContext.User;
-			string roleId = currentUser.Claims.FirstOrDefault(c => c.Type == "role_id").Value;
-			long newRoleId = roleId != "" ? Convert.ToInt64(roleId) : 0; 
+		public async Task<IActionResult> GetMenuList()
+		{
+			string roleId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "role_id").Value;
+			long newRoleId = roleId != "" ? Convert.ToInt64(roleId) : 0;
 			return Ok(await _iRoleRepository.GetMenuListByRoleId(newRoleId));
 		}
 		#endregion
@@ -65,28 +67,28 @@ namespace TeleBillingAPI.Controllers
 		[Route("role/add")]
 		public async Task<IActionResult> AddRole(RoleAC roleAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iRoleRepository.AddRole(roleAC,Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iRoleRepository.AddRole(roleAC, Convert.ToInt64(userId), fullname));
 		}
 
-		
+
 		[HttpPut]
 		[Route("role/edit")]
 		public async Task<IActionResult> EditRole(RoleAC roleAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iRoleRepository.EditRole(roleAC, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iRoleRepository.EditRole(roleAC, Convert.ToInt64(userId), fullname));
 		}
 
 		[HttpGet]
 		[Route("role/delete/{roleId}")]
 		public async Task<IActionResult> DeleteRole(long roleId)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iRoleRepository.DeleteRole(roleId, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iRoleRepository.DeleteRole(roleId, Convert.ToInt64(userId), fullname));
 		}
 
 
@@ -94,9 +96,9 @@ namespace TeleBillingAPI.Controllers
 		[Route("role/changestatus/{roleId}")]
 		public async Task<IActionResult> ChangeRoleStatus(long roleId)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iRoleRepository.ChangeRoleStatus(roleId, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iRoleRepository.ChangeRoleStatus(roleId, Convert.ToInt64(userId), fullname));
 		}
 		#endregion
 
@@ -111,16 +113,16 @@ namespace TeleBillingAPI.Controllers
 
 		[HttpPost]
 		[Route("rolerights")]
-		public async Task<IActionResult> GetRoleRights([FromBody] List<RoleRightsAC> roleRightsAC)
+		public async Task<IActionResult> UpdateRoleRights([FromBody] List<RoleRightsAC> roleRightsAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iRoleRepository.UpdateRoleRights(Convert.ToInt64(userId),roleRightsAC));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iRoleRepository.UpdateRoleRights(Convert.ToInt64(userId), roleRightsAC, fullname));
 		}
 
 
 		#endregion
-		
+
 		#region Handset Management
 		[HttpGet]
 		[Route("handsets")]
@@ -149,9 +151,9 @@ namespace TeleBillingAPI.Controllers
 		[Route("handset/add")]
 		public async Task<IActionResult> AddHandset(HandsetDetailAC handsetDetailAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iHandsetRepository.AddHandset(handsetDetailAC, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iHandsetRepository.AddHandset(handsetDetailAC, Convert.ToInt64(userId), fullname));
 		}
 
 
@@ -159,8 +161,7 @@ namespace TeleBillingAPI.Controllers
 		[Route("handset/edit")]
 		public async Task<IActionResult> EditHandset(HandsetDetailAC handsetDetailAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
 			return Ok(await _iHandsetRepository.EditHandset(handsetDetailAC, Convert.ToInt64(userId)));
 		}
 
@@ -168,14 +169,14 @@ namespace TeleBillingAPI.Controllers
 		[Route("handset/delete/{id}")]
 		public async Task<IActionResult> DeleteHandsets(long id)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iHandsetRepository.DeleteHandset(id, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iHandsetRepository.DeleteHandset(id, Convert.ToInt64(userId), fullname));
 		}
 		#endregion
 
 		#region Internet Device Management
-		
+
 		[HttpGet]
 		[Route("internetdevices")]
 		public async Task<IActionResult> GetInternetDevices()
@@ -195,9 +196,9 @@ namespace TeleBillingAPI.Controllers
 		[Route("internetdevice/add")]
 		public async Task<IActionResult> AddInternetDevice(InternetDeviceAC internetDeviceAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iInternetDeviceRepositoy.AddInternetDevice(internetDeviceAC, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iInternetDeviceRepositoy.AddInternetDevice(internetDeviceAC, Convert.ToInt64(userId),fullname));
 		}
 
 
@@ -205,8 +206,7 @@ namespace TeleBillingAPI.Controllers
 		[Route("internetdevice/edit")]
 		public async Task<IActionResult> EditInternetDevice(InternetDeviceAC internetDeviceAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
 			return Ok(await _iInternetDeviceRepositoy.EditInternetDevice(internetDeviceAC, Convert.ToInt64(userId)));
 		}
 
@@ -214,10 +214,20 @@ namespace TeleBillingAPI.Controllers
 		[Route("internetdevice/delete/{id}")]
 		public async Task<IActionResult> DeleteInternetDevice(long id)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iInternetDeviceRepositoy.DeleteInternetDevice(id, Convert.ToInt64(userId)));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iInternetDeviceRepositoy.DeleteInternetDevice(id, Convert.ToInt64(userId), fullname));
 		}
+		#endregion
+
+		#region Service Type List
+		[HttpGet]
+		[Route("servicetypes")]
+		public async Task<IActionResult> GetServiceTypes()
+		{
+			return Ok(await _iRoleRepository.GetServiceTypes());
+		}
+
 		#endregion
 
 		#endregion

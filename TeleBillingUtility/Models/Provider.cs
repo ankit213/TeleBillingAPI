@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
@@ -7,17 +8,17 @@ namespace TeleBillingUtility.Models
     {
         public Provider()
         {
-            BillMaster = new HashSet<BillMaster>();
-            EmployeeBillMaster = new HashSet<EmployeeBillMaster>();
-            ExcelUploadLog = new HashSet<ExcelUploadLog>();
-            MappingExcel = new HashSet<MappingExcel>();
+            Billmaster = new HashSet<Billmaster>();
+            Employeebillmaster = new HashSet<Employeebillmaster>();
+            Exceluploadlog = new HashSet<Exceluploadlog>();
+            Mappingexcel = new HashSet<Mappingexcel>();
             Memo = new HashSet<Memo>();
-            OperatorCallLog = new HashSet<OperatorCallLog>();
-            ProviderContactDetail = new HashSet<ProviderContactDetail>();
-            ProviderPackage = new HashSet<ProviderPackage>();
-            ProviderService = new HashSet<ProviderService>();
-            TelephoneNumber = new HashSet<TelephoneNumber>();
-            TransactionTypeSetting = new HashSet<TransactionTypeSetting>();
+            Operatorcalllog = new HashSet<Operatorcalllog>();
+            Providercontactdetail = new HashSet<Providercontactdetail>();
+            Providerpackage = new HashSet<Providerpackage>();
+            Providerservice = new HashSet<Providerservice>();
+            Telephonenumber = new HashSet<Telephonenumber>();
+            Transactiontypesetting = new HashSet<Transactiontypesetting>();
         }
 
         public long Id { get; set; }
@@ -34,23 +35,26 @@ namespace TeleBillingUtility.Models
         public bool IsDelete { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-        public int? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? CreatedDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? UpdatedDateInt { get; set; }
 
         public virtual MstCountry Country { get; set; }
-        public virtual ICollection<BillMaster> BillMaster { get; set; }
-        public virtual ICollection<EmployeeBillMaster> EmployeeBillMaster { get; set; }
-        public virtual ICollection<ExcelUploadLog> ExcelUploadLog { get; set; }
-        public virtual ICollection<MappingExcel> MappingExcel { get; set; }
+        public virtual MstCurrency Currency { get; set; }
+        public virtual ICollection<Billmaster> Billmaster { get; set; }
+        public virtual ICollection<Employeebillmaster> Employeebillmaster { get; set; }
+        public virtual ICollection<Exceluploadlog> Exceluploadlog { get; set; }
+        public virtual ICollection<Mappingexcel> Mappingexcel { get; set; }
         public virtual ICollection<Memo> Memo { get; set; }
-        public virtual ICollection<OperatorCallLog> OperatorCallLog { get; set; }
-        public virtual ICollection<ProviderContactDetail> ProviderContactDetail { get; set; }
-        public virtual ICollection<ProviderPackage> ProviderPackage { get; set; }
-        public virtual ICollection<ProviderService> ProviderService { get; set; }
-        public virtual ICollection<TelephoneNumber> TelephoneNumber { get; set; }
-        public virtual ICollection<TransactionTypeSetting> TransactionTypeSetting { get; set; }
+        public virtual ICollection<Operatorcalllog> Operatorcalllog { get; set; }
+        public virtual ICollection<Providercontactdetail> Providercontactdetail { get; set; }
+        public virtual ICollection<Providerpackage> Providerpackage { get; set; }
+        public virtual ICollection<Providerservice> Providerservice { get; set; }
+        public virtual ICollection<Telephonenumber> Telephonenumber { get; set; }
+        public virtual ICollection<Transactiontypesetting> Transactiontypesetting { get; set; }
     }
 }

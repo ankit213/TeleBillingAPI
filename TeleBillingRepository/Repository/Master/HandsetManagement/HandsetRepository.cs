@@ -17,14 +17,14 @@ namespace TeleBillingRepository.Repository.Master.HandsetManagement
 	public class HandsetRepository : IHandsetRepository
 	{
 		#region "Private Variable(s)"
-		private readonly TeleBilling_V01Context _dbTeleBilling_V01Context;
+		private readonly telebilling_v01Context _dbTeleBilling_V01Context;
 		private readonly ILogManagement _iLogManagement;
 		private readonly IStringConstant _iStringConstant;
 		private IMapper _mapper;
 		#endregion
-		
+
 		#region "Constructor"
-		public HandsetRepository(TeleBilling_V01Context dbTeleBilling_V01Context, IMapper mapper, ILogManagement ilogManagement,
+		public HandsetRepository(telebilling_v01Context dbTeleBilling_V01Context, IMapper mapper, ILogManagement ilogManagement,
 			IStringConstant iStringConstant)
 		{
 			_dbTeleBilling_V01Context = dbTeleBilling_V01Context;
@@ -36,28 +36,31 @@ namespace TeleBillingRepository.Repository.Master.HandsetManagement
 
 		#region "Public Method(s)"
 
-		public async Task<List<DrpResponseAC>> GetHandsetList() {
-			List<MstHandsetDetail> lstHandsetDetails = await _dbTeleBilling_V01Context.MstHandsetDetail.Where(x=>!x.IsDelete).OrderByDescending(x=>x.CreatedDate).ToListAsync();
+		public async Task<List<DrpResponseAC>> GetHandsetList()
+		{
+			List<MstHandsetdetail> lstHandsetDetails = await _dbTeleBilling_V01Context.MstHandsetdetail.Where(x => !x.IsDelete).OrderByDescending(x => x.Id).ToListAsync();
 			return _mapper.Map<List<DrpResponseAC>>(lstHandsetDetails);
 		}
-		
+
 		public async Task<List<HandsetDetailAC>> GetHandsets()
 		{
-			List<MstHandsetDetail> lstHandsetDetails = await _dbTeleBilling_V01Context.MstHandsetDetail.Where(x => !x.IsDelete).OrderByDescending(x => x.CreatedDate).ToListAsync();
+			List<MstHandsetdetail> lstHandsetDetails = await _dbTeleBilling_V01Context.MstHandsetdetail.Where(x => !x.IsDelete).OrderByDescending(x => x.Id).ToListAsync();
 			return _mapper.Map<List<HandsetDetailAC>>(lstHandsetDetails);
 		}
-		
-		public async Task<HandsetDetailAC> GetHandsetById(long id) {
-			MstHandsetDetail handsetDetail = await _dbTeleBilling_V01Context.MstHandsetDetail.FirstOrDefaultAsync(x => !x.IsDelete && x.Id == id);
+
+		public async Task<HandsetDetailAC> GetHandsetById(long id)
+		{
+			MstHandsetdetail handsetDetail = await _dbTeleBilling_V01Context.MstHandsetdetail.FirstOrDefaultAsync(x => !x.IsDelete && x.Id == id);
 			return _mapper.Map<HandsetDetailAC>(handsetDetail);
 		}
-		
-		public async Task<ResponseAC> EditHandset(HandsetDetailAC handsetDetailAC, long userId) {
+
+		public async Task<ResponseAC> EditHandset(HandsetDetailAC handsetDetailAC, long userId)
+		{
 			ResponseAC responeAC = new ResponseAC();
-			if (!await _dbTeleBilling_V01Context.MstHandsetDetail.AnyAsync(x => x.Id != handsetDetailAC.Id && x.Name.ToLower().Trim() == handsetDetailAC.Name.Trim().ToLower() && !x.IsDelete))
+			if (!await _dbTeleBilling_V01Context.MstHandsetdetail.AnyAsync(x => x.Id != handsetDetailAC.Id && x.Name.ToLower().Trim() == handsetDetailAC.Name.Trim().ToLower() && !x.IsDelete))
 			{
-				MstHandsetDetail mstHandsetDetail = await _dbTeleBilling_V01Context.MstHandsetDetail.FirstOrDefaultAsync(x => x.Id == handsetDetailAC.Id && !x.IsDelete);
-				
+				MstHandsetdetail mstHandsetDetail = await _dbTeleBilling_V01Context.MstHandsetdetail.FirstOrDefaultAsync(x => x.Id == handsetDetailAC.Id && !x.IsDelete);
+
 				#region Transaction Log Entry
 				if (mstHandsetDetail.TransactionId == null)
 					mstHandsetDetail.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
@@ -66,7 +69,7 @@ namespace TeleBillingRepository.Repository.Master.HandsetManagement
 				await _iLogManagement.SaveRequestTraseLog(Convert.ToInt64(mstHandsetDetail.TransactionId), userId, Convert.ToInt64(EnumList.TransactionTraseLog.UpdateRecord), jsonSerailzeObj);
 				#endregion
 
-				mstHandsetDetail.Name = handsetDetailAC.Name;
+				mstHandsetDetail.Name = handsetDetailAC.Name.Trim();
 				mstHandsetDetail.UpdatedBy = userId;
 				mstHandsetDetail.UpdatedDate = DateTime.Now;
 				_dbTeleBilling_V01Context.Update(mstHandsetDetail);
@@ -81,13 +84,14 @@ namespace TeleBillingRepository.Repository.Master.HandsetManagement
 			}
 			return responeAC;
 		}
-		
-		public async Task<ResponseAC> AddHandset(HandsetDetailAC handsetDetailAC, long userId) {
+
+		public async Task<ResponseAC> AddHandset(HandsetDetailAC handsetDetailAC, long userId, string loginUserName)
+		{
 			ResponseAC responeAC = new ResponseAC();
-			if (!await _dbTeleBilling_V01Context.MstHandsetDetail.AnyAsync(x => x.Name.ToLower().Trim() == handsetDetailAC.Name.ToLower().Trim() && !x.IsDelete))
+			if (!await _dbTeleBilling_V01Context.MstHandsetdetail.AnyAsync(x => x.Name.ToLower().Trim() == handsetDetailAC.Name.ToLower().Trim() && !x.IsDelete))
 			{
-				MstHandsetDetail mstHandsetDetail = new MstHandsetDetail();
-				mstHandsetDetail.Name = handsetDetailAC.Name;
+				MstHandsetdetail mstHandsetDetail = new MstHandsetdetail();
+				mstHandsetDetail.Name = handsetDetailAC.Name.Trim();
 				mstHandsetDetail.CreatedBy = userId;
 				mstHandsetDetail.CreatedDate = DateTime.Now;
 				mstHandsetDetail.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
@@ -96,6 +100,8 @@ namespace TeleBillingRepository.Repository.Master.HandsetManagement
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
 				responeAC.Message = _iStringConstant.HandsetAddedSuccessfully;
 				responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddHandset, loginUserName, userId, "Handset(" + mstHandsetDetail.Name + ")", (int)EnumList.ActionTemplateTypes.Add, mstHandsetDetail.Id);
+
 			}
 			else
 			{
@@ -104,16 +110,19 @@ namespace TeleBillingRepository.Repository.Master.HandsetManagement
 			}
 			return responeAC;
 		}
-		
-		public async Task<bool> DeleteHandset(long id, long userId) {
-			MstHandsetDetail mstHandsetDetail = await _dbTeleBilling_V01Context.MstHandsetDetail.FirstOrDefaultAsync(x => x.Id == id);
-			if (mstHandsetDetail != null)
+
+		public async Task<bool> DeleteHandset(long id, long userId, string loginUserName)
+		{
+			List<Providerpackage> providerpackages = await _dbTeleBilling_V01Context.Providerpackage.Where(x => x.HandsetDetailIds.Contains(id.ToString()) && x.IsActive && !x.IsDelete).ToListAsync();
+			if (!providerpackages.Any())
 			{
+				MstHandsetdetail mstHandsetDetail = await _dbTeleBilling_V01Context.MstHandsetdetail.FirstOrDefaultAsync(x => x.Id == id);
 				mstHandsetDetail.IsDelete = true;
 				mstHandsetDetail.UpdatedBy = userId;
 				mstHandsetDetail.UpdatedDate = DateTime.Now;
 				_dbTeleBilling_V01Context.Update(mstHandsetDetail);
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteHandset, loginUserName, userId, "Handset(" + mstHandsetDetail.Name + ")", (int)EnumList.ActionTemplateTypes.Edit, mstHandsetDetail.Id); 
 				return true;
 			}
 			return false;

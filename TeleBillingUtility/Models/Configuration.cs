@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
@@ -19,12 +20,14 @@ namespace TeleBillingUtility.Models
         public bool NChargeBill { get; set; }
         public bool NSendMemo { get; set; }
         public bool NMemoApprovalRejection { get; set; }
-        public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
-        public int? CreatedDateInt { get; set; }
-        public DateTime? UpdatedDate { get; set; }
+        public DateTime CreatedDate { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
-        public int? UpdatedDateInt { get; set; }
+        public DateTime? UpdatedDate { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
     }
 }

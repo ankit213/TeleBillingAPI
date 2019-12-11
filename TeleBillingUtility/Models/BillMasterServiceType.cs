@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class BillMasterServiceType
+    public partial class BillmasterServicetype
     {
         public long Id { get; set; }
         public long BillMasterId { get; set; }
@@ -11,9 +12,10 @@ namespace TeleBillingUtility.Models
         public bool IsDelete { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-        public int? UpdatedDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? UpdatedDateInt { get; set; }
 
-        public virtual BillMaster BillMaster { get; set; }
-        public virtual FixServiceType ServiceType { get; set; }
+        public virtual Billmaster BillMaster { get; set; }
+        public virtual FixServicetype ServiceType { get; set; }
     }
 }

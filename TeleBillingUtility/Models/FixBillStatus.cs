@@ -3,19 +3,19 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class FixBillStatus
+    public partial class FixBillstatus
     {
-        public FixBillStatus()
+        public FixBillstatus()
         {
-            BillMaster = new HashSet<BillMaster>();
+            Billmaster = new HashSet<Billmaster>();
         }
 
-        public long Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedDate { get; set; }
         public long CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
 
-        public virtual ICollection<BillMaster> BillMaster { get; set; }
+        public virtual ICollection<Billmaster> Billmaster { get; set; }
     }
 }

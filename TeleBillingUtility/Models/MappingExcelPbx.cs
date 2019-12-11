@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class MappingExcelPbx
+    public partial class MappingexcelPbx
     {
-        public MappingExcelPbx()
+        public MappingexcelPbx()
         {
-            MappingExcelColumnPbx = new HashSet<MappingExcelColumnPbx>();
+            MappingexcelcolumnPbx = new HashSet<MappingexcelcolumnPbx>();
         }
 
         public long Id { get; set; }
@@ -23,13 +24,15 @@ namespace TeleBillingUtility.Models
         public bool IsDelete { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int? CreatedDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-        public int? UpdatedDateInt { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+		public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
 
         public virtual FixDevice Device { get; set; }
-        public virtual ICollection<MappingExcelColumnPbx> MappingExcelColumnPbx { get; set; }
+        public virtual ICollection<MappingexcelcolumnPbx> MappingexcelcolumnPbx { get; set; }
     }
 }

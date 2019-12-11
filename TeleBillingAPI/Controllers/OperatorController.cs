@@ -15,7 +15,8 @@ namespace TeleBillingAPI.Controllers
 	[Authorize]
 	[Route("api/[controller]")]
 	[ApiController]
-	public class OperatorController : ControllerBase {
+	public class OperatorController : ControllerBase
+	{
 
 		#region Private Variable(s)"
 		private readonly IOperatorRepository _iOperatorRepository;
@@ -23,9 +24,10 @@ namespace TeleBillingAPI.Controllers
 		#endregion
 
 		#region Constructor
-		public OperatorController(IOperatorRepository iOperatorRepository, IBillUploadRepository iBillUploadRepository) {
-				_iOperatorRepository = iOperatorRepository;
-				_iBillUploadRepository = iBillUploadRepository;
+		public OperatorController(IOperatorRepository iOperatorRepository, IBillUploadRepository iBillUploadRepository)
+		{
+			_iOperatorRepository = iOperatorRepository;
+			_iBillUploadRepository = iBillUploadRepository;
 		}
 		#endregion
 
@@ -41,10 +43,10 @@ namespace TeleBillingAPI.Controllers
 		[Route("add")]
 		public async Task<IActionResult> AddOperatorCallLog(OperatorCallLogDetailAC operatorCallLogDetailAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
 			operatorCallLogDetailAC.CallDate = operatorCallLogDetailAC.CallDate.AddDays(1);
-			return Ok(await _iOperatorRepository.AddOperatorCallLog(Convert.ToInt64(userId), operatorCallLogDetailAC));
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iOperatorRepository.AddOperatorCallLog(Convert.ToInt64(userId), operatorCallLogDetailAC, fullname));
 		}
 
 
@@ -52,19 +54,19 @@ namespace TeleBillingAPI.Controllers
 		[Route("edit")]
 		public async Task<IActionResult> EditOperatorCallLog(OperatorCallLogDetailAC operatorCallLogDetailAC)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
 			operatorCallLogDetailAC.CallDate = operatorCallLogDetailAC.CallDate.AddDays(1);
-			return Ok(await _iOperatorRepository.EditOperatorCallLog(Convert.ToInt64(userId), operatorCallLogDetailAC));
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iOperatorRepository.EditOperatorCallLog(Convert.ToInt64(userId), operatorCallLogDetailAC, fullname));
 		}
 
 		[HttpGet]
 		[Route("delete/{id}")]
 		public async Task<IActionResult> DeleteOperatorCallLog(long id)
 		{
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iOperatorRepository.DeleteOperatorCallLog(Convert.ToInt64(userId), id));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iOperatorRepository.DeleteOperatorCallLog(Convert.ToInt64(userId), id, fullname));
 		}
 
 		[HttpGet]
@@ -83,9 +85,9 @@ namespace TeleBillingAPI.Controllers
 			excelFileAC.File = file;
 			excelFileAC.FolderName = "TempUpload";
 			ExcelUploadResponseAC exceluploadDetail = _iBillUploadRepository.UploadNewExcel(excelFileAC);
-			var currentUser = HttpContext.User;
-			string userId = currentUser.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iOperatorRepository.BulkUploadOperatorCallLog(Convert.ToInt64(userId), exceluploadDetail));
+			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+			return Ok(await _iOperatorRepository.BulkUploadOperatorCallLog(Convert.ToInt64(userId), exceluploadDetail, fullname));
 		}
 		#endregion
 

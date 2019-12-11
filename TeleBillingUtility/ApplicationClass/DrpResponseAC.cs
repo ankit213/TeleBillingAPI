@@ -13,4 +13,21 @@ namespace TeleBillingUtility.ApplicationClass
 		[JsonProperty("name")]
 		public string Name { get; set;} 
 	}
+
+    public class KeyValueResponseAC
+    {
+        [JsonProperty("key")]
+        public string Key { get; set; }
+
+        [JsonProperty("value")]
+        public string Value { get; set; }
+    }
+    public class CallerDetailResponseAC
+    {
+        [JsonProperty("caller")]
+        public string CallerNumber { get; set; }
+
+        [JsonProperty("receiver")]
+        public string ReceiverNumber { get; set; }
+    }
 }

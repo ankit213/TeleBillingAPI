@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class MappingServiceTypeFieldPbx
+    public partial class MappingservicetypefieldPbx
     {
-        public MappingServiceTypeFieldPbx()
+        public MappingservicetypefieldPbx()
         {
-            MappingExcelColumnPbx = new HashSet<MappingExcelColumnPbx>();
+            MappingexcelcolumnPbx = new HashSet<MappingexcelcolumnPbx>();
         }
 
         public long Id { get; set; }
@@ -20,6 +20,6 @@ namespace TeleBillingUtility.Models
         public bool IsSpecial { get; set; }
 
         public virtual FixDevice Device { get; set; }
-        public virtual ICollection<MappingExcelColumnPbx> MappingExcelColumnPbx { get; set; }
+        public virtual ICollection<MappingexcelcolumnPbx> MappingexcelcolumnPbx { get; set; }
     }
 }

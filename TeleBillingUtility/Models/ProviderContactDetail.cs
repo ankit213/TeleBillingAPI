@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class ProviderContactDetail
+    public partial class Providercontactdetail
     {
         public long Id { get; set; }
         public long ProviderId { get; set; }

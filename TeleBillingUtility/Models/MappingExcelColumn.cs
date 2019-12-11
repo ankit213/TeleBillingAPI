@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
-    public partial class MappingExcelColumn
+    public partial class Mappingexcelcolumn
     {
         public long Id { get; set; }
         public long MappingExcelId { get; set; }
@@ -11,7 +11,7 @@ namespace TeleBillingUtility.Models
         public string ExcelcolumnName { get; set; }
         public string FormatField { get; set; }
 
-        public virtual MappingExcel MappingExcel { get; set; }
-        public virtual MappingServiceTypeField MappingServiceTypeField { get; set; }
+        public virtual Mappingexcel MappingExcel { get; set; }
+        public virtual Mappingservicetypefield MappingServiceTypeField { get; set; }
     }
 }

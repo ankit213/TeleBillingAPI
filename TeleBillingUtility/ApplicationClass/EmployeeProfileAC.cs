@@ -1,11 +1,9 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
- public class EmployeeProfileAC
+    public class EmployeeProfileAC
     {
         [JsonProperty("statuscode")]
         public int StatusCode { get; set; }
@@ -175,7 +173,7 @@ namespace TeleBillingUtility.ApplicationClass
         [JsonProperty("connectionstatus")]
         public string ConnectionStatus { get; set; }
     }
-    
+
     public class MstEmployeeAC
     {
         public MstEmployeeAC()

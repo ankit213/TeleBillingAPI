@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using TeleBillingUtility.Models;
 
 namespace TeleBillingUtility.ApplicationClass
@@ -31,8 +29,9 @@ namespace TeleBillingUtility.ApplicationClass
 
             InvalidListAllDB = new List<ExceldetailError>();
             InvalidListSkypeAllDB = new List<SkypeexceldetailError>();
-
+            InvalidListPbxAllDB = new List<ExceldetailpbxError>();
         }
+
         [JsonProperty("validlst")]
         public List<Exceldetail> ValidList { get; set; }
 
@@ -80,13 +79,16 @@ namespace TeleBillingUtility.ApplicationClass
         public List<SkypeexceldetailError> InvalidListSkypeAllDB { get; set; }
 
 
+        [JsonProperty("invalidlistpbxalldb")]
+        public List<ExceldetailpbxError> InvalidListPbxAllDB { get; set; }
+
     }
 
     public class SaveAllServiceExcelResponseAC
     {
 
         public SaveAllServiceExcelResponseAC()
-        {            
+        {
             InvalidList1 = new List<MobilityExcelUploadDetailStringAC>();
             InvalidList2 = new List<VoiceOnlyExcelUploadDetailStringAC>();
             InvalidList6 = new List<StaticIPExcelUploadDetailStringAC>();
@@ -128,7 +130,7 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("invalidlist2")]
         public List<VoiceOnlyExcelUploadDetailStringAC> InvalidList2 { get; set; }
-        
+
         [JsonProperty("invalidlist6")]
         public List<StaticIPExcelUploadDetailStringAC> InvalidList6 { get; set; }
 
@@ -200,7 +202,7 @@ namespace TeleBillingUtility.ApplicationClass
         [JsonProperty("uploaddetaillist")]
         public List<T> UploadDataList { get; set; }
     }
-    
+
     public class ResponseDynamicDataAC<T> where T : class
     {
         private T _Data;
@@ -222,7 +224,7 @@ namespace TeleBillingUtility.ApplicationClass
     {
         private List<T> _Data = new List<T>();
 
-     
+
         public List<T> Data
         {
             get
@@ -254,7 +256,7 @@ namespace TeleBillingUtility.ApplicationClass
         [JsonProperty("invalidlistalldb")]
         public List<ExceldetailError> InvalidListAllDB { get; set; }
     }
-    
+
     public class StaticIPUploadListAC
     {
         public StaticIPUploadListAC()
@@ -270,7 +272,7 @@ namespace TeleBillingUtility.ApplicationClass
         [JsonProperty("invalidlist")]
         public List<StaticIPExcelUploadDetailStringAC> InvalidStaticIPList { get; set; }
     }
-    
+
     public class VoiceOnlyUploadListAC
     {
 
@@ -355,15 +357,15 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("validlst")]
         public List<Exceldetail> ValidList { get; set; }
-       
+
         [JsonProperty("invalidlist")]
         public List<ManagedHostingServiceExcelUploadDetailStringAC> InvalidList { get; set; }
 
         [JsonProperty("invalidlistalldb")]
         public List<ExceldetailError> InvalidListAllDB { get; set; }
     }
-    
-    public  class MultiServiceUploadAC
+
+    public class MultiServiceUploadAC
     {
         [JsonProperty("servicetypeid")]
         public long ServiceTypeId { get; set; }
@@ -379,6 +381,7 @@ namespace TeleBillingUtility.ApplicationClass
         {
             ValidVoipList = new List<Skypeexceldetail>();
             InvalidVoipList = new List<VoipExcelUploadDetailStringAC>();
+            InvalidAllVoipListDB = new List<SkypeexceldetailError>();
         }
 
         [JsonProperty("validlst")]
@@ -386,16 +389,20 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("invalidlist")]
         public List<VoipExcelUploadDetailStringAC> InvalidVoipList { get; set; }
+
+        [JsonProperty("invalidallvoiplistdb")]
+        public List<SkypeexceldetailError> InvalidAllVoipListDB { get; set; }
     }
 
 
     /*  PBX Upload AC Class */
     public class PbxUploadListAC
     {
-       public  PbxUploadListAC()
+        public PbxUploadListAC()
         {
             ValidPbxList = new List<Exceldetailpbx>();
             InvalidPbxList = new List<PbxExcelUploadDetailStringAC>();
+            InvalidAllPbxListDB = new List<ExceldetailpbxError>();
         }
 
         [JsonProperty("validlst")]
@@ -403,5 +410,7 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("invalidlist")]
         public List<PbxExcelUploadDetailStringAC> InvalidPbxList { get; set; }
+
+        public List<ExceldetailpbxError> InvalidAllPbxListDB { get; set; }
     }
 }

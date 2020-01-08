@@ -2,12 +2,13 @@
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class InternetDeviceAC {
+    public class InternetDeviceAC
+    {
 
-		[JsonProperty("id")]
-		public long Id { get; set; }
+        [JsonProperty("id")]
+        public long Id { get; set; }
 
-		[JsonProperty("name")]
-		public string Name { get; set; }
-	}
+        [JsonProperty("name")]
+        public string Name { get; set; }
+    }
 }

@@ -73,7 +73,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
             Mappingexcel mappingExcel = await _dbTeleBilling_V01Context.Mappingexcel.FirstOrDefaultAsync(x => x.Id == id);
 
             List<Mappingexcel> mappingExcelMerge = new List<Mappingexcel>();
-            mappingExcelMerge = await _dbTeleBilling_V01Context.Mappingexcel.Where(x=>x.MappedMappingId ==id && x.IsCommonMapped == true).ToListAsync();
+            mappingExcelMerge = await _dbTeleBilling_V01Context.Mappingexcel.Where(x => x.MappedMappingId == id && x.IsCommonMapped == true).ToListAsync();
             if (mappingExcelMerge != null)
             {
                 _dbTeleBilling_V01Context.RemoveRange(mappingExcelMerge);
@@ -96,8 +96,8 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     _dbTeleBilling_V01Context.RemoveRange(excelcolumnlst);
                     await _dbTeleBilling_V01Context.SaveChangesAsync();
                 }
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteExcelMapping, loginUserName, userId, "Excel mapping", (int)EnumList.ActionTemplateTypes.Delete, mappingExcel.Id);
-				return true;
+                await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteExcelMapping, loginUserName, userId, "Excel mapping", (int)EnumList.ActionTemplateTypes.Delete, mappingExcel.Id);
+                return true;
             }
             return false;
 
@@ -108,7 +108,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
             bool IsExists = false;
             try
             {
-                
+
                 if (excelMappingAC != null)
                 {
                     if (excelMappingAC.ProviderId > 0 && excelMappingAC.ServiceTypeId > 0)
@@ -128,12 +128,12 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                             if (excelMappingAC.ServiceTypeIdInline.Count() > 0)
                             {
                                 //List<Mappingexcel> mapingDatalist = new List<Mappingexcel>();
-                              var mapingDatalist = await _dbTeleBilling_V01Context.Mappingexcel
-                                        .Where(x=>!x.IsDelete && x.ProviderId == excelMappingAC.ProviderId 
-                                                         && excelMappingAC.ServiceTypeIdInline.Select(s => s.Id).Contains(x.ServiceTypeId)
-                                                                                                         
-                                                        ).ToListAsync();
-                                   
+                                var mapingDatalist = await _dbTeleBilling_V01Context.Mappingexcel
+                                          .Where(x => !x.IsDelete && x.ProviderId == excelMappingAC.ProviderId
+                                                           && excelMappingAC.ServiceTypeIdInline.Select(s => s.Id).Contains(x.ServiceTypeId)
+
+                                                          ).ToListAsync();
+
                                 if (mapingDatalist != null)
                                 {
                                     if (mapingDatalist.Count > 0)
@@ -150,11 +150,11 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                 return IsExists;
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return IsExists;
             }
-         
+
 
         }
 
@@ -203,17 +203,17 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     mappingexcel.MappedMappingId = 0;
                     mappingexcel.MappedServiceTypeId = 0;
                     mappingexcel.IsDelete = false;
-                   
-                    
+
+
                     mappingexcel.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
 
                     await _dbTeleBilling_V01Context.AddAsync(mappingexcel);
                     await _dbTeleBilling_V01Context.SaveChangesAsync();
                     responeAC.Message = _iStringConstant.ExcelMappingAddedSuccessfully;
                     responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddExcelMapping, loginUserName, userId, "Excel mapping", (int)EnumList.ActionTemplateTypes.Add, mappingexcel.Id);
+                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddExcelMapping, loginUserName, userId, "Excel mapping", (int)EnumList.ActionTemplateTypes.Add, mappingexcel.Id);
 
-					if (mappingexcel.Id > 0)
+                    if (mappingexcel.Id > 0)
                     {
                         #region ---> Add Common Servive if exists
                         foreach (var serviceType in excelMappingAC.ServiceTypeIdInline)
@@ -323,7 +323,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
 
                 var mappingData = await _dbTeleBilling_V01Context.Mappingexcel.FirstOrDefaultAsync(x => x.Id == excelMappingId);
 
-               var  mapExcel = await _dbTeleBilling_V01Context.Mappingexcel.Include(x => x.Provider).Include(x => x.ServiceType).FirstOrDefaultAsync(x => x.Id == excelMappingId);
+                var mapExcel = await _dbTeleBilling_V01Context.Mappingexcel.Include(x => x.Provider).Include(x => x.ServiceType).FirstOrDefaultAsync(x => x.Id == excelMappingId);
                 if (mapExcel != null)
                 {
                     excelMapping.Id = mapExcel.Id;
@@ -339,7 +339,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     excelMapping.ExcelReadingColumn = mapExcel.ExcelReadingColumn;
 
                     List<Mappingexcel> CommonMappingData = new List<Mappingexcel>();
-                     CommonMappingData = await _dbTeleBilling_V01Context.Mappingexcel.Include(x => x.ServiceType).Where(x => x.MappedMappingId == excelMappingId && x.MappedServiceTypeId == mapExcel.ServiceTypeId && x.IsCommonMapped == true).ToListAsync();
+                    CommonMappingData = await _dbTeleBilling_V01Context.Mappingexcel.Include(x => x.ServiceType).Where(x => x.MappedMappingId == excelMappingId && x.MappedServiceTypeId == mapExcel.ServiceTypeId && x.IsCommonMapped == true).ToListAsync();
 
                     if (CommonMappingData != null)
                     {
@@ -347,8 +347,8 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                         {
                             string joined = string.Join(",", CommonMappingData.Select(x => x.ServiceType.Name).ToArray());
 
-                          var  ServiceTypeIdInline = from pro in CommonMappingData
-                                        select new DrpResponseAC() { Name = pro.ServiceType.Name, Id = pro.ServiceType.Id };
+                            var ServiceTypeIdInline = from pro in CommonMappingData
+                                                      select new DrpResponseAC() { Name = pro.ServiceType.Name, Id = pro.ServiceType.Id };
                             excelMapping.ServiceTypeIdInline = ServiceTypeIdInline.ToList();
                             excelMapping.ServiceTypesInline = joined;
                         }
@@ -413,10 +413,10 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                             {
                                 if (ValidServiceTypeIdInline.Count() > 0)
                                 {
-                                    var invalidService = excelMappingAC.ServiceTypeIdInline.Where(x => !ValidServiceTypeIdInline.Select(s=>s.Id).Contains(x.Id)).ToList();
+                                    var invalidService = excelMappingAC.ServiceTypeIdInline.Where(x => !ValidServiceTypeIdInline.Select(s => s.Id).Contains(x.Id)).ToList();
                                     if (invalidService != null)
                                     {
-                                        if(invalidService.Count()>0)
+                                        if (invalidService.Count() > 0)
                                             IsValidServices = false;
                                     }
                                 }
@@ -429,7 +429,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                             {
                                 IsValidServices = false;
                             }
-                            
+
                             if (!IsValidServices)
                             {
                                 responeAC.Message = "selected services for provider mapping is invalid.";
@@ -438,7 +438,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                             }
                         }
                     }
-                  
+
                     #endregion
 
                     #region Transaction Log Entry
@@ -466,9 +466,9 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     responeAC.Message = _iStringConstant.ExcelMappingUpdatedSuccessfully;
                     responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
 
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditExcelMapping, loginUserName, userId, "Excel mapping", (int)EnumList.ActionTemplateTypes.Edit, mappingexcel.Id);
+                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditExcelMapping, loginUserName, userId, "Excel mapping", (int)EnumList.ActionTemplateTypes.Edit, mappingexcel.Id);
 
-					if (mappingexcel.Id > 0)
+                    if (mappingexcel.Id > 0)
                     {
                         #region --> Remove Old Common Mapping
                         List<Mappingexcel> mappingCommonList = new List<Mappingexcel>();
@@ -480,7 +480,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                                 _dbTeleBilling_V01Context.RemoveRange(mappingCommonList);
                                 await _dbTeleBilling_V01Context.SaveChangesAsync();
                             }
-                               
+
                         }
                         #endregion
                         if (excelMappingAC.ServiceTypeIdInline != null)
@@ -517,7 +517,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                                 #endregion
                             }
                         }
-                       
+
 
                         #region --> Update Mapping column Details
                         if (excelMappingAC.dbfieldList.Count() > 0)
@@ -600,8 +600,8 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     _dbTeleBilling_V01Context.RemoveRange(excelcolumnlst);
                     await _dbTeleBilling_V01Context.SaveChangesAsync();
                 }
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeletePbxExcelMapping, loginUserName, userId, "PBX Excel mapping", (int)EnumList.ActionTemplateTypes.Delete, mappingExcel.Id);
-				return true;
+                await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeletePbxExcelMapping, loginUserName, userId, "PBX Excel mapping", (int)EnumList.ActionTemplateTypes.Delete, mappingExcel.Id);
+                return true;
             }
             return false;
 
@@ -633,7 +633,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     mappingexcel.WorkSheetNo = Convert.ToInt64(excelMappingAC.WorkSheetNo);
                     mappingexcel.ExcelColumnNameForTitle = string.IsNullOrEmpty(excelMappingAC.ExcelColumnNameForTitle) ? "" : excelMappingAC.ExcelColumnNameForTitle;
                     mappingexcel.ExcelReadingColumn = string.IsNullOrEmpty(excelMappingAC.ExcelReadingColumn) ? "0" : excelMappingAC.ExcelReadingColumn;
-                    
+
                     mappingexcel.CreatedBy = userId;
                     mappingexcel.CreatedDate = DateTime.Now;
                     mappingexcel.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
@@ -642,9 +642,9 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     await _dbTeleBilling_V01Context.SaveChangesAsync();
                     responeAC.Message = _iStringConstant.ExcelMappingAddedSuccessfully;
                     responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddPbxExcelMapping, loginUserName, userId, "PBX Excel mapping", (int)EnumList.ActionTemplateTypes.Add, mappingexcel.Id);
+                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddPbxExcelMapping, loginUserName, userId, "PBX Excel mapping", (int)EnumList.ActionTemplateTypes.Add, mappingexcel.Id);
 
-					if (mappingexcel.Id > 0)
+                    if (mappingexcel.Id > 0)
                     {
                         #region --> ADD Mapping column Details
                         if (excelMappingAC.dbfieldList.Count() > 0)
@@ -708,8 +708,8 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     // sweta 
                     List<MappingServiceTypeFieldAC> dbfieldlst = new List<MappingServiceTypeFieldAC>();
                     List<MappingservicetypefieldPbx> lstofMappingColmns = new List<MappingservicetypefieldPbx>();
-                    lstofMappingColmns = await  _dbTeleBilling_V01Context.MappingservicetypefieldPbx.Where(x => x.DeviceId == mapExcel.DeviceId).ToListAsync();
-                     List<MappingexcelcolumnPbx> mapexcelcolumn = await _dbTeleBilling_V01Context.MappingexcelcolumnPbx.Where(x => x.MappingExcelId == excelMappingId).ToListAsync();
+                    lstofMappingColmns = await _dbTeleBilling_V01Context.MappingservicetypefieldPbx.Where(x => x.DeviceId == mapExcel.DeviceId).ToListAsync();
+                    List<MappingexcelcolumnPbx> mapexcelcolumn = await _dbTeleBilling_V01Context.MappingexcelcolumnPbx.Where(x => x.MappingExcelId == excelMappingId).ToListAsync();
 
                     foreach (var item in lstofMappingColmns)
                     {
@@ -782,7 +782,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                     mappingexcel.HaveHeader = excelMappingAC.HaveHeader;
                     mappingexcel.HaveTitle = excelMappingAC.HaveTitle;
                     mappingexcel.TitleName = excelMappingAC.TitleName;
-                    mappingexcel.WorkSheetNo = Convert.ToInt64(excelMappingAC.WorkSheetNo);                   
+                    mappingexcel.WorkSheetNo = Convert.ToInt64(excelMappingAC.WorkSheetNo);
 
                     mappingexcel.ExcelColumnNameForTitle = string.IsNullOrEmpty(excelMappingAC.ExcelColumnNameForTitle) ? "" : excelMappingAC.ExcelColumnNameForTitle;
                     mappingexcel.ExcelReadingColumn = string.IsNullOrEmpty(excelMappingAC.ExcelReadingColumn) ? "0" : excelMappingAC.ExcelReadingColumn;
@@ -796,8 +796,8 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
 
                     responeAC.Message = _iStringConstant.ExcelMappingUpdatedSuccessfully;
                     responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditPbxExcelMapping, loginUserName, userId, "PBX Excel mapping", (int)EnumList.ActionTemplateTypes.Edit, mappingexcel.Id);
-					if (mappingexcel.Id > 0)
+                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditPbxExcelMapping, loginUserName, userId, "PBX Excel mapping", (int)EnumList.ActionTemplateTypes.Edit, mappingexcel.Id);
+                    if (mappingexcel.Id > 0)
                     {
                         #region --> Update Mapping column Details
                         if (excelMappingAC.dbfieldList.Count() > 0)
@@ -812,7 +812,7 @@ namespace TeleBillingRepository.Repository.Master.ExcelMapping
                                     _dbTeleBilling_V01Context.RemoveRange(excelcolumnlst);
                                     await _dbTeleBilling_V01Context.SaveChangesAsync();
                                 }
-                              
+
                             }
                             #endregion
 

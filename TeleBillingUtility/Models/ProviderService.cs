@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TeleBillingUtility.Models
+﻿namespace TeleBillingUtility.Models
 {
     public partial class Providerservice
     {

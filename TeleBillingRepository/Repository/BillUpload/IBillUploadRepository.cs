@@ -1,15 +1,11 @@
-﻿using System;
-using System.Web;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using TeleBillingUtility.ApplicationClass;
 using TeleBillingUtility.Models;
 
 namespace TeleBillingRepository.Repository.BillUpload
 {
-   public interface IBillUploadRepository
+    public interface IBillUploadRepository
     {
         /// <summary>
         /// This method used for Get Bill Uploaded List
@@ -21,10 +17,10 @@ namespace TeleBillingRepository.Repository.BillUpload
         /// </summary>
         /// <returns></returns>
         Task<List<PbxBillUploadListAC>> GetPbxBillUploadedList();
-         /// <summary>
-         /// This method used for get excel mapping 
-         /// </summary>
-         /// <returns></returns>
+        /// <summary>
+        /// This method used for get excel mapping 
+        /// </summary>
+        /// <returns></returns>
         Task<List<MappingDetailAC>> GetExcelMapping(BillUploadAC billUploadModel);
         /// <summary>
         /// GetPbxExcelMapping
@@ -39,12 +35,12 @@ namespace TeleBillingRepository.Repository.BillUpload
         /// <returns></returns>
         ExcelUploadResponseAC UploadNewExcel(ExcelFileAC excelFileAC);
 
-     
-		/// <summary>
-		/// This method used for get bill allocation list
-		/// </summary>
-		/// <param name="billAllocationAC"></param>
-		/// <returns></returns>
+
+        /// <summary>
+        /// This method used for get bill allocation list
+        /// </summary>
+        /// <param name="billAllocationAC"></param>
+        /// <returns></returns>
         Task<BillAllocationListAC> GetBillAllocationList(BillAllocationAC billAllocationAC);
 
         /// <summary>
@@ -95,14 +91,24 @@ namespace TeleBillingRepository.Repository.BillUpload
         Task<long> AddExcelUploadLog(BillUploadAC billUploadModel, string fileNameGuid, long userId);
 
         /// <summary>
-        /// UpdateExcelUploadLog
+        /// Update Excel Upload Log
         /// </summary>
         /// <param name="id"> upload id</param>
         /// <param name="userId"> login user id</param>
         /// <param name="count"> total count</param>
         /// <param name="amount">total amount</param>
         /// <returns></returns>
-        Task<Exceluploadlog> UpdateExcelUploadLog(long id, long userId,long count, decimal amount,bool isSkypeData);
+        Task<Exceluploadlog> UpdateExcelUploadLog(long id, long userId, long count, decimal amount, bool isSkypeData);
+
+        /// <summary>
+        /// Update Excel Upload Log Pbx
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userId"></param>
+        /// <param name="count"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        Task<Exceluploadlogpbx> UpdateExcelUploadLogPbx(long id, long userId, long count, decimal amount);
 
         /// <summary>
         /// used to remove temperory data ExcelUploadLog table before successful data read.
@@ -110,6 +116,13 @@ namespace TeleBillingRepository.Repository.BillUpload
         /// <param name="id"></param>
         /// <returns></returns>
         Task<bool> RemoveExcelUploadLog(long id);
+
+        /// <summary>
+        /// Remove Excel Upload Log Pbx
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<bool> RemoveExcelUploadLogPbx(long id);
 
         /// <summary>
         /// AddExcelUploadLogPbx
@@ -133,7 +146,7 @@ namespace TeleBillingRepository.Repository.BillUpload
         /// </summary>
         /// <param name="List of Excel Detail Error"></param>
         /// <returns>true if saved successful</returns>
-        Task<bool> AddExcelDetailError(AllServiceTypeDataAC allServiceTypeData,string FileNameGuid);
+        Task<bool> AddExcelDetailError(AllServiceTypeDataAC allServiceTypeData, string FileNameGuid);
 
         /// <summary>
         /// Export Mobility Error List
@@ -141,6 +154,20 @@ namespace TeleBillingRepository.Repository.BillUpload
         /// <param name="fileGuidNo"></param>
         /// <returns></returns>
         List<MobilityExcelUploadDetailStringAC> ExportMobilityErrorList(string fileGuidNo);
+
+        /// <summary>
+        /// Export Voip Error List
+        /// </summary>
+        /// <param name="fileGuidNo"></param>
+        /// <returns></returns>
+        List<PbxExcelUploadDetailStringAC> ExportpbxErrorList(string fileGuidNo);
+
+        /// <summary>
+        /// Export Voip Error List
+        /// </summary>
+        /// <param name="fileGuidNo"></param>
+        /// <returns></returns>
+        List<VoipExcelUploadDetailStringAC> ExportVoipErrorList(string fileGuidNo);
 
         /// <summary>
         /// Add Skype Excel Detail 
@@ -163,7 +190,7 @@ namespace TeleBillingRepository.Repository.BillUpload
         /// <returns></returns>
         Task<ImportBillDetailAC<MobilityUploadListAC>> ReadExcelForMobility(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC);
 
-      
+
         /// <summary>
         /// ReadExcelForPbx
         /// </summary>
@@ -181,47 +208,47 @@ namespace TeleBillingRepository.Repository.BillUpload
         Task<ImportBillDetailAC<MadaUploadListAC>> ReadExcelForMadaService(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC);
 
 
-		/// <summary>
-		/// This method used for delete exists excel upload
-		/// </summary>
-		/// <param name="userId"></param>
-		/// <param name="id"></param>
-		/// <param name="loginUserName"></param>
-		/// <returns></returns>
-		Task<bool> DeleteExcelUplaod(long userId, long id, string loginUserName);
+        /// <summary>
+        /// This method used for delete exists excel upload
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="id"></param>
+        /// <param name="loginUserName"></param>
+        /// <returns></returns>
+        Task<bool> DeleteExcelUplaod(long userId, long id, string loginUserName);
 
-		/// <summary>
-		/// Approve Excel Upload Log
-		/// </summary>
-		/// <param name="userId"></param>
-		/// <param name="id"></param>
-		/// <param name="loginUserName"></param>
-		/// <returns></returns>
-		Task<bool> ApproveExcelUploadLog(long userId, long id, string loginUserName);
-		/// <summary>
-		/// Approve Excel Upload Pbx Log
-		/// </summary>
-		/// <param name="userId"></param>
-		/// <param name="id"></param>
-		/// <param name="loginUserName"></param>
-		/// <returns></returns>
-		Task<bool> ApproveExcelUploadPbxLog(long userId, long id, string loginUserName);
+        /// <summary>
+        /// Approve Excel Upload Log
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="id"></param>
+        /// <param name="loginUserName"></param>
+        /// <returns></returns>
+        Task<bool> ApproveExcelUploadLog(long userId, long id, string loginUserName);
+        /// <summary>
+        /// Approve Excel Upload Pbx Log
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="id"></param>
+        /// <param name="loginUserName"></param>
+        /// <returns></returns>
+        Task<bool> ApproveExcelUploadPbxLog(long userId, long id, string loginUserName);
 
-		/// <summary>
-		/// This method used for delete exists pbx excel upload
-		/// </summary>
-		/// <param name="userId"></param>
-		/// <param name="id"></param>
-		/// <param name="loginUserName"></param>
-		/// <returns></returns>
-		Task<bool> DeletePbxExcelUplaod(long userId, long id, string loginUserName);
+        /// <summary>
+        /// This method used for delete exists pbx excel upload
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="id"></param>
+        /// <param name="loginUserName"></param>
+        /// <returns></returns>
+        Task<bool> DeletePbxExcelUplaod(long userId, long id, string loginUserName);
 
-        
+
         /// <summary>
         /// This method used for upload Excel for Mada Provider Service in system
         /// </summary>
         /// <returns></returns>
-         Task<ImportBillDetailAC<InternetServiceUploadListAC>> ReadExcelForInternetService(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC);
+        Task<ImportBillDetailAC<InternetServiceUploadListAC>> ReadExcelForInternetService(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC);
 
         /// <summary>
         /// This method used for upload Excel for Mada Provider Service in system
@@ -269,38 +296,38 @@ namespace TeleBillingRepository.Repository.BillUpload
         Task<bool> GetServiceChargeType(long serviceTypeId);
 
 
-          	/// <summary>
-		/// This method used for assigne bills
-		/// </summary>
-		/// <param name="billAssigneAC"></param>
-		/// <param name="userId"></param>
-		/// <returns></returns>
-		Task<ResponseAC> AssigneBills(BillAssigneAC billAssigneAC, string userId);
-        
-		/// <summary>
-		/// This method used for get assigned bill list.
-		/// </summary>
-		/// <param name="employeeId"></param>
-		/// <param name="exceluploadlogid"></param>
-		/// <param name="businessunitId"></param>
-		/// <returns></returns>
-		Task<List<UnAssignedBillAC>> GetAssignedBillList(long employeeId, long exceluploadlogid, long businessunitId);
+        /// <summary>
+        /// This method used for assigne bills
+        /// </summary>
+        /// <param name="billAssigneAC"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<ResponseAC> AssigneBills(BillAssigneAC billAssigneAC, string userId);
 
-		/// <summary>
-		/// This method used for assigned call log move to unassigne.
-		/// </summary>
-		/// <param name="unAssignedBillACs"></param>
-		/// <returns></returns>
-		Task<bool> UnAssgineCallLogs(List<UnAssignedBillAC> unAssignedBillACs);
+        /// <summary>
+        /// This method used for get assigned bill list.
+        /// </summary>
+        /// <param name="employeeId"></param>
+        /// <param name="exceluploadlogid"></param>
+        /// <param name="businessunitId"></param>
+        /// <returns></returns>
+        Task<List<UnAssignedBillAC>> GetAssignedBillList(long employeeId, long exceluploadlogid, long businessunitId);
 
-		/// <summary>
-		/// This method used for allocate the bill
-		/// </summary>
-		/// <param name="billAllocationAC"></param>
-		/// <param name="userId"></param>
-		/// <param name="loginUserName"></param>
-		/// <returns></returns>
-		Task<ResponseAC> BillAllocation(BillAllocationAC billAllocationAC, long userId, string loginUserName);
+        /// <summary>
+        /// This method used for assigned call log move to unassigne.
+        /// </summary>
+        /// <param name="unAssignedBillACs"></param>
+        /// <returns></returns>
+        Task<bool> UnAssgineCallLogs(List<UnAssignedBillAC> unAssignedBillACs);
+
+        /// <summary>
+        /// This method used for allocate the bill
+        /// </summary>
+        /// <param name="billAllocationAC"></param>
+        /// <param name="userId"></param>
+        /// <param name="loginUserName"></param>
+        /// <returns></returns>
+        Task<ResponseAC> BillAllocation(BillAllocationAC billAllocationAC, long userId, string loginUserName);
 
         /// <summary>
         /// ReadExcelForInternetServiceMultiple
@@ -382,5 +409,5 @@ namespace TeleBillingRepository.Repository.BillUpload
         /// <param name="billUploadAC"></param>
         /// <returns></returns>
         Task<ImportBillDetailAC<VoipUploadListAC>> ReadExcelForVoip(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC);
-     }
+    }
 }

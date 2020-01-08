@@ -18,6 +18,6 @@ namespace TeleBillingUtility.ApplicationClass
         public string PbxBillUploadAc { get; set; }
 
         public IFormFile File { get; set; }
-        
+
     }
 }

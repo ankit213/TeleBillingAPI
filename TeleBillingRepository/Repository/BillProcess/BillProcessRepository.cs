@@ -139,10 +139,11 @@ namespace TeleBillingRepository.Repository.BillProcess
 			responseAC.Message = _iStringConstant.IdentificationSaveChangeSuccessfully;
 
 			#region AuditTrailLogs
-			if (billDetails.Any()) { 
-				Employeebillmaster employeebillmaster = await _dbTeleBilling_V01Context.Employeebillmaster.FirstOrDefaultAsync(x=>x.BillMasterId == billDetails[0].BillMasterId && x.TelephoneNumber == billDetails[0].CallerNumber && !x.IsDelete);
-				if(employeebillmaster != null)
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BillIdentificationSaveChanges, loginUserName, userId, "Bill Identification(bill number: "+ employeebillmaster.BillNumber+ " and telePhone number: "+ employeebillmaster.TelephoneNumber+")", (int)EnumList.ActionTemplateTypes.BilIdentiSaveChanges, employeebillmaster.Id);
+			if (billDetails.Any())
+			{
+				Employeebillmaster employeebillmaster = await _dbTeleBilling_V01Context.Employeebillmaster.FirstOrDefaultAsync(x => x.BillMasterId == billDetails[0].BillMasterId && x.TelephoneNumber == billDetails[0].CallerNumber && !x.IsDelete);
+				if (employeebillmaster != null)
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BillIdentificationSaveChanges, loginUserName, userId, "Bill Identification(bill number: " + employeebillmaster.BillNumber + " and telePhone number: " + employeebillmaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.BilIdentiSaveChanges, employeebillmaster.Id);
 			}
 			#endregion
 			return responseAC;
@@ -219,7 +220,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 					#endregion
 
 					#region AuditTrailLogs
-					  await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BillProceess, loginUserName, userId, "Bill Process(bill number: " + employeeBillMaster.BillNumber + " and telePhone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.BillProcess, employeeBillMaster.Id);
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BillProceess, loginUserName, userId, "Bill Process(bill number: " + employeeBillMaster.BillNumber + " and telePhone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.BillProcess, employeeBillMaster.Id);
 					#endregion
 				}
 			}
@@ -285,7 +286,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 						employeeBillMaster.IsApprovedByDelegate = item.IsDelegatedUser;
 						employeeBillMaster.ApprovalById = userId;
 
-						if(!lineManagerApprovalAC.IsApprove)
+						if (!lineManagerApprovalAC.IsApprove)
 							employeeBillMaster.IdentificationById = null;
 
 						employeeBillMasterList.Add(employeeBillMaster);
@@ -320,35 +321,42 @@ namespace TeleBillingRepository.Repository.BillProcess
 								{
 									if (!employeeBillMaster.Employee.IsPresidentOffice)
 									{
-										var telephoneNumberAllocation = _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefault(x => x.TelephoneNumber == employeeBillMaster.TelephoneNumber && x.EmployeeId == employeeBillMaster.EmployeeId && !x.IsDelete);
-										if (telephoneNumberAllocation.AssignTypeId != Convert.ToInt16(EnumList.AssignType.Business))
+										if (string.IsNullOrEmpty(employeeBillMaster.TelephoneNumber)) //for skyp.
 										{
-											if (employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.LandLine) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.VOIP) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.StaticIP))
-											{
-												employeeBillServicePackage.DeductionAmount = employeeBillServicePackage.PersonalIdentificationAmount;
-											}
-											else
-											{
-												List<Billdetails> billDetails = _dbTeleBilling_V01Context.Billdetails.Where(x => x.EmployeeBillId == employeeBillMaster.Id && x.ServiceTypeId == employeeBillServicePackage.ServiceTypeId).ToList();
-												decimal totalAmount = billDetails.Sum(x => x.CallAmount).Value;
-												if (employeeBillServicePackage.Package.PackageAmount < totalAmount)
-												{
-													decimal businessIdentificationAmount = Convert.ToDecimal(employeeBillServicePackage.BusinessIdentificationAmount);
-													decimal amount = 0;
-													if (employeeBillServicePackage.Package.PackageAmount < businessIdentificationAmount)
-													{
-														amount = businessIdentificationAmount;
-													}
-													else
-													{
-														amount = employeeBillServicePackage.Package.PackageAmount != null ? Convert.ToDecimal(employeeBillServicePackage.Package.PackageAmount) : 0;
-													}
-													employeeBillServicePackage.DeductionAmount = totalAmount - amount;
-												}
-											}
+											employeeBillServicePackage.DeductionAmount = employeeBillServicePackage.PersonalIdentificationAmount;
 										}
 										else
-											employeeBillServicePackage.DeductionAmount = 0;
+										{
+											var telephoneNumberAllocation = _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefault(x => x.TelephoneNumber == employeeBillMaster.TelephoneNumber && x.EmployeeId == employeeBillMaster.EmployeeId && !x.IsDelete);
+											if (telephoneNumberAllocation.AssignTypeId != Convert.ToInt16(EnumList.AssignType.Business))
+											{
+												if (employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.LandLine) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.VOIP) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.StaticIP))
+												{
+													employeeBillServicePackage.DeductionAmount = employeeBillServicePackage.PersonalIdentificationAmount;
+												}
+												else
+												{
+													List<Billdetails> billDetails = _dbTeleBilling_V01Context.Billdetails.Where(x => x.EmployeeBillId == employeeBillMaster.Id && x.ServiceTypeId == employeeBillServicePackage.ServiceTypeId).ToList();
+													decimal totalAmount = billDetails.Sum(x => x.CallAmount).Value;
+													if (employeeBillServicePackage.Package.PackageAmount < totalAmount)
+													{
+														decimal businessIdentificationAmount = Convert.ToDecimal(employeeBillServicePackage.BusinessIdentificationAmount);
+														decimal amount = 0;
+														if (employeeBillServicePackage.Package.PackageAmount < businessIdentificationAmount)
+														{
+															amount = businessIdentificationAmount;
+														}
+														else
+														{
+															amount = employeeBillServicePackage.Package.PackageAmount != null ? Convert.ToDecimal(employeeBillServicePackage.Package.PackageAmount) : 0;
+														}
+														employeeBillServicePackage.DeductionAmount = totalAmount - amount;
+													}
+												}
+											}
+											else
+												employeeBillServicePackage.DeductionAmount = 0;
+										}
 									}
 									else
 										employeeBillServicePackage.DeductionAmount = 0;
@@ -368,7 +376,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 								notificationlogs.Add(_iLogManagement.GenerateNotificationObject(Convert.ToInt64(employeeBillMaster.EmployeeId), userId, Convert.ToInt16(EnumList.NotificationType.LineManagerApprove), employeeBillMaster.Id));
 
 							#region AuditLog 
-							 await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.LineManagerApprove, loginUserName, userId, "Bill(bill number: "+ employeeBillMaster.BillNumber + " and telephone number: "+ employeeBillMaster .TelephoneNumber+ ")", (int)EnumList.ActionTemplateTypes.Approve, employeeBillMaster.Id);
+							await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.LineManagerApprove, loginUserName, userId, "Bill(bill number: " + employeeBillMaster.BillNumber + " and telephone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.Approve, employeeBillMaster.Id);
 							#endregion
 
 						}
@@ -380,7 +388,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 								notificationlogs.Add(_iLogManagement.GenerateNotificationObject(Convert.ToInt64(employeeBillMaster.EmployeeId), userId, Convert.ToInt16(EnumList.NotificationType.LineManagerReject), employeeBillMaster.Id));
 
 							#region AuditLog 
-								await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.LineManagerReject, loginUserName, userId, "Bill(bill number: " + employeeBillMaster.BillNumber + " and telephone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.Reject, employeeBillMaster.Id);
+							await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.LineManagerReject, loginUserName, userId, "Bill(bill number: " + employeeBillMaster.BillNumber + " and telephone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.Reject, employeeBillMaster.Id);
 							#endregion
 						}
 
@@ -406,10 +414,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 								}
 							}
 						}
-
-						//await SendMailForApproval(employeeBillMaster, lineManagerApprovalAC.IsApprove);
-
-
+						await SendMailForApproval(employeeBillMaster, lineManagerApprovalAC.IsApprove);
 					}
 					else
 					{
@@ -523,7 +528,8 @@ namespace TeleBillingRepository.Repository.BillProcess
 			return currentBillACs;
 		}
 
-		public List<ExportPreviousPeriodBillsAC> GetExportPreviousPeriodBills(SearchMyStaffAC searchMyStaffAC, long userId) {
+		public List<ExportPreviousPeriodBillsAC> GetExportPreviousPeriodBills(SearchMyStaffAC searchMyStaffAC, long userId)
+		{
 
 			int billLineManagerApprovedStatusId = Convert.ToInt16(EnumList.EmployeeBillStatus.LineManagerApproved);
 			int billCloseStatusId = Convert.ToInt16(EnumList.EmployeeBillStatus.CloseBill);
@@ -533,7 +539,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 																								   && (searchMyStaffAC.Month != 0 ? x.BillMonth == searchMyStaffAC.Month : x.BillMonth == x.BillMonth)
 																								   && (searchMyStaffAC.Year != 0 ? x.BillYear == searchMyStaffAC.Year : x.BillYear == x.BillYear)
 																								   && (searchMyStaffAC.ProviderId != 0 ? x.ProviderId == searchMyStaffAC.ProviderId : x.ProviderId == x.ProviderId);
-			
+
 			IQueryable<Employeebillmaster> query = _dbTeleBilling_V01Context.Employeebillmaster.Where(predicate).Include(x => x.EmployeeBillStatusNavigation).Include(x => x.Employee).Include(x => x.Provider).Include(x => x.MobileAssignTypeNavigation).Include(x => x.Linemanager).Include(x => x.Currency).OrderByDescending(x => x.Id).AsNoTracking();
 
 			List<ExportPreviousPeriodBillsAC> exportPreviousPeriodBillsACs = new List<ExportPreviousPeriodBillsAC>();
@@ -551,7 +557,8 @@ namespace TeleBillingRepository.Repository.BillProcess
 			return exportPreviousPeriodBillsACs;
 		}
 
-		public async Task<JqueryDataTablesPagedResults<CurrentBillAC>> GetPreviousPeriodBills(JqueryDataWithExtraParameterAC param, long userId) {
+		public async Task<JqueryDataTablesPagedResults<CurrentBillAC>> GetPreviousPeriodBills(JqueryDataWithExtraParameterAC param, long userId)
+		{
 
 			int skip = (param.DataTablesParameters.Start / param.DataTablesParameters.Length) * param.DataTablesParameters.Length;
 			int take = param.DataTablesParameters.Length;
@@ -564,8 +571,8 @@ namespace TeleBillingRepository.Repository.BillProcess
 																								   && (param.Month != 0 ? x.BillMonth == param.Month : x.BillMonth == x.BillMonth)
 																								   && (param.Year != 0 ? x.BillYear == param.Year : x.BillYear == x.BillYear)
 																								   && (param.ProviderId != 0 ? x.ProviderId == param.ProviderId : x.ProviderId == x.ProviderId);
-			
-			IQueryable<Employeebillmaster> query = _dbTeleBilling_V01Context.Employeebillmaster.Where(predicate).Include(x => x.EmployeeBillStatusNavigation).Include(x => x.Employee).Include(x => x.Provider).Include(x => x.MobileAssignTypeNavigation).Include(x=>x.Linemanager).Include(x => x.Currency).OrderByDescending(x => x.Id).AsNoTracking();
+
+			IQueryable<Employeebillmaster> query = _dbTeleBilling_V01Context.Employeebillmaster.Where(predicate).Include(x => x.EmployeeBillStatusNavigation).Include(x => x.Employee).Include(x => x.Provider).Include(x => x.MobileAssignTypeNavigation).Include(x => x.Linemanager).Include(x => x.Currency).OrderByDescending(x => x.Id).AsNoTracking();
 
 			query = query.Where(x => x.BillNumber.Contains(param.DataTablesParameters.Search.Value) || x.Employee.FullName.Contains(param.DataTablesParameters.Search.Value) || x.TelephoneNumber.Contains(param.DataTablesParameters.Search.Value) || x.Linemanager.FullName.Contains(param.DataTablesParameters.Search.Value));
 
@@ -620,7 +627,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 			};
 		}
 
-		public async Task<long> ReIdentificationRequest(long userId, long employeebillmasterid,string loginUserName)
+		public async Task<long> ReIdentificationRequest(long userId, long employeebillmasterid, string loginUserName)
 		{
 
 			Employeebillmaster employeeBillMaster = await _dbTeleBilling_V01Context.Employeebillmaster.FirstAsync(x => x.Id == employeebillmasterid && !x.IsDelete);
@@ -730,7 +737,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 			return newEmployeeBillMaster.Id;
 		}
 
-		public async Task<ResponseAC> ReImbursementRequest(long userId, ReImbursementRequestAC reImbursementRequestAC,string loginUserName)
+		public async Task<ResponseAC> ReImbursementRequest(long userId, ReImbursementRequestAC reImbursementRequestAC, string loginUserName)
 		{
 			ResponseAC responseAC = new ResponseAC();
 			Employeebillmaster employeeBillMaster = await _dbTeleBilling_V01Context.Employeebillmaster.FirstAsync(x => x.Id == reImbursementRequestAC.EmployeeBillMasterId && !x.IsDelete);
@@ -759,7 +766,8 @@ namespace TeleBillingRepository.Repository.BillProcess
 			#region Notification For Reimbursement
 			int finaceRoleId = Convert.ToInt16(EnumList.RoleType.Finance);
 			List<MstEmployee> mstEmployees = await _dbTeleBilling_V01Context.MstEmployee.Where(x => x.RoleId == finaceRoleId && !x.IsDelete && x.IsActive).ToListAsync();
-			if (mstEmployees.Any()) { 
+			if (mstEmployees.Any())
+			{
 				List<Notificationlog> notificationlogs = new List<Notificationlog>();
 				foreach (var item in mstEmployees)
 				{
@@ -773,7 +781,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 			responseAC.Message = _iStringConstant.ReImbursementRequestAddedSuccessfully;
 
 			#region AuditLog
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ReimbursementRequest, loginUserName, userId, "Bill(bill number: " + employeeBillMaster.BillNumber + " and telephone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.ReimbursementRequest, employeeBillMaster.Id);
+			await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ReimbursementRequest, loginUserName, userId, "Bill(bill number: " + employeeBillMaster.BillNumber + " and telephone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.ReimbursementRequest, employeeBillMaster.Id);
 			#endregion
 
 			return responseAC;
@@ -796,7 +804,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 			return reImburseBillsACs;
 		}
 
-		public async Task<ResponseAC> ReImburseBillApproval(long userId, ReImburseBillApprovalAC reImburseBillApprovalAC,string loginUserName)
+		public async Task<ResponseAC> ReImburseBillApproval(long userId, ReImburseBillApprovalAC reImburseBillApprovalAC, string loginUserName)
 		{
 			ResponseAC responseAC = new ResponseAC();
 
@@ -832,7 +840,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 			if (reImburseBillApprovalAC.IsApproved)
 			{
 				notificationlogs.Add(_iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeebillmaster.EmployeeId), userId, Convert.ToInt16(EnumList.NotificationType.ReImbursementApprove), employeebillmaster.Id));
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ReimbursementBillApprove, loginUserName, userId, "Bill(bill number: " + employeebillmaster.BillNumber + " and telephone number: " + employeebillmaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.Approve, employeebillmaster.Id);			
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ReimbursementBillApprove, loginUserName, userId, "Bill(bill number: " + employeebillmaster.BillNumber + " and telephone number: " + employeebillmaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.Approve, employeebillmaster.Id);
 			}
 			else
 			{
@@ -889,7 +897,7 @@ namespace TeleBillingRepository.Repository.BillProcess
 			return changeBillStatusACs;
 		}
 
-		public async Task<ResponseAC> ChangeBillStatus(List<ChangeBillStatusAC> changeBillStatusACs, long userId,string loginUserName)
+		public async Task<ResponseAC> ChangeBillStatus(List<ChangeBillStatusAC> changeBillStatusACs, long userId, string loginUserName)
 		{
 			ResponseAC responseAC = new ResponseAC();
 			if (changeBillStatusACs.Any())
@@ -916,14 +924,14 @@ namespace TeleBillingRepository.Repository.BillProcess
 						employeeBillMaster.UpdatedDate = DateTime.Now;
 						employeeBillMaster.EmployeeBillStatus = item.EmployeeBillChangeStatus;
 
-						if(employeeBillMaster.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForIdentification))
-								employeeBillMaster.IdentificationById = null;
+						if (employeeBillMaster.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForIdentification))
+							employeeBillMaster.IdentificationById = null;
 
 						employeeBillMasterList.Add(employeeBillMaster);
 
 						#region AuditLog And Notification Log
-							await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ChangeBillStatus, loginUserName, userId, "Bill(bill number: " + employeeBillMaster.BillNumber + " and telephone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.ChangeBillStatus, employeeBillMaster.Id);
-							notificationlogs.Add(_iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.EmployeeId), userId, Convert.ToInt16(EnumList.NotificationType.ChangeBillStatus), employeeBillMaster.Id));
+						await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ChangeBillStatus, loginUserName, userId, "Bill(bill number: " + employeeBillMaster.BillNumber + " and telephone number: " + employeeBillMaster.TelephoneNumber + ")", (int)EnumList.ActionTemplateTypes.ChangeBillStatus, employeeBillMaster.Id);
+						notificationlogs.Add(_iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.EmployeeId), userId, Convert.ToInt16(EnumList.NotificationType.ChangeBillStatus), employeeBillMaster.Id));
 						#endregion
 					}
 				}
@@ -963,7 +971,8 @@ namespace TeleBillingRepository.Repository.BillProcess
 					currentBillAC.Amount = item.TotalBillAmount;
 					EnumList.Month month = (EnumList.Month)item.BillMonth;
 					currentBillAC.BillDate = month.ToString() + " " + item.BillYear;
-					currentBillAC.AssigneType = item.MobileAssignTypeNavigation.Name;
+					if (item.MobileAssignTypeNavigation != null)
+						currentBillAC.AssigneType = item.MobileAssignTypeNavigation.Name;
 					currentBillAC.BillStatus = CommonFunction.GetDescriptionFromEnumValue(((EnumList.EmployeeBillStatus)item.EmployeeBillStatus));
 					currentBillAC.Currency = item.Currency.Code;
 					currentBillAC.Description = item.Description;
@@ -1008,7 +1017,9 @@ namespace TeleBillingRepository.Repository.BillProcess
 					currentBillAC.Amount = item.TotalBillAmount;
 					EnumList.Month month = (EnumList.Month)item.BillMonth;
 					currentBillAC.BillDate = month.ToString() + " " + item.BillYear;
-					currentBillAC.AssigneType = item.MobileAssignTypeNavigation.Name;
+					if (item.MobileAssignTypeNavigation != null)
+						currentBillAC.AssigneType = item.MobileAssignTypeNavigation.Name;
+
 					currentBillAC.BillStatus = CommonFunction.GetDescriptionFromEnumValue(((EnumList.EmployeeBillStatus)item.EmployeeBillStatus));
 					currentBillAC.Currency = item.Currency.Code;
 					currentBillAC.Description = item.Description;

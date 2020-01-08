@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
@@ -12,8 +11,8 @@ namespace TeleBillingUtility.Models
         public bool IsDelete { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
         public long? TransactionId { get; set; }
 
         public virtual Billmaster Bill { get; set; }

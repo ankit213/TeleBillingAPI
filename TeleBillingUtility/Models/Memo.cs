@@ -25,19 +25,19 @@ namespace TeleBillingUtility.Models
         public string Comment { get; set; }
         public long? ApprovedBy { get; set; }
         public DateTime? ApprovedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? ApprovedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? ApprovedDateInt { get; set; }
         public string Bank { get; set; }
         public string Ibancode { get; set; }
         public string Swiftcode { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? UpdatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
 
         public virtual Provider Provider { get; set; }

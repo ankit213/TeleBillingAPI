@@ -1,11 +1,9 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-   public class MappingDetailAC
+    public class MappingDetailAC
     {
 
         public MappingDetailAC()
@@ -13,7 +11,7 @@ namespace TeleBillingUtility.ApplicationClass
             DBFiledMappingList = new List<DBFiledMappingAC>();
             ProviderId = 0;
             ServiceTypeId = 0;
-           
+
         }
 
         [JsonProperty("id")]
@@ -25,7 +23,7 @@ namespace TeleBillingUtility.ApplicationClass
         [JsonProperty("serviceTypeid")]
         public long ServiceTypeId { get; set; }
 
-       
+
 
         [JsonProperty("worksheetno")]
         public long WorkSheetNo { get; set; }
@@ -41,8 +39,8 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("excelcolumnNamefortitle")]
         public string ExcelColumnNameForTitle { get; set; }
- 
-       [JsonProperty("excelreadingcolumn")]
+
+        [JsonProperty("excelreadingcolumn")]
         public string ExcelReadingColumn { get; set; }
 
         // Added ON 2019/10/08
@@ -81,13 +79,13 @@ namespace TeleBillingUtility.ApplicationClass
         public MappingDetailPbxAC()
         {
             DBFiledMappingList = new List<DBFiledMappingAC>();
-          
+
             DeviceId = 0;
         }
 
         [JsonProperty("id")]
         public long Id { get; set; }
-       
+
         [JsonProperty("deviceid")]
         public long DeviceId { get; set; }
 

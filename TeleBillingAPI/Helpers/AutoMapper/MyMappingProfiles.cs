@@ -184,10 +184,10 @@ namespace TeleBillingAPI.Helpers.AutoMapper
             CreateMap<Telephonenumberallocationpackage, TelePhonePackageDetails>();
 
             CreateMap<Employeebillservicepackage, PackageServiceAC>()
-                .ForMember(dest => dest.PackageName, source => source.MapFrom(src => src.Package.Name))
+                .ForMember(dest => dest.PackageName, source => source.MapFrom(src => src.Package != null ? src.Package.Name : string.Empty))
                 .ForMember(dest => dest.ServiceTypeName, source => source.MapFrom(src => src.ServiceType.Name))
                 .ForMember(dest => dest.DeductionAmount, source => source.MapFrom(src => src.DeductionAmount == null ? 0 : src.DeductionAmount))
-                .ForMember(dest => dest.PackageLimitAmount, source => source.MapFrom(src => src.Package.PackageAmount));
+                .ForMember(dest => dest.PackageLimitAmount, source => source.MapFrom(src => src.Package != null ? src.Package.PackageAmount : 0));
 
             CreateMap<Employeebillmaster, CurrentBillAC>()
                 .ForMember(dest => dest.Provider, source => source.MapFrom(src => src.Provider.Name))
@@ -246,6 +246,11 @@ namespace TeleBillingAPI.Helpers.AutoMapper
                 .ForMember(dest => dest.Id, source => source.MapFrom(src => src.RoleId))
                 .ForMember(dest => dest.Name, source => source.MapFrom(src => src.RoleName));
 
+            CreateMap<Transactiontypesetting, DrpResponseAC>()
+           .ForMember(dest => dest.Id, source => source.MapFrom(src => src.Id))
+           .ForMember(dest => dest.Name, source => source.MapFrom(src => src.TransactionType));
+
+
             CreateMap<FixServicetype, ServiceTypeAC>();
 
             CreateMap<EmployeeProfileDetailSP, EmployeeProfileDetailAC>()
@@ -277,14 +282,15 @@ namespace TeleBillingAPI.Helpers.AutoMapper
                 .ForMember(dest => dest.CallType, source => source.MapFrom(src => src.TransType))
                 .ForMember(dest => dest.ErrorMessage, source => source.MapFrom(src => src.ErrorSummary));
 
-            CreateMap<MobilityExcelUploadDetailStringAC,ExceldetailError>()             
+            CreateMap<MobilityExcelUploadDetailStringAC, ExceldetailError>()
                .ForMember(dest => dest.CallDataKb, source => source.MapFrom(src => src.CallDataKB))
                .ForMember(dest => dest.TransType, source => source.MapFrom(src => src.CallType))
                .ForMember(dest => dest.ErrorSummary, source => source.MapFrom(src => src.ErrorMessage));
 
-            CreateMap<VoipExcelUploadDetailStringAC, ExceldetailError>()
+            CreateMap<VoipExcelUploadDetailStringAC, SkypeexceldetailError>()
               .ForMember(dest => dest.ErrorSummary, source => source.MapFrom(src => src.ErrorMessage));
-            CreateMap<ExceldetailError,VoipExcelUploadDetailStringAC>()
+
+            CreateMap<SkypeexceldetailError, VoipExcelUploadDetailStringAC>()
               .ForMember(dest => dest.ErrorMessage, source => source.MapFrom(src => src.ErrorSummary));
 
             //CreateMap<ExceldetailError, MadaExcelUploadDetailStringAC>()
@@ -302,11 +308,16 @@ namespace TeleBillingAPI.Helpers.AutoMapper
             (src => (src.ServiceTypeId > 0 ? CommonFunction.GetServiceName(src.ServiceTypeId) : "")))
             .ForMember(dest => dest.ErrorMessage, source => source.MapFrom(src => src.ErrorSummary));
 
-             CreateMap<ExceldetailError, ManagedHostingServiceExcelUploadDetailStringAC>()
-            .ForMember(dest => dest.ServiceName, source => source.MapFrom
-            (src => (src.ServiceTypeId > 0 ? CommonFunction.GetServiceName(src.ServiceTypeId) : "")))
-            .ForMember(dest => dest.ErrorMessage, source => source.MapFrom(src => src.ErrorSummary));
+            CreateMap<ExceldetailError, ManagedHostingServiceExcelUploadDetailStringAC>()
+           .ForMember(dest => dest.ServiceName, source => source.MapFrom
+           (src => (src.ServiceTypeId > 0 ? CommonFunction.GetServiceName(src.ServiceTypeId) : "")))
+           .ForMember(dest => dest.ErrorMessage, source => source.MapFrom(src => src.ErrorSummary));
 
+            CreateMap<ExceldetailpbxError, PbxExcelUploadDetailStringAC>()
+             .ForMember(dest => dest.ErrorMessage, source => source.MapFrom(src => src.ErrorSummary));
+
+            CreateMap<PbxExcelUploadDetailStringAC, ExceldetailpbxError>()
+            .ForMember(dest => dest.ErrorSummary, source => source.MapFrom(src => src.ErrorMessage));
 
         }
     }

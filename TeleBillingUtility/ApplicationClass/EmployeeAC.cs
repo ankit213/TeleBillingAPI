@@ -1,25 +1,22 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class EmployeeAC
-	{
-		[JsonProperty("id")]
-		public long UserId { get; set; }
-		
-		[JsonProperty("emppfnumber")]
-		public string EmpPfnumber { get; set; }
+    public class EmployeeAC
+    {
+        [JsonProperty("id")]
+        public long UserId { get; set; }
 
-		[JsonProperty("name")]
-		public string FullName { get; set; }
+        [JsonProperty("emppfnumber")]
+        public string EmpPfnumber { get; set; }
 
-		[JsonProperty("department")]
-		public string Department { get; set; }
+        [JsonProperty("name")]
+        public string FullName { get; set; }
 
-		[JsonProperty("extensionnumber")]
-		public string ExtensionNumber { get; set; }
-	}
+        [JsonProperty("department")]
+        public string Department { get; set; }
+
+        [JsonProperty("extensionnumber")]
+        public string ExtensionNumber { get; set; }
+    }
 }

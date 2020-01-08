@@ -26,19 +26,19 @@ namespace TeleBillingUtility.Models
         public string Description { get; set; }
         public long? BillAllocatedBy { get; set; }
         public DateTime? BillAllocationDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? BillAllocationDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? BillAllocationDateInt { get; set; }
         public DateTime? BillDueDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? BillDueDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? BillDueDateInt { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? UpdatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
         public bool IsBusinessOnly { get; set; }
         public bool IsDelete { get; set; }

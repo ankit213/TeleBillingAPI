@@ -1,4 +1,6 @@
-﻿using MailKit.Security;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using System;
@@ -6,11 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.ServiceProcess;
-using TeleBillingUtility.Models;
 using System.Timers;
-using MailKit.Net.Smtp;
 using TeleBillingUtility.Helpers.Enums;
-using Microsoft.EntityFrameworkCore;
+using TeleBillingUtility.Models;
 
 namespace TeleBillingRemiderService
 {
@@ -230,7 +230,8 @@ namespace TeleBillingRemiderService
 							if (item.BillDelegatedEmpId != null)
 							{
 								Emailtemplate emailTemplateForDelegateUser = _dbTeleBillingContext.Emailtemplate.FirstOrDefault(x => x.EmailTemplateTypeId == emailTemplateTypeForDelegateUserId);
-								if (emailTemplateForDelegateUser != null && !string.IsNullOrEmpty(item.BillDelegatedEmp.EmailId)) {
+								if (emailTemplateForDelegateUser != null && !string.IsNullOrEmpty(item.BillDelegatedEmp.EmailId))
+								{
 									emailReminderLog = _dbTeleBillingContext.Emailreminderlog.Where(x => x.EmployeeBillId == item.Id && x.TemplateId == emailTemplateForDelegateUser.Id && x.IsReminderMail).OrderByDescending(x => x.CreatedDateInt).FirstOrDefault();
 
 									int intervalDay = configuration.REmployeeCallIdentificationInterval != null ? Convert.ToInt32(configuration.REmployeeCallIdentificationInterval) : 0;
@@ -264,7 +265,8 @@ namespace TeleBillingRemiderService
 							else
 							{
 								Emailtemplate emailTemplate = _dbTeleBillingContext.Emailtemplate.FirstOrDefault(x => x.EmailTemplateTypeId == emailTemplateTypeId);
-								if (emailTemplate != null && !string.IsNullOrEmpty(item.Employee.EmailId)) {
+								if (emailTemplate != null && !string.IsNullOrEmpty(item.Employee.EmailId))
+								{
 									emailReminderLog = _dbTeleBillingContext.Emailreminderlog.Where(x => x.EmployeeBillId == item.Id && x.TemplateId == emailTemplate.Id && x.IsReminderMail).OrderByDescending(x => x.CreatedDateInt).FirstOrDefault();
 
 									int intervalDay = configuration.REmployeeCallIdentificationInterval != null ? Convert.ToInt32(configuration.REmployeeCallIdentificationInterval) : 0;
@@ -310,7 +312,8 @@ namespace TeleBillingRemiderService
 							DateTime reminderDate = new DateTime();
 							Emailreminderlog emailReminderLog = new Emailreminderlog();
 							//check bill delgated or not 
-							if (item.BillDelegatedEmpId != null) {
+							if (item.BillDelegatedEmpId != null)
+							{
 								int emailTemplateDelegateTypeId = Convert.ToInt16(EnumList.EmailTemplateType.DelegateBillApproval);
 								Emailtemplate emailTemplateForDelegateUser = _dbTeleBillingContext.Emailtemplate.FirstOrDefault(x => x.EmailTemplateTypeId == emailTemplateDelegateTypeId);
 								if (emailTemplateForDelegateUser != null && !string.IsNullOrEmpty(item.BillDelegatedEmp.EmailId))
@@ -349,7 +352,8 @@ namespace TeleBillingRemiderService
 								int emailTemplateTypeId = Convert.ToInt16(EnumList.EmailTemplateType.LineManagerApprovalRemider);
 								Emailtemplate emailTemplate = _dbTeleBillingContext.Emailtemplate.FirstOrDefault(x => x.EmailTemplateTypeId == emailTemplateTypeId);
 
-								if (emailTemplate != null && !string.IsNullOrEmpty(item.Linemanager.EmailId)) {
+								if (emailTemplate != null && !string.IsNullOrEmpty(item.Linemanager.EmailId))
+								{
 									emailReminderLog = _dbTeleBillingContext.Emailreminderlog.Where(x => x.EmployeeBillId == item.Id && x.TemplateId == emailTemplate.Id && x.IsReminderMail).OrderByDescending(x => x.CreatedDateInt).FirstOrDefault();
 
 									int intervalDay = configuration.RLinemanagerApprovalInterval != null ? Convert.ToInt32(configuration.RLinemanagerApprovalInterval) : 0;
@@ -408,29 +412,32 @@ namespace TeleBillingRemiderService
 		{
 			try
 			{
-				var builder = new ConfigurationBuilder()
-				.AddJsonFile("appsettings.json", true, true);
-
-				IConfigurationRoot configuration = builder.Build();
-
-				var msg = new MimeMessage();
-				msg.From.Add(new MailboxAddress(emailFrom, emailFrom));
-				msg.To.Add(new MailboxAddress(toEmail));
-
-				if (!string.IsNullOrEmpty(emailBcc))
-					msg.Bcc.Add(new MailboxAddress(emailBcc));
-
-				msg.Subject = subject;
-				var bodyBuilder = new BodyBuilder();
-				bodyBuilder.HtmlBody = body;
-				msg.Body = bodyBuilder.ToMessageBody();
-
-				using (var smtp = new SmtpClient())
+				if (!string.IsNullOrEmpty(toEmail))
 				{
-					smtp.Connect(configuration.GetSection("EmailCrednetials").GetSection("Host").Value, Convert.ToInt16(configuration.GetSection("EmailCrednetials").GetSection("Port").Value), SecureSocketOptions.SslOnConnect);
-					smtp.Authenticate(credentials: new NetworkCredential(configuration.GetSection("EmailCrednetials").GetSection("From").Value, configuration.GetSection("EmailCrednetials").GetSection("Password").Value));
-					smtp.Send(msg, System.Threading.CancellationToken.None);
-					smtp.Disconnect(true, System.Threading.CancellationToken.None);
+					var builder = new ConfigurationBuilder()
+					.AddJsonFile("appsettings.json", true, true);
+
+					IConfigurationRoot configuration = builder.Build();
+
+					var msg = new MimeMessage();
+					msg.From.Add(new MailboxAddress(emailFrom, emailFrom));
+					msg.To.Add(new MailboxAddress(toEmail));
+
+					if (!string.IsNullOrEmpty(emailBcc))
+						msg.Bcc.Add(new MailboxAddress(emailBcc));
+
+					msg.Subject = subject;
+					var bodyBuilder = new BodyBuilder();
+					bodyBuilder.HtmlBody = body;
+					msg.Body = bodyBuilder.ToMessageBody();
+
+					using (var smtp = new SmtpClient())
+					{
+						smtp.Connect(configuration.GetSection("EmailCrednetials").GetSection("Host").Value, Convert.ToInt16(configuration.GetSection("EmailCrednetials").GetSection("Port").Value), SecureSocketOptions.SslOnConnect);
+						smtp.Authenticate(credentials: new NetworkCredential(configuration.GetSection("EmailCrednetials").GetSection("From").Value, configuration.GetSection("EmailCrednetials").GetSection("Password").Value));
+						smtp.Send(msg, System.Threading.CancellationToken.None);
+						smtp.Disconnect(true, System.Threading.CancellationToken.None);
+					}
 				}
 				return true;
 			}
@@ -454,7 +461,7 @@ namespace TeleBillingRemiderService
 				newEmailReminderLog.CreatedDate = DateTime.Now;
 				newEmailReminderLog.IsReminderMail = isReminderMail;
 				newEmailReminderLog.TemplateId = emailTemplateId;
-				newEmailReminderLog.EmailTo = emailTo;
+				newEmailReminderLog.EmailTo = string.IsNullOrEmpty(emailTo) ? string.Empty : emailTo;
 				newEmailReminderLog.EmployeeBillId = employeeBillId;
 
 				_dbTeleBillingContext.Add(newEmailReminderLog);

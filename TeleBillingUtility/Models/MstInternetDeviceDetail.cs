@@ -16,12 +16,12 @@ namespace TeleBillingUtility.Models
         public bool IsDelete { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? UpdatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
 
         public virtual ICollection<Providerpackage> Providerpackage { get; set; }

@@ -3,15 +3,15 @@ using TeleBillingUtility.Models;
 
 namespace TeleBillingRepository.Repository.Account
 {
-	public interface IAccountRepository
-	{
+    public interface IAccountRepository
+    {
 
-		/// <summary>
-		/// This method used for get employee by pf number or email.
-		/// </summary>
-		/// <param name="emailOrPfNumber"></param>
-		/// <returns></returns>
-	   	Task<MstEmployee> GetEmployeeBy(string emailOrPfNumber);
+        /// <summary>
+        /// This method used for get employee by pf number or email.
+        /// </summary>
+        /// <param name="emailOrPfNumber"></param>
+        /// <returns></returns>
+        Task<MstEmployee> GetEmployeeBy(string emailOrPfNumber);
 
         /// <summary>
 		/// This method used for get employee by pf number or email even if it is inactive.

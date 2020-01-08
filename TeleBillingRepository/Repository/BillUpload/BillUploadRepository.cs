@@ -1,32 +1,30 @@
 ﻿using AutoMapper;
+using CsvHelper;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using NLog;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.SS.Util;
+using NPOI.XSSF.UserModel;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TeleBillingRepository.Service.Constants;
 using TeleBillingRepository.Service.LogMangement;
 using TeleBillingUtility.ApplicationClass;
+using TeleBillingUtility.Helpers;
+using TeleBillingUtility.Helpers.CommonFunction;
 using TeleBillingUtility.Helpers.Enums;
 using TeleBillingUtility.Models;
-using Microsoft.AspNetCore.Hosting;
-using System.Net.Http.Headers;
-using System.IO;
-using OfficeOpenXml;
-using System.Globalization;
-using NPOI.SS.UserModel;
-using NPOI.HSSF.UserModel;
-using NPOI.XSSF.UserModel;
-using NPOI.SS.Util;
-using System.Text.RegularExpressions;
-using System.Data;
-using TeleBillingUtility.Helpers;
-using System.Collections;
-using Microsoft.Extensions.Configuration;
-using CsvHelper;
-using TeleBillingUtility.Helpers.CommonFunction;
-using NLog;
-using Microsoft.AspNetCore.Http;
 
 
 namespace TeleBillingRepository.Repository.BillUpload
@@ -42,12 +40,12 @@ namespace TeleBillingRepository.Repository.BillUpload
 		private readonly DAL _objDal = new DAL();
 		private readonly DALMySql _objDalmysql = new DALMySql();
 		private readonly IConfiguration _config;
-        private readonly Logger _logger = LogManager.GetLogger("logger");
-        #endregion
+		private readonly Logger _logger = LogManager.GetLogger("logger");
+		#endregion
 
-        #region "Constructor"
+		#region "Constructor"
 
-        public BillUploadRepository(telebilling_v01Context dbTeleBilling_V01Context, IMapper mapper, IStringConstant iStringConstant
+		public BillUploadRepository(telebilling_v01Context dbTeleBilling_V01Context, IMapper mapper, IStringConstant iStringConstant
 			, ILogManagement ilogManagement, IHostingEnvironment ihostingEnvironment, IConfiguration config)
 		{
 			_dbTeleBilling_V01Context = dbTeleBilling_V01Context;
@@ -64,26 +62,26 @@ namespace TeleBillingRepository.Repository.BillUpload
 		public async Task<List<BillUploadListAC>> GetBillUploadedList()
 		{
 			try
-			{             
+			{
 
-                List<BillUploadListAC> billUploadLists = new List<BillUploadListAC>();
-                SortedList sl = new SortedList();
-                sl.Add("SMonth", Convert.ToUInt64(0));
-                sl.Add("SYear", Convert.ToUInt64(0));       
-                sl.Add("ProviderId", 0);
-                sl.Add("SkipRecord", 0);
-                sl.Add("Length", 0);
-                sl.Add("SearchValue", "");
+				List<BillUploadListAC> billUploadLists = new List<BillUploadListAC>();
+				SortedList sl = new SortedList();
+				sl.Add("SMonth", Convert.ToUInt64(0));
+				sl.Add("SYear", Convert.ToUInt64(0));
+				sl.Add("ProviderId", 0);
+				sl.Add("SkipRecord", 0);
+				sl.Add("Length", 0);
+				sl.Add("SearchValue", "");
 
-                DataSet ds = _objDalmysql.GetDataSet("usp_GetBillUploadListWithPagging",sl);
+				DataSet ds = _objDalmysql.GetDataSet("usp_GetBillUploadListWithPagging", sl);
 				if (ds != null)
 				{
 					if (ds.Tables[0].Rows.Count > 0 && ds.Tables[0] != null)
 					{
 						billUploadLists = _objDal.ConvertDataTableToGenericList<BillUploadListAC>(ds.Tables[0]).ToList();
 					}
-				}       
-          
+				}
+
 				return billUploadLists;
 			}
 			catch (Exception e)
@@ -130,7 +128,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 					await _dbTeleBilling_V01Context.SaveChangesAsync();
 
 					#region Audit Log
-						await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteBill, loginUserName, userId, "Uploaded bill(" + excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Delete, excelUploadLog.Id);
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteBill, loginUserName, userId, "Uploaded bill(" + excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Delete, excelUploadLog.Id);
 					#endregion
 
 					return true;
@@ -141,53 +139,53 @@ namespace TeleBillingRepository.Repository.BillUpload
 			return false;
 		}
 
-		public async Task<bool> ApproveExcelUploadLog(long userId, long id,string loginUserName)
+		public async Task<bool> ApproveExcelUploadLog(long userId, long id, string loginUserName)
 		{
 			Exceluploadlog excelUploadLog = await _dbTeleBilling_V01Context.Exceluploadlog.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (excelUploadLog != null)
-            {
-                if((excelUploadLog.MergedWithId ?? 0) > 0)
-                {
-                    id = excelUploadLog.MergedWithId?? id;
-                }
-            }
+			if (excelUploadLog != null)
+			{
+				if ((excelUploadLog.MergedWithId ?? 0) > 0)
+				{
+					id = excelUploadLog.MergedWithId ?? id;
+				}
+			}
 
-            List<Exceluploadlog> relateduploadList = new List<Exceluploadlog>();
+			List<Exceluploadlog> relateduploadList = new List<Exceluploadlog>();
 
-            relateduploadList = await _dbTeleBilling_V01Context.Exceluploadlog.Where(x => x.Id == id || x.MergedWithId == id && !x.IsDelete).ToListAsync();
+			relateduploadList = await _dbTeleBilling_V01Context.Exceluploadlog.Where(x => x.Id == id || x.MergedWithId == id && !x.IsDelete).ToListAsync();
 
-            if (relateduploadList != null)
-            {
-                List<Exceluploadlog> Exceluploadloglist = new List<Exceluploadlog>();
-                foreach (var data in relateduploadList)
-                {
-                    data.IsApproved = true;
-                    data.UploadBy = userId;
-                    data.UpdatedDate = DateTime.Now;
-                    Exceluploadloglist.Add(data);
-                }
-                _dbTeleBilling_V01Context.UpdateRange(Exceluploadloglist);
-                await _dbTeleBilling_V01Context.SaveChangesAsync();
+			if (relateduploadList != null)
+			{
+				List<Exceluploadlog> Exceluploadloglist = new List<Exceluploadlog>();
+				foreach (var data in relateduploadList)
+				{
+					data.IsApproved = true;
+					data.UploadBy = userId;
+					data.UpdatedDate = DateTime.Now;
+					Exceluploadloglist.Add(data);
+				}
+				_dbTeleBilling_V01Context.UpdateRange(Exceluploadloglist);
+				await _dbTeleBilling_V01Context.SaveChangesAsync();
 
 				#region Audit Log
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ApproveUploadedBIll, loginUserName, userId, "Uploaded bill(" + excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Approve, excelUploadLog.Id);
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ApproveUploadedBIll, loginUserName, userId, "Uploaded bill(" + excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Approve, excelUploadLog.Id);
 				#endregion
 
 				return true;
-            }
+			}
 
-            //if (excelUploadLog != null)
-            //{
-            //    excelUploadLog.IsApproved = true;
-            //    excelUploadLog.UploadBy = userId;
-            //    excelUploadLog.UpdatedDate = DateTime.Now;
-            //    _dbTeleBilling_V01Context.Update(excelUploadLog);
-            //    await _dbTeleBilling_V01Context.SaveChangesAsync();
-            //    return true;
-            //}
-            return false;
-        }
+			//if (excelUploadLog != null)
+			//{
+			//    excelUploadLog.IsApproved = true;
+			//    excelUploadLog.UploadBy = userId;
+			//    excelUploadLog.UpdatedDate = DateTime.Now;
+			//    _dbTeleBilling_V01Context.Update(excelUploadLog);
+			//    await _dbTeleBilling_V01Context.SaveChangesAsync();
+			//    return true;
+			//}
+			return false;
+		}
 
 		public async Task<bool> ApproveExcelUploadPbxLog(long userId, long id, string loginUserName)
 		{
@@ -202,7 +200,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
 
 				#region Audit Log
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ApproveUploadedPBXBill, loginUserName, userId, "Uploaded pbx bill(" + excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Approve, excelUploadLog.Id);
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ApproveUploadedPBXBill, loginUserName, userId, "Uploaded pbx bill(" + excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Approve, excelUploadLog.Id);
 				#endregion
 
 				return true;
@@ -254,266 +252,266 @@ namespace TeleBillingRepository.Repository.BillUpload
 			return uploadId;
 		}
 
-        public async Task<long> CheckBillCanMergedOld(BillUploadAC billUploadModel)
-        {
-            try
-            {
-                List<Exceluploadlog> exceluploadlog = new List<Exceluploadlog>();
-                if (billUploadModel != null)
-                {
-                    if (billUploadModel.MonthId > 0 && billUploadModel.ProviderId > 0 && billUploadModel.YearId > 0)
-                    {
-                        exceluploadlog = await _dbTeleBilling_V01Context.Exceluploadlog
-                                           .Where(x => x.Month == billUploadModel.MonthId
-                                            && x.Year == billUploadModel.YearId
-                                            && x.ProviderId == billUploadModel.ProviderId
-                                            && !x.IsDelete                                          
-                                            && !(x.IsMerge ?? false)
-                                            && (x.MergedWithId ?? 0) == 0
-                                            ).ToListAsync();
+		public async Task<long> CheckBillCanMergedOld(BillUploadAC billUploadModel)
+		{
+			try
+			{
+				List<Exceluploadlog> exceluploadlog = new List<Exceluploadlog>();
+				if (billUploadModel != null)
+				{
+					if (billUploadModel.MonthId > 0 && billUploadModel.ProviderId > 0 && billUploadModel.YearId > 0)
+					{
+						exceluploadlog = await _dbTeleBilling_V01Context.Exceluploadlog
+										   .Where(x => x.Month == billUploadModel.MonthId
+											&& x.Year == billUploadModel.YearId
+											&& x.ProviderId == billUploadModel.ProviderId
+											&& !x.IsDelete
+											&& !(x.IsMerge ?? false)
+											&& (x.MergedWithId ?? 0) == 0
+											).ToListAsync();
 
 						if (exceluploadlog != null)
 						{
 							if (exceluploadlog.Count() > 0)
 							{
 
-                              if (exceluploadlog.Count() > 1)
-                                {
-                                    //return -1;
+								if (exceluploadlog.Count() > 1)
+								{
+									//return -1;
 
-                                foreach(var oldexefile in exceluploadlog)
-                                    {
-                                        long excelUploadId = oldexefile.Id;                                       
-                                        List<ExceluploadlogServicetype> uploadedexcelserviceList = new List<ExceluploadlogServicetype>();
-                                        uploadedexcelserviceList = await _dbTeleBilling_V01Context.ExceluploadlogServicetype
-                                                                    .Where(x => x.ExcelUploadLogId == excelUploadId && !x.IsDelete)
-                                                                    .ToListAsync();
-                                        if (uploadedexcelserviceList != null)
-                                        {
-                                            if (uploadedexcelserviceList.Count() == billUploadModel.ServiceTypes.Count())
-                                            {
-                                                List<ExceluploadlogServicetype> differentServiceList = new List<ExceluploadlogServicetype>();
+									foreach (var oldexefile in exceluploadlog)
+									{
+										long excelUploadId = oldexefile.Id;
+										List<ExceluploadlogServicetype> uploadedexcelserviceList = new List<ExceluploadlogServicetype>();
+										uploadedexcelserviceList = await _dbTeleBilling_V01Context.ExceluploadlogServicetype
+																	.Where(x => x.ExcelUploadLogId == excelUploadId && !x.IsDelete)
+																	.ToListAsync();
+										if (uploadedexcelserviceList != null)
+										{
+											if (uploadedexcelserviceList.Count() == billUploadModel.ServiceTypes.Count())
+											{
+												List<ExceluploadlogServicetype> differentServiceList = new List<ExceluploadlogServicetype>();
 
-                                                differentServiceList = uploadedexcelserviceList
-                                                                        .Where(x => !x.IsDelete
-                                                                         && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
-                                                                         && !billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
-                                                                        ).ToList();
+												differentServiceList = uploadedexcelserviceList
+																		.Where(x => !x.IsDelete
+																		 && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
+																		 && !billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
+																		).ToList();
 
-                                                if (differentServiceList != null && differentServiceList.Count() > 0)
-                                                {
-                                                    continue;
-                                                }
-                                                else
-                                                {
-                                                    #region Old Code to merge
-                                                    List<ExceluploadlogServicetype> excelserviceList = new List<ExceluploadlogServicetype>();
+												if (differentServiceList != null && differentServiceList.Count() > 0)
+												{
+													continue;
+												}
+												else
+												{
+													#region Old Code to merge
+													List<ExceluploadlogServicetype> excelserviceList = new List<ExceluploadlogServicetype>();
 
-                                                    excelserviceList =  //await _dbTeleBilling_V01Context.ExceluploadlogServicetype
-                                                                             uploadedexcelserviceList
-                                                                            .Where(x => !x.IsDelete
-                                                                             && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
-                                                                             && billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
-                                                                            ).ToList();
+													excelserviceList =  //await _dbTeleBilling_V01Context.ExceluploadlogServicetype
+																			 uploadedexcelserviceList
+																			.Where(x => !x.IsDelete
+																			 && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
+																			 && billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
+																			).ToList();
 
-                                                    if (excelserviceList != null)
-                                                    {
-                                                        if (excelserviceList.Count() > 0)
-                                                        {
-                                                            #region --> Check Bill is not approved
+													if (excelserviceList != null)
+													{
+														if (excelserviceList.Count() > 0)
+														{
+															#region --> Check Bill is not approved
 
-                                                            var NotApproveBillUpload = exceluploadlog.FirstOrDefault(x => x.Id > 0 && (x.IsApproved ?? false) == true);
+															var NotApproveBillUpload = exceluploadlog.FirstOrDefault(x => x.Id > 0 && (x.IsApproved ?? false) == true);
 
-                                                            if (NotApproveBillUpload != null && NotApproveBillUpload.Id > 0)
-                                                            {
-                                                                return -1;
-                                                            }
+															if (NotApproveBillUpload != null && NotApproveBillUpload.Id > 0)
+															{
+																return -1;
+															}
 
-                                                            #endregion
+															#endregion
 
-                                                            return excelserviceList.Select(x => x.ExcelUploadLogId).FirstOrDefault();
-                                                        }
-                                                        else
-                                                        {
-                                                            return 0;
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        return 0;
-                                                    }
-                                                    #endregion
-                                                }
-                                            }
-                                        }
+															return excelserviceList.Select(x => x.ExcelUploadLogId).FirstOrDefault();
+														}
+														else
+														{
+															return 0;
+														}
+													}
+													else
+													{
+														return 0;
+													}
+													#endregion
+												}
+											}
+										}
 
-                                      }
-                                }
-                                else
-                                {
-                                    long excelUploadId = 0;
-                                    excelUploadId = exceluploadlog.Select(x => x.Id).FirstOrDefault();
-                                    List<ExceluploadlogServicetype> uploadedexcelserviceList = new List<ExceluploadlogServicetype>();
-                                    uploadedexcelserviceList = await _dbTeleBilling_V01Context.ExceluploadlogServicetype
-                                                                .Where(x => x.ExcelUploadLogId == excelUploadId && !x.IsDelete)
-                                                                .ToListAsync();
-                                    if(uploadedexcelserviceList != null)
-                                    {
-                                         if(uploadedexcelserviceList.Count() == billUploadModel.ServiceTypes.Count())
-                                        {
-                                            List<ExceluploadlogServicetype> differentServiceList = new List<ExceluploadlogServicetype>();
+									}
+								}
+								else
+								{
+									long excelUploadId = 0;
+									excelUploadId = exceluploadlog.Select(x => x.Id).FirstOrDefault();
+									List<ExceluploadlogServicetype> uploadedexcelserviceList = new List<ExceluploadlogServicetype>();
+									uploadedexcelserviceList = await _dbTeleBilling_V01Context.ExceluploadlogServicetype
+																.Where(x => x.ExcelUploadLogId == excelUploadId && !x.IsDelete)
+																.ToListAsync();
+									if (uploadedexcelserviceList != null)
+									{
+										if (uploadedexcelserviceList.Count() == billUploadModel.ServiceTypes.Count())
+										{
+											List<ExceluploadlogServicetype> differentServiceList = new List<ExceluploadlogServicetype>();
 
-                                            differentServiceList = uploadedexcelserviceList
-                                                                    .Where(x => !x.IsDelete
-                                                                     && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
-                                                                     && !billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
-                                                                    ).ToList();
+											differentServiceList = uploadedexcelserviceList
+																	.Where(x => !x.IsDelete
+																	 && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
+																	 && !billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
+																	).ToList();
 
-                                            if(differentServiceList!=null  && differentServiceList.Count() > 0)
-                                            {
-                                                return 0;
-                                            }
-                                            else
-                                            {
-                                                #region Old Code to merge
-                                                List<ExceluploadlogServicetype> excelserviceList = new List<ExceluploadlogServicetype>();
+											if (differentServiceList != null && differentServiceList.Count() > 0)
+											{
+												return 0;
+											}
+											else
+											{
+												#region Old Code to merge
+												List<ExceluploadlogServicetype> excelserviceList = new List<ExceluploadlogServicetype>();
 
-                                                excelserviceList =  //await _dbTeleBilling_V01Context.ExceluploadlogServicetype
-                                                                         uploadedexcelserviceList
-                                                                        .Where(x => !x.IsDelete
-                                                                         && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
-                                                                         && billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
-                                                                        ).ToList();
+												excelserviceList =  //await _dbTeleBilling_V01Context.ExceluploadlogServicetype
+																		 uploadedexcelserviceList
+																		.Where(x => !x.IsDelete
+																		 && exceluploadlog.Select(e => e.Id).Contains(x.ExcelUploadLogId)
+																		 && billUploadModel.ServiceTypes.Select(s => s.Id).Contains(x.ServiceTypeId)
+																		).ToList();
 
-                                                if (excelserviceList != null)
-                                                {
-                                                    if (excelserviceList.Count() > 0)
-                                                    {
-                                                        #region --> Check Bill is not approved
+												if (excelserviceList != null)
+												{
+													if (excelserviceList.Count() > 0)
+													{
+														#region --> Check Bill is not approved
 
-                                                        var NotApproveBillUpload = exceluploadlog.FirstOrDefault(x => x.Id > 0 && (x.IsApproved ?? false) == true);
+														var NotApproveBillUpload = exceluploadlog.FirstOrDefault(x => x.Id > 0 && (x.IsApproved ?? false) == true);
 
-                                                        if (NotApproveBillUpload != null && NotApproveBillUpload.Id > 0)
-                                                        {
-                                                            return -1;
-                                                        }
+														if (NotApproveBillUpload != null && NotApproveBillUpload.Id > 0)
+														{
+															return -1;
+														}
 
-                                                        #endregion
+														#endregion
 
-                                                        return excelserviceList.Select(x => x.ExcelUploadLogId).FirstOrDefault();
-                                                    }
-                                                    else
-                                                    {
-                                                        return 0;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    return 0;
-                                                }
-                                                #endregion
-                                            }
+														return excelserviceList.Select(x => x.ExcelUploadLogId).FirstOrDefault();
+													}
+													else
+													{
+														return 0;
+													}
+												}
+												else
+												{
+													return 0;
+												}
+												#endregion
+											}
 
-                                        }
+										}
 
-                                    }
+									}
 
-                                }
+								}
 
-                            
 
-                            }
-                            else
-                            {
-                                return 0;
-                            }
 
-                        }
-                        else
-                        {
-                            return 0;
-                        }
-                    }
+							}
+							else
+							{
+								return 0;
+							}
 
-                }
+						}
+						else
+						{
+							return 0;
+						}
+					}
 
-                return 0;
-            }
-            catch (Exception e)
-            {
-                return 0;
-            }
+				}
 
-        }
+				return 0;
+			}
+			catch (Exception e)
+			{
+				return 0;
+			}
 
-        public async Task<long> CheckBillCanMerged(BillUploadAC billUploadModel)
-        {
-            try
-            {
-               
-                if (billUploadModel != null)
-                {
-                    if (billUploadModel.MonthId > 0 && billUploadModel.ProviderId > 0 && billUploadModel.YearId > 0 && billUploadModel.ServiceTypes != null && billUploadModel.ServiceTypes.Count()>0)
-                    {
-                        try
-                        {
-                            string ServiceTypeIds = string.Empty;
-                            List<long>  serviceidlst= new List<long>();
-                            serviceidlst = billUploadModel.ServiceTypes.Select(x => x.Id).ToList();
-                            ServiceTypeIds = string.Join(",", serviceidlst.Distinct().Select(x => x.ToString()).ToArray());
-                             
+		}
 
-                            List<ExcelUploadIdCountAC> oldexcelUploadIds = new List<ExcelUploadIdCountAC>();
-                            SortedList sl = new SortedList();
-                            sl.Add("BillMonth",Convert.ToUInt64(billUploadModel.MonthId));
-                            sl.Add("BillYear", Convert.ToUInt64(billUploadModel.YearId));
-                            sl.Add("ServiceTypesIdList", ServiceTypeIds);
-                            sl.Add("ServiceCount", billUploadModel.ServiceTypes.Count());
-                            sl.Add("ProviderId", billUploadModel.ProviderId);
+		public async Task<long> CheckBillCanMerged(BillUploadAC billUploadModel)
+		{
+			try
+			{
 
-                            DataSet ds = _objDalmysql.GetDataSet("usp_GetExcelUploadIdForMerge",sl);                         
+				if (billUploadModel != null)
+				{
+					if (billUploadModel.MonthId > 0 && billUploadModel.ProviderId > 0 && billUploadModel.YearId > 0 && billUploadModel.ServiceTypes != null && billUploadModel.ServiceTypes.Count() > 0)
+					{
+						try
+						{
+							string ServiceTypeIds = string.Empty;
+							List<long> serviceidlst = new List<long>();
+							serviceidlst = billUploadModel.ServiceTypes.Select(x => x.Id).ToList();
+							ServiceTypeIds = string.Join(",", serviceidlst.Distinct().Select(x => x.ToString()).ToArray());
 
-                            if (ds != null)
-                            {
-                                if (ds.Tables[0].Rows.Count > 0 && ds.Tables[0] != null)
-                                {
-                                    oldexcelUploadIds = _objDal.ConvertDataTableToGenericList<ExcelUploadIdCountAC>(ds.Tables[0]).ToList();
-                                }
-                            }
 
-                            if(oldexcelUploadIds!=null && oldexcelUploadIds.Count() > 0)
-                            {
-                                foreach(var olddata in oldexcelUploadIds)
-                                {
-                                    Exceluploadlog oldexceluploadlog = new Exceluploadlog();
-                                    oldexceluploadlog = await _dbTeleBilling_V01Context.Exceluploadlog.FindAsync(olddata.Id);
-                                    #region --> Check Bill is not approved
+							List<ExcelUploadIdCountAC> oldexcelUploadIds = new List<ExcelUploadIdCountAC>();
+							SortedList sl = new SortedList();
+							sl.Add("BillMonth", Convert.ToUInt64(billUploadModel.MonthId));
+							sl.Add("BillYear", Convert.ToUInt64(billUploadModel.YearId));
+							sl.Add("ServiceTypesIdList", ServiceTypeIds);
+							sl.Add("ServiceCount", billUploadModel.ServiceTypes.Count());
+							sl.Add("ProviderId", billUploadModel.ProviderId);
 
-                                    if(oldexceluploadlog!=null && oldexceluploadlog.Id > 0)
-                                    {
-                                        if((oldexceluploadlog.IsApproved ?? false) == true)
-                                        {
-                                            return -1;
-                                        }
-                                        else
-                                        {
-                                            return oldexceluploadlog.Id;
-                                        }
-                                    }                                  
-                                    #endregion
-                                }
-                               
-                            }
+							DataSet ds = _objDalmysql.GetDataSet("usp_GetExcelUploadIdForMerge", sl);
 
-                            return 0;
-                           
-                        }
-                        catch (Exception e)
-                        {
-                            return -2;
-                        }
+							if (ds != null)
+							{
+								if (ds.Tables[0].Rows.Count > 0 && ds.Tables[0] != null)
+								{
+									oldexcelUploadIds = _objDal.ConvertDataTableToGenericList<ExcelUploadIdCountAC>(ds.Tables[0]).ToList();
+								}
+							}
 
-                    }
+							if (oldexcelUploadIds != null && oldexcelUploadIds.Count() > 0)
+							{
+								foreach (var olddata in oldexcelUploadIds)
+								{
+									Exceluploadlog oldexceluploadlog = new Exceluploadlog();
+									oldexceluploadlog = await _dbTeleBilling_V01Context.Exceluploadlog.FindAsync(olddata.Id);
+									#region --> Check Bill is not approved
+
+									if (oldexceluploadlog != null && oldexceluploadlog.Id > 0)
+									{
+										if ((oldexceluploadlog.IsApproved ?? false) == true)
+										{
+											return -1;
+										}
+										else
+										{
+											return oldexceluploadlog.Id;
+										}
+									}
+									#endregion
+								}
+
+							}
+
+							return 0;
+
+						}
+						catch (Exception e)
+						{
+							return -2;
+						}
+
+					}
 
 				}
 
@@ -586,7 +584,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
 
 				#region Audit Log
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeletePBXBill, loginUserName, userId, "Uploaded pbx bill("+ excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Delete, excelUploadLog.Id);
+				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeletePBXBill, loginUserName, userId, "Uploaded pbx bill(" + excelUploadLog.ExcelFileName + ")", (int)EnumList.ActionTemplateTypes.Delete, excelUploadLog.Id);
 				#endregion
 
 				return true;
@@ -663,7 +661,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 			}
 			return mappingDetails;
 		}
-
 
 		public ExcelUploadResponseAC UploadNewExcel(ExcelFileAC excelFileAC)
 		{
@@ -864,10 +861,10 @@ namespace TeleBillingRepository.Repository.BillUpload
 				excelUploadLog.UploadDate = DateTime.Now;
 				excelUploadLog.IsDelete = false;
 				excelUploadLog.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
-                excelUploadLog.CurrencyId = await _dbTeleBilling_V01Context.Provider.Where(x => x.Id == billUploadModel.ProviderId && x.IsActive && !x.IsDelete).Select(x => x.CurrencyId).FirstOrDefaultAsync();
+				excelUploadLog.CurrencyId = await _dbTeleBilling_V01Context.Provider.Where(x => x.Id == billUploadModel.ProviderId && x.IsActive && !x.IsDelete).Select(x => x.CurrencyId).FirstOrDefaultAsync();
 
 
-                if (billUploadModel.MergedWithId > 0)
+				if (billUploadModel.MergedWithId > 0)
 				{
 					excelUploadLog.IsMerge = true;
 					excelUploadLog.MergedWithId = billUploadModel.MergedWithId;
@@ -898,76 +895,132 @@ namespace TeleBillingRepository.Repository.BillUpload
 			}
 		}
 
-        public async Task<Exceluploadlog> UpdateExcelUploadLog(long id, long userId,long count,decimal amount,bool isSkypeData)
-        {
-            try
-            {
-                Exceluploadlog excelUploadLog = new Exceluploadlog();
+		public async Task<Exceluploadlog> UpdateExcelUploadLog(long id, long userId, long count, decimal amount, bool isSkypeData)
+		{
+			try
+			{
+				Exceluploadlog excelUploadLog = new Exceluploadlog();
 
-                if (id > 0)
-                {
-                    excelUploadLog = await _dbTeleBilling_V01Context.Exceluploadlog.FindAsync(id);
-                    if (excelUploadLog != null)
-                    {
+				if (id > 0)
+				{
+					excelUploadLog = await _dbTeleBilling_V01Context.Exceluploadlog.FindAsync(id);
+					if (excelUploadLog != null)
+					{
 
-                        if(excelUploadLog.Id > 0)
-                        {
-                            if (isSkypeData)
-                            {                               
-                                excelUploadLog.TotalImportedBillAmount = await _dbTeleBilling_V01Context.Skypeexceldetail.Where(x => x.ExcelUploadLogId == id ).SumAsync(x => x.CallAmount)??0;
-                                excelUploadLog.TotalRecordImportCount = await _dbTeleBilling_V01Context.Skypeexceldetail.Where(x => x.ExcelUploadLogId == id).CountAsync();
-                            }
-                            else
-                            {
-                                excelUploadLog.TotalImportedBillAmount = await _dbTeleBilling_V01Context.Exceldetail.Where(x => x.ExcelUploadLogId == id || x.MergeExcelUploadId == id).SumAsync(x => x.CallAmount) ?? 0;
-                                excelUploadLog.TotalRecordImportCount = await _dbTeleBilling_V01Context.Exceldetail.Where(x => x.ExcelUploadLogId == id || x.MergeExcelUploadId == id).CountAsync();
-                            }
-                        }
-                        //excelUploadLog.TotalRecordImportCount = excelUploadLog.TotalRecordImportCount + Convert.ToInt16(count);
-                        //excelUploadLog.TotalImportedBillAmount = excelUploadLog.TotalImportedBillAmount + Convert.ToDecimal(amount);
-                        excelUploadLog.UpdatedBy = userId;
-                        excelUploadLog.UpdatedDate = DateTime.Now;
-                        _dbTeleBilling_V01Context.Update(excelUploadLog);
-                        await _dbTeleBilling_V01Context.SaveChangesAsync();
-                        return excelUploadLog;
-                    }
-                }
-                               
+						if (excelUploadLog.Id > 0)
+						{
+							if (isSkypeData)
+							{
+								excelUploadLog.TotalImportedBillAmount = await _dbTeleBilling_V01Context.Skypeexceldetail.Where(x => x.ExcelUploadLogId == id).SumAsync(x => x.CallAmount) ?? 0;
+								excelUploadLog.TotalRecordImportCount = await _dbTeleBilling_V01Context.Skypeexceldetail.Where(x => x.ExcelUploadLogId == id).CountAsync();
+							}
+							else
+							{
+								excelUploadLog.TotalImportedBillAmount = await _dbTeleBilling_V01Context.Exceldetail.Where(x => x.ExcelUploadLogId == id || x.MergeExcelUploadId == id).SumAsync(x => x.CallAmount) ?? 0;
+								excelUploadLog.TotalRecordImportCount = await _dbTeleBilling_V01Context.Exceldetail.Where(x => x.ExcelUploadLogId == id || x.MergeExcelUploadId == id).CountAsync();
+							}
+						}
+						//excelUploadLog.TotalRecordImportCount = excelUploadLog.TotalRecordImportCount + Convert.ToInt16(count);
+						//excelUploadLog.TotalImportedBillAmount = excelUploadLog.TotalImportedBillAmount + Convert.ToDecimal(amount);
+						excelUploadLog.UpdatedBy = userId;
+						excelUploadLog.UpdatedDate = DateTime.Now;
+						_dbTeleBilling_V01Context.Update(excelUploadLog);
+						await _dbTeleBilling_V01Context.SaveChangesAsync();
+						return excelUploadLog;
+					}
+				}
 
-                return excelUploadLog;
 
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
+				return excelUploadLog;
 
-        public async Task<bool> RemoveExcelUploadLog(long id)
-        {
-            Exceluploadlog excelUploadLog = new Exceluploadlog();
-            if (id > 0)
-            {
-                excelUploadLog = await _dbTeleBilling_V01Context.Exceluploadlog.FindAsync(id);
-                if (excelUploadLog != null)
-                {
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
 
-                    List<ExceluploadlogServicetype> excel_service_list = new List<ExceluploadlogServicetype>();
-                    excel_service_list = await _dbTeleBilling_V01Context.ExceluploadlogServicetype.Where(x => x.ExcelUploadLogId == id).ToListAsync();
-                    if(excel_service_list != null && excel_service_list.Count() >0)
-                    {
-                        _dbTeleBilling_V01Context.RemoveRange(excel_service_list);
-                        await _dbTeleBilling_V01Context.SaveChangesAsync();
-                    }
+		public async Task<Exceluploadlogpbx> UpdateExcelUploadLogPbx(long id, long userId, long count, decimal amount)
+		{
+			try
+			{
+				Exceluploadlogpbx excelUploadLogpbx = new Exceluploadlogpbx();
 
-                    _dbTeleBilling_V01Context.Remove(excelUploadLog);
-                    await _dbTeleBilling_V01Context.SaveChangesAsync();
-                    return true;
-                }
-            }
-            return false;
-        }
-        public async Task<long> AddExcelUploadLogPbx(PbxBillUploadAC billUploadModel, string fileNameGuid, long userId)
+				if (id > 0)
+				{
+					excelUploadLogpbx = await _dbTeleBilling_V01Context.Exceluploadlogpbx.FindAsync(id);
+					if (excelUploadLogpbx != null)
+					{
+
+						if (excelUploadLogpbx.Id > 0)
+						{
+							excelUploadLogpbx.TotalImportedBillAmount = await _dbTeleBilling_V01Context.Exceldetailpbx.Where(x => x.ExcelUploadLogId == id).SumAsync(x => x.CallAmount) ?? 0;
+							excelUploadLogpbx.TotalRecordImportCount = await _dbTeleBilling_V01Context.Exceldetailpbx.Where(x => x.ExcelUploadLogId == id).CountAsync();
+
+						}
+						//excelUploadLog.TotalRecordImportCount = excelUploadLog.TotalRecordImportCount + Convert.ToInt16(count);
+						//excelUploadLog.TotalImportedBillAmount = excelUploadLog.TotalImportedBillAmount + Convert.ToDecimal(amount);
+						excelUploadLogpbx.UpdatedBy = userId;
+						excelUploadLogpbx.UpdatedDate = DateTime.Now;
+						_dbTeleBilling_V01Context.Update(excelUploadLogpbx);
+						await _dbTeleBilling_V01Context.SaveChangesAsync();
+						return excelUploadLogpbx;
+					}
+				}
+
+
+				return excelUploadLogpbx;
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+		}
+
+
+		public async Task<bool> RemoveExcelUploadLog(long id)
+		{
+			Exceluploadlog excelUploadLog = new Exceluploadlog();
+			if (id > 0)
+			{
+				excelUploadLog = await _dbTeleBilling_V01Context.Exceluploadlog.FindAsync(id);
+				if (excelUploadLog != null)
+				{
+
+					List<ExceluploadlogServicetype> excel_service_list = new List<ExceluploadlogServicetype>();
+					excel_service_list = await _dbTeleBilling_V01Context.ExceluploadlogServicetype.Where(x => x.ExcelUploadLogId == id).ToListAsync();
+					if (excel_service_list != null && excel_service_list.Count() > 0)
+					{
+						_dbTeleBilling_V01Context.RemoveRange(excel_service_list);
+						await _dbTeleBilling_V01Context.SaveChangesAsync();
+					}
+
+					_dbTeleBilling_V01Context.Remove(excelUploadLog);
+					await _dbTeleBilling_V01Context.SaveChangesAsync();
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public async Task<bool> RemoveExcelUploadLogPbx(long id)
+		{
+			Exceluploadlogpbx excelUploadLog = new Exceluploadlogpbx();
+			if (id > 0)
+			{
+				excelUploadLog = await _dbTeleBilling_V01Context.Exceluploadlogpbx.FindAsync(id);
+				if (excelUploadLog != null)
+				{
+					_dbTeleBilling_V01Context.Remove(excelUploadLog);
+					await _dbTeleBilling_V01Context.SaveChangesAsync();
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public async Task<long> AddExcelUploadLogPbx(PbxBillUploadAC billUploadModel, string fileNameGuid, long userId)
 		{
 			Exceluploadlogpbx excelUploadLog = new Exceluploadlogpbx();
 			excelUploadLog.DeviceId = billUploadModel.DeviceId;
@@ -1028,81 +1081,142 @@ namespace TeleBillingRepository.Repository.BillUpload
 			}
 		}
 
+		// new method to add Error data
+		public async Task<bool> AddExcelDetailError(AllServiceTypeDataAC allServiceTypeData, string FileNameGuid)
+		{
 
+			if (allServiceTypeData != null)
+			{
+				if (allServiceTypeData.InvalidListSkypeAllDB.Count() > 0)
+				{
+					try
+					{
+						await _dbTeleBilling_V01Context.AddRangeAsync(allServiceTypeData.InvalidListSkypeAllDB);
+						await _dbTeleBilling_V01Context.SaveChangesAsync();
+						return true;
+					}
+					catch (Exception e)
+					{
+						return false;
+					}
+				}
+				if (allServiceTypeData.InvalidListAllDB.Count() > 0)
+				{
 
-        // new method to add Error data
-        public async Task<bool> AddExcelDetailError(AllServiceTypeDataAC allServiceTypeData, string FileNameGuid)
-        {        
+					try
+					{
+						await _dbTeleBilling_V01Context.AddRangeAsync(allServiceTypeData.InvalidListAllDB);
+						await _dbTeleBilling_V01Context.SaveChangesAsync();
+						return true;
+					}
+					catch (Exception e)
+					{
+						return false;
+					}
 
-            if (allServiceTypeData != null)
-            {
-                if (allServiceTypeData.InvalidListSkypeAllDB.Count() > 0)
-                {
-                    try
-                    {
-                        await _dbTeleBilling_V01Context.AddRangeAsync(allServiceTypeData.InvalidListSkypeAllDB);
-                        await _dbTeleBilling_V01Context.SaveChangesAsync();
-                        return true;
-                    }
-                    catch (Exception e)
-                    {
-                        return false;
-                    }
-                }
-                if (allServiceTypeData.InvalidListAllDB.Count() > 0)
-                {
+				}
 
-                    try
-                    {
-                        await _dbTeleBilling_V01Context.AddRangeAsync(allServiceTypeData.InvalidListAllDB);
-                        await _dbTeleBilling_V01Context.SaveChangesAsync();
-                        return true;
-                    }
-                    catch (Exception e)
-                    {
-                        return false;
-                    }
+				if (allServiceTypeData.InvalidListPbxAllDB.Count() > 0)
+				{
 
-                }
-            }
+					try
+					{
+						allServiceTypeData.InvalidListPbxAllDB.ForEach(u =>
+							   {
+								   u.FileGuidNo = FileNameGuid;
+							   });
 
-            return true;
+						await _dbTeleBilling_V01Context.AddRangeAsync(allServiceTypeData.InvalidListPbxAllDB);
+						await _dbTeleBilling_V01Context.SaveChangesAsync();
+						return true;
+					}
+					catch (Exception e)
+					{
+						return false;
+					}
 
-        }
+				}
+			}
 
-        // Export  Error data | add | 03122019
-        public  List<MobilityExcelUploadDetailStringAC> ExportMobilityErrorList(string fileGuidNo)
-        {
-            List<MobilityExcelUploadDetailStringAC> _searchDataList = new List<MobilityExcelUploadDetailStringAC>();
-            try
-            {
-                List<ExceldetailError> datalistError = new List<ExceldetailError>();
-                datalistError =  _dbTeleBilling_V01Context.ExceldetailError.Where(x => x.FileGuidNo == fileGuidNo).ToList();
-                if(datalistError!=null && datalistError.Count() > 0)
-                {
-                    _searchDataList = _mapper.Map<List<MobilityExcelUploadDetailStringAC>>(datalistError);
-                }
-                return _searchDataList;
+			return true;
 
-            }
-            catch (Exception e)
-            {
-                return new List<MobilityExcelUploadDetailStringAC>();
-            }
+		}
 
-        }
+		// Export  Error data | add | 03122019
+		public List<MobilityExcelUploadDetailStringAC> ExportMobilityErrorList(string fileGuidNo)
+		{
+			List<MobilityExcelUploadDetailStringAC> _searchDataList = new List<MobilityExcelUploadDetailStringAC>();
+			try
+			{
+				List<ExceldetailError> datalistError = new List<ExceldetailError>();
+				datalistError = _dbTeleBilling_V01Context.ExceldetailError.Where(x => x.FileGuidNo == fileGuidNo).ToList();
+				if (datalistError != null && datalistError.Count() > 0)
+				{
+					_searchDataList = _mapper.Map<List<MobilityExcelUploadDetailStringAC>>(datalistError);
+				}
+				return _searchDataList;
 
-        //  new Methods based on Npoi packagefor .xls and excel reader
-        public async Task<ImportBillDetailAC<MobilityUploadListAC>> ReadExcelForMobility(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC)
+			}
+			catch (Exception e)
+			{
+				return new List<MobilityExcelUploadDetailStringAC>();
+			}
+
+		}
+
+		public List<VoipExcelUploadDetailStringAC> ExportVoipErrorList(string fileGuidNo)
+		{
+			List<VoipExcelUploadDetailStringAC> _searchDataList = new List<VoipExcelUploadDetailStringAC>();
+			try
+			{
+				List<SkypeexceldetailError> datalistError = new List<SkypeexceldetailError>();
+				datalistError = _dbTeleBilling_V01Context.SkypeexceldetailError.Where(x => x.FileGuidNo == fileGuidNo).ToList();
+
+				if (datalistError != null && datalistError.Count() > 0)
+				{
+					_searchDataList = _mapper.Map<List<VoipExcelUploadDetailStringAC>>(datalistError);
+				}
+				return _searchDataList;
+
+			}
+			catch (Exception e)
+			{
+				return new List<VoipExcelUploadDetailStringAC>();
+			}
+
+		}
+
+		public List<PbxExcelUploadDetailStringAC> ExportpbxErrorList(string fileGuidNo)
+		{
+			List<PbxExcelUploadDetailStringAC> _searchDataList = new List<PbxExcelUploadDetailStringAC>();
+			try
+			{
+				List<ExceldetailpbxError> datalistError = new List<ExceldetailpbxError>();
+				datalistError = _dbTeleBilling_V01Context.ExceldetailpbxError.Where(x => x.FileGuidNo == fileGuidNo).ToList();
+
+				if (datalistError != null && datalistError.Count() > 0)
+				{
+					_searchDataList = _mapper.Map<List<PbxExcelUploadDetailStringAC>>(datalistError);
+				}
+				return _searchDataList;
+
+			}
+			catch (Exception e)
+			{
+				return new List<PbxExcelUploadDetailStringAC>();
+			}
+		}
+
+		//  new Methods based on Npoi packagefor .xls and excel reader
+		public async Task<ImportBillDetailAC<MobilityUploadListAC>> ReadExcelForMobility(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC)
 		{
 			ImportBillDetailAC<MobilityUploadListAC> importBillDetail = new ImportBillDetailAC<MobilityUploadListAC>();
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<MobilityExcelUploadDetailStringAC> datalistInvalid = new List<MobilityExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
 			try
 			{
-
 				MobilityUploadListAC mobilityUploadListAC = new MobilityUploadListAC();
 				bool isBusinessOnly = await GetServiceChargeType((long)EnumList.ServiceType.Mobility);
 
@@ -1144,11 +1258,11 @@ namespace TeleBillingRepository.Repository.BillUpload
 								{
 									int rowcount = csvRecords.Count();
 
-                                    LogManager.Configuration.Variables["user"] = "";
-                                    LogManager.Configuration.Variables["stepno"] = "5";
-                                    _logger.Info("Start Reading data one by one and validate with database.");
+									LogManager.Configuration.Variables["user"] = "";
+									LogManager.Configuration.Variables["stepno"] = "5";
+									_logger.Info("Start Reading data one by one and validate with database.");
 
-                                    for (int j = readingIndex; j < rowcount; j++)
+									for (int j = readingIndex; j < rowcount; j++)
 									{
 										var itemvalue = ((IDictionary<string, object>)csvRecords.ElementAtOrDefault(j)).Where(x => x.Value.ToString() != "").ToList();
 
@@ -1569,6 +1683,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 																				x.ServiceId == ServiceTypeId)
 																				&& x.TelephoneNumberAllocationId == telephoneNumber.Id && !x.IsDelete).FirstOrDefaultAsync();
 
+
 															if (telephoneNumber.EmployeeId <= 0)
 															{
 																IsFullValid = false;
@@ -1579,7 +1694,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 															{
 
 																IsFullValid = false;
-																ErrorMessageSummary = ErrorMessageSummary + "Caller Number does not allocated mobility package!";
+																ErrorMessageSummary = ErrorMessageSummary + "Caller Number does not allocated " + CommonFunction.GetServiceName(ServiceTypeId) + " package!";
 
 															}
 
@@ -1687,8 +1802,8 @@ namespace TeleBillingRepository.Repository.BillUpload
 													Exceldetail data = new Exceldetail();
 													// --> Required Field Data--------------------
 													string callTransactionType = CallTransTypeStr;
-												// need to opt.
-                                                    data.CallTransactionTypeId = (await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == callTransactionType.Trim().ToLower()))?.Id;
+													// need to opt.
+													data.CallTransactionTypeId = (await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == callTransactionType.Trim().ToLower()))?.Id;
 													data.TransType = callTransactionType;
 													data.CallerNumber = CallNumberStr;
 													data.CallAmount = Convert.ToDecimal(CallAmountStr);
@@ -1790,25 +1905,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        FileGuidNo= filename,
-                                                        ServiceTypeId= ServiceTypeId,
-                                                        CallerName = CallerNameStr,
-                                                        TransType = CallTransTypeStr,
-                                                        Description = descriptionTextStr,
-                                                        CallerNumber = CallNumberStr,
-                                                        CallAmount = CallAmountStr,
-                                                        CallDate = CallDateStr,
-                                                        CallTime = CallTimeStr,
-                                                        CallDuration = DuractionSecondsStr,
-                                                        CallDataKb = CallDataKBStr,
-                                                        MessageCount = MessageCountStr,
-                                                        ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                    });
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														FileGuidNo = filename,
+														ServiceTypeId = ServiceTypeId,
+														CallerName = CallerNameStr,
+														TransType = CallTransTypeStr,
+														Description = descriptionTextStr,
+														CallerNumber = CallNumberStr,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														CallDataKb = CallDataKBStr,
+														MessageCount = MessageCountStr,
+														ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+													});
 
-                                                }
+												}
 
 											}
 											catch (Exception e)
@@ -1831,24 +1946,24 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        FileGuidNo = filename,
-                                                        ServiceTypeId = ServiceTypeId,
-                                                        CallerName = CallerNameStr,
-                                                        TransType = CallTransTypeStr,
-                                                        Description = descriptionTextStr,
-                                                        CallerNumber = CallNumberStr,
-                                                        CallAmount = CallAmountStr,
-                                                        CallDate = CallDateStr,
-                                                        CallTime = CallTimeStr,
-                                                        CallDuration = DuractionSecondsStr,
-                                                        CallDataKb = CallDataKBStr,
-                                                        MessageCount = MessageCountStr,
-                                                        ErrorSummary =  "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                    });
-                                                }
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														FileGuidNo = filename,
+														ServiceTypeId = ServiceTypeId,
+														CallerName = CallerNameStr,
+														TransType = CallTransTypeStr,
+														Description = descriptionTextStr,
+														CallerNumber = CallNumberStr,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														CallDataKb = CallDataKBStr,
+														MessageCount = MessageCountStr,
+														ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+													});
+												}
 
 											}
 
@@ -1856,10 +1971,10 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 									}
 
-                                    LogManager.Configuration.Variables["user"] = "";
-                                    LogManager.Configuration.Variables["stepno"] = "6";
-                                    _logger.Info("Over: Reading data one by one and validate with database.");
-                                }
+									LogManager.Configuration.Variables["user"] = "";
+									LogManager.Configuration.Variables["stepno"] = "6";
+									_logger.Info("Over: Reading data one by one and validate with database.");
+								}
 							}
 							catch (Exception e)
 							{
@@ -1941,38 +2056,38 @@ namespace TeleBillingRepository.Repository.BillUpload
 							int cellCount = headerRow.LastCellNum;
 							int rowcount = sheet.LastRowNum;
 
-                            LogManager.Configuration.Variables["user"] = "";
-                            LogManager.Configuration.Variables["stepno"] = "5";
-                            _logger.Info("Start Reading data one by one and validate with database.");
-                            // ---- Global Variable 
-                            long CurrencyId = 0;
-                            CurrencyId = (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId ??0;
-                            // ---- Global Variable 
+							LogManager.Configuration.Variables["user"] = "";
+							LogManager.Configuration.Variables["stepno"] = "5";
+							_logger.Info("Start Reading data one by one and validate with database.");
+							// ---- Global Variable 
+							long CurrencyId = 0;
+							CurrencyId = (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId ?? 0;
+							// ---- Global Variable 
 
-                            for (int j = readingIndex; j <= rowcount + 1; j++)
+							for (int j = readingIndex; j <= rowcount + 1; j++)
 							{
 								int intIndex = 0;
 								intIndex = (j > 0 ? j - 1 : j);
 								IRow row = sheet.GetRow(intIndex);
 
-                                // -------- Common variable Data ------------
-                                long?_CallTransactionTypeId = 0;
-                                long? _EmployeeId = 0;
-                                long? _BusinessUnitId = 0;
-                                long? _CostCenterId = 0;
-                                long? _ChargeType = 0;
-                                //------------ validate variable-----------------------
+								// -------- Common variable Data ------------
+								long? _CallTransactionTypeId = 0;
+								long? _EmployeeId = 0;
+								long? _BusinessUnitId = 0;
+								long? _CostCenterId = 0;
+								long? _ChargeType = 0;
+								//------------ validate variable-----------------------
 
-                                string _TransTypestr = string.Empty;
-                                string _CallerNumberstr = string.Empty;
-                                string _CallAmountStr = string.Empty;
-                                string _CallDatestr = string.Empty;
-                                string _CallTimestr = string.Empty;
+								string _TransTypestr = string.Empty;
+								string _CallerNumberstr = string.Empty;
+								string _CallAmountStr = string.Empty;
+								string _CallDatestr = string.Empty;
+								string _CallTimestr = string.Empty;
 
-                                // ----- End : Common Varaiable Data --------
+								// ----- End : Common Varaiable Data --------
 
 
-                                if (row == null || (row.Cells.All(d => d.CellType == CellType.Blank)))
+								if (row == null || (row.Cells.All(d => d.CellType == CellType.Blank)))
 								{
 									continue;
 								}
@@ -2077,20 +2192,20 @@ namespace TeleBillingRepository.Repository.BillUpload
 										#region --> TransType Validation 
 										string CallTransTypeStr = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet, (long)EnumList.SupportDataType.String);
 										Transactiontypesetting transtypeDetail = new Transactiontypesetting();
-                                        _TransTypestr = CallTransTypeStr;
+										_TransTypestr = CallTransTypeStr;
 
-                                        if (!string.IsNullOrEmpty(CallTransTypeStr))
+										if (!string.IsNullOrEmpty(CallTransTypeStr))
 										{
-                                            ///agagaggaag
+											///agagaggaag
 											transtypeDetail = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == CallTransTypeStr.Trim().ToLower());
-                                               if (transtypeDetail != null)
+											if (transtypeDetail != null)
 											{
 												if (transtypeDetail.Id > 0 && transtypeDetail.SetTypeAs != null)
 												{
-                                                    _CallTransactionTypeId = transtypeDetail.Id;
-                                                    _ChargeType = transtypeDetail.SetTypeAs;
+													_CallTransactionTypeId = transtypeDetail.Id;
+													_ChargeType = transtypeDetail.SetTypeAs;
 
-                                                    isBusinessTransType = (transtypeDetail.SetTypeAs == (int)EnumList.CallType.Business ? true : false);
+													isBusinessTransType = (transtypeDetail.SetTypeAs == (int)EnumList.CallType.Business ? true : false);
 												}
 												else
 												{
@@ -2116,10 +2231,10 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 										var dynamicRef = getAddress(mappingExcel.DBFiledMappingList, "CallDate", j);
 										string CallDateStr = getValueFromExcel(dynamicRef, sheet, (long)EnumList.SupportDataType.Date);
-                                        //  string dateFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallDate");
-                                        _CallDatestr = CallDateStr;
+										//  string dateFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallDate");
+										_CallDatestr = CallDateStr;
 
-                                        if (!string.IsNullOrEmpty(CallDateStr))
+										if (!string.IsNullOrEmpty(CallDateStr))
 										{
 
 											bool isvalidDate = true;
@@ -2151,8 +2266,8 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 										var dynamicRef1 = getAddress(mappingExcel.DBFiledMappingList, "CallTime", j);
 										string CallTimeStr = getValueFromExcel(dynamicRef1, sheet, (long)EnumList.SupportDataType.Time);
-                                        // string timeFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallTime");
-                                        _CallTimestr = CallTimeStr;
+										// string timeFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallTime");
+										_CallTimestr = CallTimeStr;
 										if (!string.IsNullOrEmpty(CallTimeStr) && (CallTimeStr != "00:00:00.000000" && CallTimeStr != "00:00:00"))
 										{
 											bool isvalidTime = true;
@@ -2265,9 +2380,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 										#region --> Call Amount Required and Format Validation Part
 
 										string CallAmountStr = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number);
-                                        //string CallAmountStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallAmount", i)].Value.ToString());
-                                        _CallAmountStr = CallAmountStr;
-                                        if (!string.IsNullOrEmpty(CallAmountStr))
+										//string CallAmountStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallAmount", i)].Value.ToString());
+										_CallAmountStr = CallAmountStr;
+										if (!string.IsNullOrEmpty(CallAmountStr))
 										{
 											decimal number;
 											if (!decimal.TryParse(CallAmountStr, out number))
@@ -2285,10 +2400,10 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 										#region --> Call Number Required and Format Validation Part
 										string CallNumberStr = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet, (long)EnumList.SupportDataType.String);
-                                        //string CallNumberStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", i)].Value.ToString());
+										//string CallNumberStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", i)].Value.ToString());
 
-                                        _CallerNumberstr = CallNumberStr;
-                                        if (!string.IsNullOrEmpty(CallNumberStr))
+										_CallerNumberstr = CallNumberStr;
+										if (!string.IsNullOrEmpty(CallNumberStr))
 										{
 
 											if (!(CallNumberStr.Length > 5))
@@ -2308,17 +2423,17 @@ namespace TeleBillingRepository.Repository.BillUpload
 																		   .Where(x => (x.ServiceId == ServiceTypeId)
 																		   && x.TelephoneNumberAllocationId == telephoneNumber.Id && !x.IsDelete).FirstOrDefaultAsync();
 
-                                                    if (telephoneNumber.EmployeeId > 0 && packageData!=null && packageData.Id >0)
-                                                    {
-                                                        _EmployeeId = telephoneNumber.EmployeeId;
-                                                        MstEmployee mstemp = new MstEmployee();
-                                                        mstemp = (await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.UserId == telephoneNumber.EmployeeId));
-                                                        if (mstemp != null)
-                                                        {
-                                                            _BusinessUnitId = mstemp.BusinessUnitId;
-                                                            _CostCenterId = mstemp.CostCenterId;
-                                                        }
-                                                    }
+													if (telephoneNumber.EmployeeId > 0 && packageData != null && packageData.Id > 0)
+													{
+														_EmployeeId = telephoneNumber.EmployeeId;
+														MstEmployee mstemp = new MstEmployee();
+														mstemp = (await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.UserId == telephoneNumber.EmployeeId));
+														if (mstemp != null)
+														{
+															_BusinessUnitId = mstemp.BusinessUnitId;
+															_CostCenterId = mstemp.CostCenterId;
+														}
+													}
 
 													if (telephoneNumber.EmployeeId <= 0)
 													{
@@ -2390,17 +2505,17 @@ namespace TeleBillingRepository.Repository.BillUpload
 										if (IsFullValid)
 										{
 											Exceldetail data = new Exceldetail();
-                                            // --> Required Field Data--------------------
-                                             data.CallTransactionTypeId = _CallTransactionTypeId;// (await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == callTransactionType.Trim().ToLower()))?.Id;
+											// --> Required Field Data--------------------
+											data.CallTransactionTypeId = _CallTransactionTypeId;// (await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == callTransactionType.Trim().ToLower()))?.Id;
 											data.TransType = _TransTypestr;
-                                            data.CallerNumber = _CallerNumberstr;// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet, (long)EnumList.SupportDataType.String);
+											data.CallerNumber = _CallerNumberstr;// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet, (long)EnumList.SupportDataType.String);
 
-                                            data.CallAmount = string.IsNullOrEmpty(_CallAmountStr) ? 0 : Convert.ToDecimal(_CallAmountStr);
-                                            data.CallDate =  string.IsNullOrEmpty(_CallDatestr) ? data.CallDate : Convert.ToDateTime(_CallDatestr);
-                                          
+											data.CallAmount = string.IsNullOrEmpty(_CallAmountStr) ? 0 : Convert.ToDecimal(_CallAmountStr);
+											data.CallDate = string.IsNullOrEmpty(_CallDatestr) ? data.CallDate : Convert.ToDateTime(_CallDatestr);
+
 											if (_CallTime != null)
 											{
-                                                data.CallTime = _CallTime;// Convert.ToDateTime(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time)).TimeOfDay;
+												data.CallTime = _CallTime;// Convert.ToDateTime(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time)).TimeOfDay;
 											}
 											// Call duration hh:mm:ss to long convert and stored
 											data.CallDuration = DuractionSeconds;
@@ -2434,12 +2549,12 @@ namespace TeleBillingRepository.Repository.BillUpload
 											data.ReceiverNumber = string.Empty;
 											data.ReceiverName = string.Empty;
 
-                                            data.EmployeeId = _EmployeeId;// (await _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefaultAsync(x => x.TelephoneNumber == data.CallerNumber && !x.IsDelete && x.IsActive))?.EmployeeId;
+											data.EmployeeId = _EmployeeId;// (await _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefaultAsync(x => x.TelephoneNumber == data.CallerNumber && !x.IsDelete && x.IsActive))?.EmployeeId;
 											data.ServiceTypeId = ServiceTypeId; // (long)EnumList.ServiceType.Mobility;
-                                            data.CurrencyId = CurrencyId;// (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId;
+											data.CurrencyId = CurrencyId;// (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId;
 											data.ExcelUploadLogId = 0;
 											data.BusinessUnitId = _BusinessUnitId;
-										    data.CostCenterId = _CostCenterId;										
+											data.CostCenterId = _CostCenterId;
 											data.ExcelUploadLogId = 0;
 											data.GroupId = null;
 											data.IsAssigned = (data.EmployeeId > 0 || data.BusinessUnitId > 0) ? true : false;
@@ -2503,11 +2618,11 @@ namespace TeleBillingRepository.Repository.BillUpload
 											datalistInvalid.Add(new MobilityExcelUploadDetailStringAC
 											{
 												CallerName = dCallername, //getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerName", j), sheet),
-												CallType =_TransTypestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
+												CallType = _TransTypestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
 												Description = dDescription,
-												CallerNumber =_CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
-												CallAmount = _CallAmountStr ,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
-												CallDate =_CallDatestr ,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
+												CallerNumber = _CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
+												CallAmount = _CallAmountStr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
+												CallDate = _CallDatestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
 												CallTime = _CallTimestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
 												CallDuration = DuractionSecondsStr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
 												CallDataKB = CallDataKBStr,
@@ -2515,25 +2630,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 												ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                FileGuidNo = filename,
-                                                ServiceTypeId = ServiceTypeId,
-                                                CallerName = dCallername,
-                                                TransType = _TransTypestr,
-                                                Description = dDescription,
-                                                CallerNumber = _CallerNumberstr,
-                                                CallAmount = _CallAmountStr,
-                                                CallDate = _CallDatestr,
-                                                CallTime = _CallTimestr,
-                                                CallDuration = DuractionSecondsStr,
-                                                CallDataKb = CallDataKBStr,
-                                                MessageCount = MessageCountStr,
-                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                            });
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												FileGuidNo = filename,
+												ServiceTypeId = ServiceTypeId,
+												CallerName = dCallername,
+												TransType = _TransTypestr,
+												Description = dDescription,
+												CallerNumber = _CallerNumberstr,
+												CallAmount = _CallAmountStr,
+												CallDate = _CallDatestr,
+												CallTime = _CallTimestr,
+												CallDuration = DuractionSecondsStr,
+												CallDataKb = CallDataKBStr,
+												MessageCount = MessageCountStr,
+												ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+											});
 
-                                        }
+										}
 									}
 									catch (Exception e)
 									{
@@ -2554,56 +2669,56 @@ namespace TeleBillingRepository.Repository.BillUpload
 											datalistInvalid.Add(new MobilityExcelUploadDetailStringAC
 											{
 												CallerName = dCallername, //getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerName", j), sheet),
-												CallType =  _TransTypestr ,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
+												CallType = _TransTypestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
 												Description = dDescription,
-                                                CallerNumber = _CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
-                                                CallAmount = _CallAmountStr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
-                                                CallDate = _CallDatestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
-                                                CallTime = _CallTimestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
-                                                CallDuration = DuractionSecondsStr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
-                                                CallDataKB = CallDataKBStr,
-                                                MessageCount = MessageCountStr,
+												CallerNumber = _CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
+												CallAmount = _CallAmountStr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
+												CallDate = _CallDatestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
+												CallTime = _CallTimestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
+												CallDuration = DuractionSecondsStr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
+												CallDataKB = CallDataKBStr,
+												MessageCount = MessageCountStr,
 												ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                FileGuidNo = filename,
-                                                ServiceTypeId = ServiceTypeId,
-                                                CallerName = dCallername,
-                                                TransType = _TransTypestr,
-                                                Description = dDescription,
-                                                CallerNumber = _CallerNumberstr,
-                                                CallAmount = _CallAmountStr,
-                                                CallDate = _CallDatestr,
-                                                CallTime = _CallTimestr,
-                                                CallDuration = DuractionSecondsStr,
-                                                CallDataKb = CallDataKBStr,
-                                                MessageCount = MessageCountStr,
-                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                            });
-                                        }
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												FileGuidNo = filename,
+												ServiceTypeId = ServiceTypeId,
+												CallerName = dCallername,
+												TransType = _TransTypestr,
+												Description = dDescription,
+												CallerNumber = _CallerNumberstr,
+												CallAmount = _CallAmountStr,
+												CallDate = _CallDatestr,
+												CallTime = _CallTimestr,
+												CallDuration = DuractionSecondsStr,
+												CallDataKb = CallDataKBStr,
+												MessageCount = MessageCountStr,
+												ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+											});
+										}
 									}
 								}
 
 
 							}
 
-                            LogManager.Configuration.Variables["user"] = "";
-                            LogManager.Configuration.Variables["stepno"] = "6";
-                            _logger.Info("Over: Reading data one by one and validate with database.");
-                        }
+							LogManager.Configuration.Variables["user"] = "";
+							LogManager.Configuration.Variables["stepno"] = "6";
+							_logger.Info("Over: Reading data one by one and validate with database.");
+						}
 
 					}
 				} // end of file format reader
 
 				mobilityUploadListAC.InvalidMobilityList = datalistInvalid;
 				mobilityUploadListAC.ValidMobilityList = datalist;
-                mobilityUploadListAC.InvalidListAllDB = datalistError;
+				mobilityUploadListAC.InvalidListAllDB = datalistError;
 
 
-                ResponseDynamicDataAC<MobilityUploadListAC> responseData = new ResponseDynamicDataAC<MobilityUploadListAC>();
+				ResponseDynamicDataAC<MobilityUploadListAC> responseData = new ResponseDynamicDataAC<MobilityUploadListAC>();
 				responseData.Data = mobilityUploadListAC;
 				importBillDetail.UploadData = responseData;
 
@@ -2627,15 +2742,15 @@ namespace TeleBillingRepository.Repository.BillUpload
 				#region --> Delete File Upload after reading Successful
 
 				if (File.Exists(Path.Combine(filepath, filename)))
-                    // File.Delete(Path.Combine(filepath, filename));
+					// File.Delete(Path.Combine(filepath, filename));
 
-                    #endregion
+					#endregion
 
-                LogManager.Configuration.Variables["user"] = "";
-                LogManager.Configuration.Variables["stepno"] = "7";
-                _logger.Info("REPO :Return valid & invalid list");
+					LogManager.Configuration.Variables["user"] = "";
+				LogManager.Configuration.Variables["stepno"] = "7";
+				_logger.Info("REPO :Return valid & invalid list");
 
-                return importBillDetail;
+				return importBillDetail;
 
 				#endregion
 			}
@@ -2655,9 +2770,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 			ImportBillDetailAC<MadaUploadListAC> importBillDetail = new ImportBillDetailAC<MadaUploadListAC>();
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<MadaExcelUploadDetailStringAC> datalistInvalid = new List<MadaExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
-            try
+			try
 			{
 				bool isBusinessOnly = await GetServiceChargeType((long)EnumList.ServiceType.GeneralServiceMada);
 				long ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada;
@@ -3087,26 +3202,26 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId=0,
-                                                        FileGuidNo=filename,
-                                                        ServiceTypeId= (long)EnumList.ServiceType.GeneralServiceMada,
-                                                        SiteName = SiteNameStr,
-                                                        ServiceDetail = ServiceDetailStr,
-                                                        Bandwidth = BandwidthStr,
-                                                        CostCentre = CostCentreStr,
-                                                        MonthlyPrice = MonthlyPriceStr,
-                                                        FinalAnnualChargesKd = FinalAnnualChargesKDStr,
-                                                        InitialDiscountedMonthlyPriceKd = InitialDiscountedMonthlyPriceKDStr,
-                                                        InitialDiscountedAnnualPriceKd = InitialDiscountedAnnualPriceKDStr,
-                                                        InitialDiscountedSavingMonthlyKd = InitialDiscountedSavingMonthlyKDStr,
-                                                        InitialDiscountedSavingYearlyKd = InitialDiscountedSavingYearlyKDStr,
-                                                        CallAmount = CallAmountStr,
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														FileGuidNo = filename,
+														ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada,
+														SiteName = SiteNameStr,
+														ServiceDetail = ServiceDetailStr,
+														Bandwidth = BandwidthStr,
+														CostCentre = CostCentreStr,
+														MonthlyPrice = MonthlyPriceStr,
+														FinalAnnualChargesKd = FinalAnnualChargesKDStr,
+														InitialDiscountedMonthlyPriceKd = InitialDiscountedMonthlyPriceKDStr,
+														InitialDiscountedAnnualPriceKd = InitialDiscountedAnnualPriceKDStr,
+														InitialDiscountedSavingMonthlyKd = InitialDiscountedSavingMonthlyKDStr,
+														InitialDiscountedSavingYearlyKd = InitialDiscountedSavingYearlyKDStr,
+														CallAmount = CallAmountStr,
 
-                                                        ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                    });
-                                                }
+														ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+													});
+												}
 
 											}
 											catch (Exception e)
@@ -3129,26 +3244,26 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        FileGuidNo = filename,
-                                                        ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada,
-                                                        SiteName = SiteNameStr,
-                                                        ServiceDetail = ServiceDetailStr,
-                                                        Bandwidth = BandwidthStr,
-                                                        CostCentre = CostCentreStr,
-                                                        MonthlyPrice = MonthlyPriceStr,
-                                                        FinalAnnualChargesKd = FinalAnnualChargesKDStr,
-                                                        InitialDiscountedMonthlyPriceKd = InitialDiscountedMonthlyPriceKDStr,
-                                                        InitialDiscountedAnnualPriceKd = InitialDiscountedAnnualPriceKDStr,
-                                                        InitialDiscountedSavingMonthlyKd = InitialDiscountedSavingMonthlyKDStr,
-                                                        InitialDiscountedSavingYearlyKd = InitialDiscountedSavingYearlyKDStr,
-                                                        CallAmount = CallAmountStr,
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														FileGuidNo = filename,
+														ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada,
+														SiteName = SiteNameStr,
+														ServiceDetail = ServiceDetailStr,
+														Bandwidth = BandwidthStr,
+														CostCentre = CostCentreStr,
+														MonthlyPrice = MonthlyPriceStr,
+														FinalAnnualChargesKd = FinalAnnualChargesKDStr,
+														InitialDiscountedMonthlyPriceKd = InitialDiscountedMonthlyPriceKDStr,
+														InitialDiscountedAnnualPriceKd = InitialDiscountedAnnualPriceKDStr,
+														InitialDiscountedSavingMonthlyKd = InitialDiscountedSavingMonthlyKDStr,
+														InitialDiscountedSavingYearlyKd = InitialDiscountedSavingYearlyKDStr,
+														CallAmount = CallAmountStr,
 
-                                                        ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                    });
-                                                }
+														ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+													});
+												}
 
 											}
 
@@ -3409,30 +3524,30 @@ namespace TeleBillingRepository.Repository.BillUpload
 												ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                FileGuidNo = filename,
-                                                ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												FileGuidNo = filename,
+												ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada,
 
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                ServiceDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "ServiceDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CostCentre = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CostCentre", j), sheet, (long)EnumList.SupportDataType.String),
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "ServiceDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												CostCentre = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CostCentre", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedAnnualPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedAnnualPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedMonthlyPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedMonthlyPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedSavingMonthlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingMonthlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedSavingYearlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingYearlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                FinalAnnualChargesKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "FinalAnnualChargesKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedAnnualPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedAnnualPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedMonthlyPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedMonthlyPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedSavingMonthlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingMonthlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedSavingYearlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingYearlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												FinalAnnualChargesKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "FinalAnnualChargesKD", j), sheet, (long)EnumList.SupportDataType.Number)),
 
 
-                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                            });
+												ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+											});
 
-                                        }
+										}
 									}
 									catch (Exception e)
 									{
@@ -3456,30 +3571,30 @@ namespace TeleBillingRepository.Repository.BillUpload
 												ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                FileGuidNo = filename,
-                                                ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												FileGuidNo = filename,
+												ServiceTypeId = (long)EnumList.ServiceType.GeneralServiceMada,
 
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                ServiceDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "ServiceDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CostCentre = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CostCentre", j), sheet, (long)EnumList.SupportDataType.String),
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "ServiceDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												CostCentre = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CostCentre", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedAnnualPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedAnnualPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedMonthlyPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedMonthlyPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedSavingMonthlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingMonthlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                InitialDiscountedSavingYearlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingYearlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                FinalAnnualChargesKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "FinalAnnualChargesKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedAnnualPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedAnnualPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedMonthlyPriceKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedMonthlyPriceKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedSavingMonthlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingMonthlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												InitialDiscountedSavingYearlyKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "InitialDiscountedSavingYearlyKD", j), sheet, (long)EnumList.SupportDataType.Number)),
+												FinalAnnualChargesKd = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "FinalAnnualChargesKD", j), sheet, (long)EnumList.SupportDataType.Number)),
 
 
-                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                            });
+												ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+											});
 
-                                        }
+										}
 									}
 								}
 
@@ -3491,7 +3606,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 				madaUploadListAC.InvalidList = datalistInvalid;
 				madaUploadListAC.ValidList = datalist;
-                madaUploadListAC.InvalidListAllDB = datalistError;
+				madaUploadListAC.InvalidListAllDB = datalistError;
 
 				ResponseDynamicDataAC<MadaUploadListAC> responseData = new ResponseDynamicDataAC<MadaUploadListAC>();
 				responseData.Data = madaUploadListAC;
@@ -3544,7 +3659,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<InternetServiceExcelUploadDetailStringAC> datalistInvalid = new List<InternetServiceExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
 			try
 			{
@@ -3952,25 +4067,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 															ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 														});
 
-                                                        datalistError.Add(new ExceldetailError
-                                                        {
-                                                            ExcelUploadLogId = 0,
-                                                            ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                            FileGuidNo = filename,
+														datalistError.Add(new ExceldetailError
+														{
+															ExcelUploadLogId = 0,
+															ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+															FileGuidNo = filename,
 
-                                                            SiteName = SiteNameStr,
-                                                            ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                            GroupDetail = GroupDetailStr,
-                                                            Bandwidth = BandwidthStr,
-                                                            BusinessUnit = BusinessUnitStr,
-                                                            MonthlyPrice = MonthlyPriceStr,
-                                                            CallAmount = CallAmountStr,
-                                                            CommentOnBandwidth = CommentOnBandwidthStr,
-                                                            CommentOnPrice = CommentOnPriceStr,
+															SiteName = SiteNameStr,
+															ServiceDetail = _iStringConstant.DataCenterFacility,
+															GroupDetail = GroupDetailStr,
+															Bandwidth = BandwidthStr,
+															BusinessUnit = BusinessUnitStr,
+															MonthlyPrice = MonthlyPriceStr,
+															CallAmount = CallAmountStr,
+															CommentOnBandwidth = CommentOnBandwidthStr,
+															CommentOnPrice = CommentOnPriceStr,
 
-                                                            ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                        });
-                                                    }
+															ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+														});
+													}
 
 												}
 												catch (Exception e)
@@ -3991,25 +4106,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 															ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 														});
 
-                                                        datalistError.Add(new ExceldetailError
-                                                        {
-                                                            ExcelUploadLogId = 0,
-                                                            ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                            FileGuidNo = filename,
+														datalistError.Add(new ExceldetailError
+														{
+															ExcelUploadLogId = 0,
+															ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+															FileGuidNo = filename,
 
-                                                            SiteName = SiteNameStr,
-                                                            ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                            GroupDetail = GroupDetailStr,
-                                                            Bandwidth = BandwidthStr,
-                                                            BusinessUnit = BusinessUnitStr,
-                                                            MonthlyPrice = MonthlyPriceStr,
-                                                            CallAmount = CallAmountStr,
-                                                            CommentOnBandwidth = CommentOnBandwidthStr,
-                                                            CommentOnPrice = CommentOnPriceStr,
+															SiteName = SiteNameStr,
+															ServiceDetail = _iStringConstant.DataCenterFacility,
+															GroupDetail = GroupDetailStr,
+															Bandwidth = BandwidthStr,
+															BusinessUnit = BusinessUnitStr,
+															MonthlyPrice = MonthlyPriceStr,
+															CallAmount = CallAmountStr,
+															CommentOnBandwidth = CommentOnBandwidthStr,
+															CommentOnPrice = CommentOnPriceStr,
 
-                                                            ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                        });
-                                                    }
+															ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+														});
+													}
 
 												}
 
@@ -4289,28 +4404,28 @@ namespace TeleBillingRepository.Repository.BillUpload
 												ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                FileGuidNo = filename,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+												FileGuidNo = filename,
 
-                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = _iStringConstant.DataCenterFacility,
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+												CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                            });
+												ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+											});
 
-                                        }
+										}
 									}
 									catch (Exception e)
 									{
@@ -4333,27 +4448,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 												ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                FileGuidNo = filename,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+												FileGuidNo = filename,
 
-                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = _iStringConstant.DataCenterFacility,
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+												CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                            });
-                                        }
+												ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+											});
+										}
 									}
 								}
 
@@ -4365,7 +4480,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 				UploadListAC.InvalidList = datalistInvalid;
 				UploadListAC.ValidList = datalist;
-                UploadListAC.InvalidListAllDB = datalistError;
+				UploadListAC.InvalidListAllDB = datalistError;
 
 				ResponseDynamicDataAC<InternetServiceUploadListAC> responseData = new ResponseDynamicDataAC<InternetServiceUploadListAC>();
 				responseData.Data = UploadListAC;
@@ -4418,7 +4533,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<DataCenterFacilityExcelUploadDetailStringAC> datalistInvalid = new List<DataCenterFacilityExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
 			try
 			{
@@ -4826,27 +4941,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 															ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 														});
 
-                                                        datalistError.Add(new ExceldetailError
-                                                        {
-                                                            ExcelUploadLogId=0,
-                                                            ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                            FileGuidNo=filename,
+														datalistError.Add(new ExceldetailError
+														{
+															ExcelUploadLogId = 0,
+															ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+															FileGuidNo = filename,
 
-                                                            SiteName = SiteNameStr,
-                                                            ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                            GroupDetail = GroupDetailStr,
-                                                            Bandwidth = BandwidthStr,
-                                                            BusinessUnit = BusinessUnitStr,
-                                                            MonthlyPrice = MonthlyPriceStr,
-                                                            CallAmount = CallAmountStr,
-                                                            CommentOnBandwidth = CommentOnBandwidthStr,
-                                                            CommentOnPrice = CommentOnPriceStr,
+															SiteName = SiteNameStr,
+															ServiceDetail = _iStringConstant.DataCenterFacility,
+															GroupDetail = GroupDetailStr,
+															Bandwidth = BandwidthStr,
+															BusinessUnit = BusinessUnitStr,
+															MonthlyPrice = MonthlyPriceStr,
+															CallAmount = CallAmountStr,
+															CommentOnBandwidth = CommentOnBandwidthStr,
+															CommentOnPrice = CommentOnPriceStr,
 
-                                                            ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                        });
+															ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+														});
 
 
-                                                    }
+													}
 
 												}
 												catch (Exception e)
@@ -4868,26 +4983,26 @@ namespace TeleBillingRepository.Repository.BillUpload
 														});
 													}
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                        FileGuidNo = filename,
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+														FileGuidNo = filename,
 
-                                                        SiteName = SiteNameStr,
-                                                        ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                        GroupDetail = GroupDetailStr,
-                                                        Bandwidth = BandwidthStr,
-                                                        BusinessUnit = BusinessUnitStr,
-                                                        MonthlyPrice = MonthlyPriceStr,
-                                                        CallAmount = CallAmountStr,
-                                                        CommentOnBandwidth = CommentOnBandwidthStr,
-                                                        CommentOnPrice = CommentOnPriceStr,
+														SiteName = SiteNameStr,
+														ServiceDetail = _iStringConstant.DataCenterFacility,
+														GroupDetail = GroupDetailStr,
+														Bandwidth = BandwidthStr,
+														BusinessUnit = BusinessUnitStr,
+														MonthlyPrice = MonthlyPriceStr,
+														CallAmount = CallAmountStr,
+														CommentOnBandwidth = CommentOnBandwidthStr,
+														CommentOnPrice = CommentOnPriceStr,
 
-                                                        ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                    });
+														ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+													});
 
-                                                }
+												}
 
 											}
 
@@ -5171,27 +5286,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 											});
 
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                FileGuidNo = filename,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+												FileGuidNo = filename,
 
-                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = _iStringConstant.DataCenterFacility,
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+												CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                            });
-                                        }
+												ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+											});
+										}
 									}
 									catch (Exception e)
 									{
@@ -5214,27 +5329,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 												ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                FileGuidNo = filename,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+												FileGuidNo = filename,
 
-                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = _iStringConstant.DataCenterFacility,
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+												CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                            });
-                                        }
+												ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+											});
+										}
 									}
 								}
 
@@ -5246,7 +5361,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 				UploadListAC.InvalidList = datalistInvalid;
 				UploadListAC.ValidList = datalist;
-                UploadListAC.InvalidListAllDB = datalistError;
+				UploadListAC.InvalidListAllDB = datalistError;
 
 				ResponseDynamicDataAC<DataCenterFacilityUploadListAC> responseData = new ResponseDynamicDataAC<DataCenterFacilityUploadListAC>();
 				responseData.Data = UploadListAC;
@@ -5293,17 +5408,15 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 		}
 
-
-
 		public async Task<ImportBillDetailAC<ManagedHostingServiceUploadListAC>> ReadExcelForManagedHostingService(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC)
 		{
 			ImportBillDetailAC<ManagedHostingServiceUploadListAC> importBillDetail = new ImportBillDetailAC<ManagedHostingServiceUploadListAC>();
 
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<ManagedHostingServiceExcelUploadDetailStringAC> datalistInvalid = new List<ManagedHostingServiceExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
-            try
+			try
 			{
 				ManagedHostingServiceUploadListAC UploadListAC = new ManagedHostingServiceUploadListAC();
 				bool isBusinessOnly = await GetServiceChargeType((long)EnumList.ServiceType.ManagedHostingService);
@@ -5620,25 +5733,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                        FileGuidNo = filename,
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+														FileGuidNo = filename,
 
-                                                        SiteName = SiteNameStr,
-                                                        ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                        GroupDetail = GroupDetailStr,
-                                                        Bandwidth = BandwidthStr,
-                                                        BusinessUnit = BusinessUnitStr,
-                                                        MonthlyPrice = MonthlyPriceStr,
-                                                        CallAmount = CallAmountStr,
-                                                        CommentOnBandwidth = CommentOnBandwidthStr,
-                                                        CommentOnPrice = CommentOnPriceStr,
+														SiteName = SiteNameStr,
+														ServiceDetail = _iStringConstant.ManagedHostingService,
+														GroupDetail = GroupDetailStr,
+														Bandwidth = BandwidthStr,
+														BusinessUnit = BusinessUnitStr,
+														MonthlyPrice = MonthlyPriceStr,
+														CallAmount = CallAmountStr,
+														CommentOnBandwidth = CommentOnBandwidthStr,
+														CommentOnPrice = CommentOnPriceStr,
 
-                                                        ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                    });
-                                                }
+														ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+													});
+												}
 
 											}
 											catch (Exception e)
@@ -5659,25 +5772,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                        FileGuidNo = filename,
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+														FileGuidNo = filename,
 
-                                                        SiteName = SiteNameStr,
-                                                        ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                        GroupDetail = GroupDetailStr,
-                                                        Bandwidth = BandwidthStr,
-                                                        BusinessUnit = BusinessUnitStr,
-                                                        MonthlyPrice = MonthlyPriceStr,
-                                                        CallAmount = CallAmountStr,
-                                                        CommentOnBandwidth = CommentOnBandwidthStr,
-                                                        CommentOnPrice = CommentOnPriceStr,
+														SiteName = SiteNameStr,
+														ServiceDetail = _iStringConstant.ManagedHostingService,
+														GroupDetail = GroupDetailStr,
+														Bandwidth = BandwidthStr,
+														BusinessUnit = BusinessUnitStr,
+														MonthlyPrice = MonthlyPriceStr,
+														CallAmount = CallAmountStr,
+														CommentOnBandwidth = CommentOnBandwidthStr,
+														CommentOnPrice = CommentOnPriceStr,
 
-                                                        ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                    });
-                                                }
+														ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+													});
+												}
 
 											}
 
@@ -5961,30 +6074,30 @@ namespace TeleBillingRepository.Repository.BillUpload
 											});
 
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                FileGuidNo = filename,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+												FileGuidNo = filename,
 
-                                                ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = _iStringConstant.ManagedHostingService,
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-
-
-                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                            });
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+												CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                        }
-                                    }
+												ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+											});
+
+
+										}
+									}
 									catch (Exception e)
 									{
 										if (e.GetType() != typeof(System.NullReferenceException))
@@ -6006,27 +6119,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 												ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 											});
 
-                                            datalistError.Add(new ExceldetailError
-                                            {
-                                                ExcelUploadLogId = 0,
-                                                ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                FileGuidNo = filename,
+											datalistError.Add(new ExceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+												FileGuidNo = filename,
 
-                                                ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+												ServiceDetail = _iStringConstant.ManagedHostingService,
+												SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+												GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+												Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+												CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+												MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+												CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+												CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                            });
-                                        }
+												ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+											});
+										}
 									}
 								}
 
@@ -6038,7 +6151,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 				UploadListAC.InvalidList = datalistInvalid;
 				UploadListAC.ValidList = datalist;
-                UploadListAC.InvalidListAllDB = datalistError;
+				UploadListAC.InvalidListAllDB = datalistError;
 
 				ResponseDynamicDataAC<ManagedHostingServiceUploadListAC> responseData = new ResponseDynamicDataAC<ManagedHostingServiceUploadListAC>();
 				responseData.Data = UploadListAC;
@@ -6084,8 +6197,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 			}
 
 		}
-
-
 
 		private string getValueFromExcel(string dynamicRef, ISheet sheet, long type = 0)
 		{
@@ -6161,28 +6272,20 @@ namespace TeleBillingRepository.Repository.BillUpload
 		}
 
 		private bool CheckDate(String date)
-
 		{
 
 			try
-
 			{
-
 				DateTime dt = DateTime.Parse(date);
-
 				return true;
-
 			}
 			catch
-
 			{
 
 				return false;
-
 			}
 
 		}
-
 
 		private string RemoveSpecialChars(string str)
 		{
@@ -6499,12 +6602,12 @@ namespace TeleBillingRepository.Repository.BillUpload
 			return readingData;
 		}
 
-
 		public async Task<ImportBillDetailAC<PbxUploadListAC>> ReadExcelForPbx(string filepath, string filename, MappingDetailPbxAC mappingExcel, PbxBillUploadAC billUploadAC)
 		{
 			ImportBillDetailAC<PbxUploadListAC> importBillDetail = new ImportBillDetailAC<PbxUploadListAC>();
 			List<Exceldetailpbx> datalist = new List<Exceldetailpbx>();
 			List<PbxExcelUploadDetailStringAC> datalistInvalid = new List<PbxExcelUploadDetailStringAC>();
+			List<ExceldetailpbxError> datalistError = new List<ExceldetailpbxError>();
 
 			try
 			{
@@ -6518,7 +6621,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 				if (sFileExtension == ".csv")
 				{
 					#region -- > Ankit Code Help   To read CSV File
-
 					int worksheetno = 0;
 					int readingIndex = 0;
 					if (mappingExcel != null)
@@ -6529,7 +6631,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 						// SPECIALLY FOR csv READER ONLY
 						readingIndex = (readingIndex > 1 ? readingIndex : 0);
 					}
-
 					string csvpath = fullPath;
 					try
 					{
@@ -7093,6 +7194,32 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 														ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 													});
+
+													datalistError.Add(new ExceldetailpbxError
+													{
+														ExcelUploadLogId = 0,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														ConnectingParty = ConnectingPartyStr,
+														Name1 = Name1Str,
+														Name2 = Name2Str,
+														Name3 = Name3Str,
+														Name4 = Name4Str,
+														OtherParty = OtherPartyStr,
+														CodeNumber = CodeNumberStr,
+														ClassificationCode = ClassificationCodeStr,
+														CallType = CallTypeStr,
+														Place = PlaceStr,
+														Band = BandStr,
+														Rate = RateStr,
+														DestinationType = DestinationTypeStr,
+														DistantNumber = DistantNumberStr,
+														RingingTime = RingingTimeStr,
+														FileGuidNo = filename,
+														ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+													});
 												}
 
 											}
@@ -7124,6 +7251,33 @@ namespace TeleBillingRepository.Repository.BillUpload
 														RingingTime = RingingTimeStr,
 														ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 													});
+
+													datalistError.Add(new ExceldetailpbxError
+													{
+														ExcelUploadLogId = 0,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														ConnectingParty = ConnectingPartyStr,
+														Name1 = Name1Str,
+														Name2 = Name2Str,
+														Name3 = Name3Str,
+														Name4 = Name4Str,
+														OtherParty = OtherPartyStr,
+														CodeNumber = CodeNumberStr,
+														ClassificationCode = ClassificationCodeStr,
+														CallType = CallTypeStr,
+														Place = PlaceStr,
+														Band = BandStr,
+														Rate = RateStr,
+														DestinationType = DestinationTypeStr,
+														DistantNumber = DistantNumberStr,
+														RingingTime = RingingTimeStr,
+														FileGuidNo = filename,
+														ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+													});
+
 												}
 
 											}
@@ -7144,7 +7298,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 								importBillDetail.Status = Convert.ToInt16(EnumList.ExcelUploadResponseType.ExceptionError);
 								return importBillDetail;
 							}
-
 						}
 					}
 					catch (Exception ex)
@@ -7157,7 +7310,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 						return importBillDetail;
 
 					}
-
 					#endregion
 
 				}
@@ -7172,15 +7324,11 @@ namespace TeleBillingRepository.Repository.BillUpload
 							worksheetno = Convert.ToInt16(mappingExcel.WorkSheetNo);
 							readingIndex = (mappingExcel.HaveHeader ? 2 : 1);
 							readingIndex = (!string.IsNullOrEmpty(mappingExcel.ExcelReadingColumn) ? Convert.ToInt16(mappingExcel.ExcelReadingColumn) : readingIndex);
-
 						}
-
 						stream.Position = 0;
-
 						if (sFileExtension == ".xls")//This will read the Excel 97-2000 formats    
 						{
 							HSSFWorkbook hssfwb = new HSSFWorkbook(stream);
-
 							if (hssfwb.NumberOfSheets >= 0 && hssfwb.NumberOfSheets >= (worksheetno - 1))
 								sheet = hssfwb.GetSheetAt(worksheetno - 1);
 							else
@@ -7208,8 +7356,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 								importBillDetail.Status = Convert.ToInt16(EnumList.ExcelUploadResponseType.ExceptionError);
 								return importBillDetail;
 							}
-
-
 						}
 						else
 						{
@@ -7534,6 +7680,8 @@ namespace TeleBillingRepository.Repository.BillUpload
 											data.ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary;
 
 											datalistInvalid.Add(data);
+											datalistError.Add(_mapper.Map<ExceldetailpbxError>(data));
+
 										}
 									}
 									catch (Exception e)
@@ -7602,6 +7750,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 											data.ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message;
 											datalistInvalid.Add(data);
+											datalistError.Add(_mapper.Map<ExceldetailpbxError>(data));
 
 										}
 									}
@@ -7610,13 +7759,13 @@ namespace TeleBillingRepository.Repository.BillUpload
 							}
 						}
 
-
-
 					}
 				}
 
 				pbxUploadListAC.InvalidPbxList = datalistInvalid;
 				pbxUploadListAC.ValidPbxList = datalist;
+				pbxUploadListAC.InvalidAllPbxListDB = datalistError;
+
 				ResponseDynamicDataAC<PbxUploadListAC> responseData = new ResponseDynamicDataAC<PbxUploadListAC>();
 				responseData.Data = pbxUploadListAC;
 				importBillDetail.UploadData = responseData;
@@ -7625,7 +7774,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 				{
 					importBillDetail.Message = "Some data upload with error!";
 					importBillDetail.Status = Convert.ToInt16(EnumList.ExcelUploadResponseType.SomeDataInvalid);
-
 				}
 				else if (datalistInvalid.Count > 0 && datalist.Count == 0)
 				{
@@ -7639,10 +7787,8 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 
 				#region --> Delete File Upload after reading Successful
-
 				if (File.Exists(Path.Combine(filepath, filename)))
 					File.Delete(Path.Combine(filepath, filename));
-
 				#endregion
 
 				return importBillDetail;
@@ -8123,7 +8269,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 			return readingData;
 		}
 
-
 		public async Task<ImportBillDetailMultipleAC<InternetServiceUploadListAC>> ReadExcelForInternetServiceMultiple
 						(string filepath, string filename,
 						 MappingDetailAC mappingExcel, List<MappingDetailAC> singleWorksheetserviceList,
@@ -8133,9 +8278,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<InternetServiceExcelUploadDetailStringAC> datalistInvalid = new List<InternetServiceExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
-            try
+			try
 			{
 				InternetServiceUploadListAC UploadListAC = new InternetServiceUploadListAC();
 
@@ -8607,25 +8752,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 																ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 															});
 
-                                                            datalistError.Add(new ExceldetailError
-                                                            {
-                                                                ExcelUploadLogId = 0,
-                                                                ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                                FileGuidNo = filename,
+															datalistError.Add(new ExceldetailError
+															{
+																ExcelUploadLogId = 0,
+																ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+																FileGuidNo = filename,
 
-                                                                SiteName = SiteNameStr,
-                                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                                GroupDetail = GroupDetailStr,
-                                                                Bandwidth = BandwidthStr,
-                                                                BusinessUnit = BusinessUnitStr,
-                                                                MonthlyPrice = MonthlyPriceStr,
-                                                                CallAmount = CallAmountStr,
-                                                                CommentOnBandwidth = CommentOnBandwidthStr,
-                                                                CommentOnPrice = CommentOnPriceStr,
+																SiteName = SiteNameStr,
+																ServiceDetail = _iStringConstant.DataCenterFacility,
+																GroupDetail = GroupDetailStr,
+																Bandwidth = BandwidthStr,
+																BusinessUnit = BusinessUnitStr,
+																MonthlyPrice = MonthlyPriceStr,
+																CallAmount = CallAmountStr,
+																CommentOnBandwidth = CommentOnBandwidthStr,
+																CommentOnPrice = CommentOnPriceStr,
 
-                                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                            });
-                                                        }
+																ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+															});
+														}
 
 													}
 													catch (Exception e)
@@ -8646,26 +8791,26 @@ namespace TeleBillingRepository.Repository.BillUpload
 																ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 															});
 
-                                                            datalistError.Add(new ExceldetailError
-                                                            {
-                                                                ExcelUploadLogId = 0,
-                                                                ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                                FileGuidNo = filename,
+															datalistError.Add(new ExceldetailError
+															{
+																ExcelUploadLogId = 0,
+																ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+																FileGuidNo = filename,
 
-                                                                SiteName = SiteNameStr,
-                                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                                GroupDetail = GroupDetailStr,
-                                                                Bandwidth = BandwidthStr,
-                                                                BusinessUnit = BusinessUnitStr,
-                                                                MonthlyPrice = MonthlyPriceStr,
-                                                                CallAmount = CallAmountStr,
-                                                                CommentOnBandwidth = CommentOnBandwidthStr,
-                                                                CommentOnPrice = CommentOnPriceStr,
+																SiteName = SiteNameStr,
+																ServiceDetail = _iStringConstant.DataCenterFacility,
+																GroupDetail = GroupDetailStr,
+																Bandwidth = BandwidthStr,
+																BusinessUnit = BusinessUnitStr,
+																MonthlyPrice = MonthlyPriceStr,
+																CallAmount = CallAmountStr,
+																CommentOnBandwidth = CommentOnBandwidthStr,
+																CommentOnPrice = CommentOnPriceStr,
 
-                                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                            });
+																ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+															});
 
-                                                        }
+														}
 
 													}
 
@@ -9014,30 +9159,30 @@ namespace TeleBillingRepository.Repository.BillUpload
 													ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 												});
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                    FileGuidNo = filename,
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+													FileGuidNo = filename,
 
-                                                    ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                    SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+													ServiceDetail = _iStringConstant.DataCenterFacility,
+													SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+													GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+													Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                    CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+													MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+													CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+													CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                    ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                });
+													ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+												});
 
-                                            }
+											}
 
-                                        }
+										}
 										catch (Exception e)
 										{
 											if (e.GetType() != typeof(System.NullReferenceException))
@@ -9059,27 +9204,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 													ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 												});
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    ServiceTypeId = (long)EnumList.ServiceType.InternetService,
-                                                    FileGuidNo = filename,
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													ServiceTypeId = (long)EnumList.ServiceType.InternetService,
+													FileGuidNo = filename,
 
-                                                    ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                    SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+													ServiceDetail = _iStringConstant.DataCenterFacility,
+													SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+													GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+													Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                    CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    
-                                                    ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                });
+													CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+													MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+													CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+													CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                            }
+													ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+												});
+
+											}
 										}
 									}
 								} // end of if (!IsServiceTitleRow)
@@ -9092,7 +9237,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 				UploadListAC.InvalidList = datalistInvalid;
 				UploadListAC.ValidList = datalist;
-                UploadListAC.InvalidListAllDB = datalistError;
+				UploadListAC.InvalidListAllDB = datalistError;
 				ResponseDynamicDataAC<InternetServiceUploadListAC> responseData = new ResponseDynamicDataAC<InternetServiceUploadListAC>();
 				responseData.Data = UploadListAC;
 				importBillDetail.UploadData = responseData;
@@ -9139,7 +9284,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 		}
 
 
-
 		public async Task<ImportBillDetailMultipleAC<DataCenterFacilityUploadListAC>> ReadExcelForDataCenterFacilityMultiple
 						(string filepath, string filename,
 						 MappingDetailAC mappingExcel, List<MappingDetailAC> singleWorksheetserviceList,
@@ -9149,9 +9293,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<DataCenterFacilityExcelUploadDetailStringAC> datalistInvalid = new List<DataCenterFacilityExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
-            try
+			try
 			{
 				DataCenterFacilityUploadListAC UploadListAC = new DataCenterFacilityUploadListAC();
 
@@ -9623,25 +9767,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 																ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 															});
 
-                                                            datalistError.Add(new ExceldetailError
-                                                            {
-                                                                ExcelUploadLogId = 0,
-                                                                ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                                FileGuidNo = filename,
+															datalistError.Add(new ExceldetailError
+															{
+																ExcelUploadLogId = 0,
+																ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+																FileGuidNo = filename,
 
-                                                                SiteName = SiteNameStr,
-                                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                                GroupDetail = GroupDetailStr,
-                                                                Bandwidth = BandwidthStr,
-                                                                BusinessUnit = BusinessUnitStr,
-                                                                MonthlyPrice = MonthlyPriceStr,
-                                                                CallAmount = CallAmountStr,
-                                                                CommentOnBandwidth = CommentOnBandwidthStr,
-                                                                CommentOnPrice = CommentOnPriceStr,
+																SiteName = SiteNameStr,
+																ServiceDetail = _iStringConstant.DataCenterFacility,
+																GroupDetail = GroupDetailStr,
+																Bandwidth = BandwidthStr,
+																BusinessUnit = BusinessUnitStr,
+																MonthlyPrice = MonthlyPriceStr,
+																CallAmount = CallAmountStr,
+																CommentOnBandwidth = CommentOnBandwidthStr,
+																CommentOnPrice = CommentOnPriceStr,
 
-                                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                            });
-                                                        }
+																ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+															});
+														}
 
 													}
 													catch (Exception e)
@@ -9662,25 +9806,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 																ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 															});
 
-                                                            datalistError.Add(new ExceldetailError
-                                                            {
-                                                                ExcelUploadLogId = 0,
-                                                                ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                                FileGuidNo = filename,
+															datalistError.Add(new ExceldetailError
+															{
+																ExcelUploadLogId = 0,
+																ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+																FileGuidNo = filename,
 
-                                                                SiteName = SiteNameStr,
-                                                                ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                                GroupDetail = GroupDetailStr,
-                                                                Bandwidth = BandwidthStr,
-                                                                BusinessUnit = BusinessUnitStr,
-                                                                MonthlyPrice = MonthlyPriceStr,
-                                                                CallAmount = CallAmountStr,
-                                                                CommentOnBandwidth = CommentOnBandwidthStr,
-                                                                CommentOnPrice = CommentOnPriceStr,
+																SiteName = SiteNameStr,
+																ServiceDetail = _iStringConstant.DataCenterFacility,
+																GroupDetail = GroupDetailStr,
+																Bandwidth = BandwidthStr,
+																BusinessUnit = BusinessUnitStr,
+																MonthlyPrice = MonthlyPriceStr,
+																CallAmount = CallAmountStr,
+																CommentOnBandwidth = CommentOnBandwidthStr,
+																CommentOnPrice = CommentOnPriceStr,
 
-                                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                            });
-                                                        }
+																ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+															});
+														}
 
 													}
 
@@ -10031,28 +10175,28 @@ namespace TeleBillingRepository.Repository.BillUpload
 												});
 
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                    FileGuidNo = filename,
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+													FileGuidNo = filename,
 
-                                                    ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                    SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+													ServiceDetail = _iStringConstant.DataCenterFacility,
+													SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+													GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+													Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                    CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+													MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+													CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+													CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                    ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                });
+													ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+												});
 
-                                            }
+											}
 
 										}
 										catch (Exception e)
@@ -10076,27 +10220,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 													ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 												});
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
-                                                    FileGuidNo = filename,
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													ServiceTypeId = (long)EnumList.ServiceType.DataCenterFacility,
+													FileGuidNo = filename,
 
-                                                    ServiceDetail = _iStringConstant.DataCenterFacility,
-                                                    SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+													ServiceDetail = _iStringConstant.DataCenterFacility,
+													SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+													GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+													Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                    CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+													MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+													CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+													CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                    ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                });
-                                            }
+													ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+												});
+											}
 										}
 									}
 								}
@@ -10109,7 +10253,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 				UploadListAC.InvalidList = datalistInvalid;
 				UploadListAC.ValidList = datalist;
-                UploadListAC.InvalidListAllDB = datalistError;
+				UploadListAC.InvalidListAllDB = datalistError;
 
 				ResponseDynamicDataAC<DataCenterFacilityUploadListAC> responseData = new ResponseDynamicDataAC<DataCenterFacilityUploadListAC>();
 				responseData.Data = UploadListAC;
@@ -10156,8 +10300,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 		}
 
-
-
 		public async Task<ImportBillDetailMultipleAC<ManagedHostingServiceUploadListAC>> ReadExcelForManagedHostingServiceMultiple
 						(string filepath, string filename,
 						 MappingDetailAC mappingExcel, List<MappingDetailAC> singleWorksheetserviceList,
@@ -10167,9 +10309,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<ManagedHostingServiceExcelUploadDetailStringAC> datalistInvalid = new List<ManagedHostingServiceExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
-            try
+			try
 			{
 				ManagedHostingServiceUploadListAC UploadListAC = new ManagedHostingServiceUploadListAC();
 
@@ -10642,28 +10784,28 @@ namespace TeleBillingRepository.Repository.BillUpload
 																ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 															});
 
-                                                            datalistError.Add(new ExceldetailError
-                                                            {
-                                                                ExcelUploadLogId = 0,
-                                                                ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                                FileGuidNo = filename,
+															datalistError.Add(new ExceldetailError
+															{
+																ExcelUploadLogId = 0,
+																ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+																FileGuidNo = filename,
 
-                                                                SiteName = SiteNameStr,
-                                                                ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                                GroupDetail = GroupDetailStr,
-                                                                Bandwidth = BandwidthStr,
-                                                                BusinessUnit = BusinessUnitStr,
-                                                                MonthlyPrice = MonthlyPriceStr,
-                                                                CallAmount = CallAmountStr,
-                                                                CommentOnBandwidth = CommentOnBandwidthStr,
-                                                                CommentOnPrice = CommentOnPriceStr,
+																SiteName = SiteNameStr,
+																ServiceDetail = _iStringConstant.ManagedHostingService,
+																GroupDetail = GroupDetailStr,
+																Bandwidth = BandwidthStr,
+																BusinessUnit = BusinessUnitStr,
+																MonthlyPrice = MonthlyPriceStr,
+																CallAmount = CallAmountStr,
+																CommentOnBandwidth = CommentOnBandwidthStr,
+																CommentOnPrice = CommentOnPriceStr,
 
-                                                                ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                            });
+																ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+															});
 
-                                                        }
+														}
 
-                                                    }
+													}
 													catch (Exception e)
 													{
 														if (e.GetType() != typeof(System.NullReferenceException))
@@ -10682,25 +10824,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 																ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 															});
 
-                                                            datalistError.Add(new ExceldetailError
-                                                            {
-                                                                ExcelUploadLogId = 0,
-                                                                ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                                FileGuidNo = filename,
+															datalistError.Add(new ExceldetailError
+															{
+																ExcelUploadLogId = 0,
+																ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+																FileGuidNo = filename,
 
-                                                                SiteName = SiteNameStr,
-                                                                ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                                GroupDetail = GroupDetailStr,
-                                                                Bandwidth = BandwidthStr,
-                                                                BusinessUnit = BusinessUnitStr,
-                                                                MonthlyPrice = MonthlyPriceStr,
-                                                                CallAmount = CallAmountStr,
-                                                                CommentOnBandwidth = CommentOnBandwidthStr,
-                                                                CommentOnPrice = CommentOnPriceStr,
+																SiteName = SiteNameStr,
+																ServiceDetail = _iStringConstant.ManagedHostingService,
+																GroupDetail = GroupDetailStr,
+																Bandwidth = BandwidthStr,
+																BusinessUnit = BusinessUnitStr,
+																MonthlyPrice = MonthlyPriceStr,
+																CallAmount = CallAmountStr,
+																CommentOnBandwidth = CommentOnBandwidthStr,
+																CommentOnPrice = CommentOnPriceStr,
 
-                                                                ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                            });
-                                                        }
+																ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+															});
+														}
 
 													}
 
@@ -11059,27 +11201,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 													ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 												});
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                    FileGuidNo = filename,
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+													FileGuidNo = filename,
 
-                                                    ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                    SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+													ServiceDetail = _iStringConstant.ManagedHostingService,
+													SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+													GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+													Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                    CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+													MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+													CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+													CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                    ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                });
-                                            }
+													ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+												});
+											}
 
 										}
 										catch (Exception e)
@@ -11103,27 +11245,27 @@ namespace TeleBillingRepository.Repository.BillUpload
 													ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 												});
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
-                                                    FileGuidNo = filename,
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													ServiceTypeId = (long)EnumList.ServiceType.ManagedHostingService,
+													FileGuidNo = filename,
 
-                                                    ServiceDetail = _iStringConstant.ManagedHostingService,
-                                                    SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
+													ServiceDetail = _iStringConstant.ManagedHostingService,
+													SiteName = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "SiteName", j), sheet, (long)EnumList.SupportDataType.String),
+													GroupDetail = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "GroupDetail", j), sheet, (long)EnumList.SupportDataType.String),
+													Bandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "Bandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													BusinessUnit = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "BusinessUnit", j), sheet, (long)EnumList.SupportDataType.String),
 
-                                                    CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
-                                                    CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
-                                                    CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
+													CallAmount = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number)),
+													MonthlyPrice = Convert.ToString(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "MonthlyPrice", j), sheet, (long)EnumList.SupportDataType.Number)),
+													CommentOnPrice = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnPrice", j), sheet, (long)EnumList.SupportDataType.String),
+													CommentOnBandwidth = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CommentOnBandwidth", j), sheet, (long)EnumList.SupportDataType.String),
 
 
-                                                    ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                });
-                                            }
+													ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+												});
+											}
 										}
 									}
 								}
@@ -11136,7 +11278,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 				UploadListAC.InvalidList = datalistInvalid;
 				UploadListAC.ValidList = datalist;
-                UploadListAC.InvalidListAllDB = datalistError;
+				UploadListAC.InvalidListAllDB = datalistError;
 				ResponseDynamicDataAC<ManagedHostingServiceUploadListAC> responseData = new ResponseDynamicDataAC<ManagedHostingServiceUploadListAC>();
 				responseData.Data = UploadListAC;
 				importBillDetail.UploadData = responseData;
@@ -11182,7 +11324,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 		}
 
-
 		public async Task<ImportBillDetailMultipleAC<MobilityUploadListAC>> ReadExcelForMobilityServiceMultiple
 					(string filepath, string filename,
 					 MappingDetailAC mappingExcel, List<MappingDetailAC> singleWorksheetserviceList,
@@ -11193,7 +11334,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 			List<Exceldetail> datalist = new List<Exceldetail>();
 			List<MobilityExcelUploadDetailStringAC> datalistInvalid = new List<MobilityExcelUploadDetailStringAC>();
-            List<ExceldetailError> datalistError = new List<ExceldetailError>();
+			List<ExceldetailError> datalistError = new List<ExceldetailError>();
 
 			try
 			{
@@ -11242,16 +11383,16 @@ namespace TeleBillingRepository.Repository.BillUpload
 								if (csvRecords != null)
 								{
 									int rowcount = csvRecords.Count();
-                                    LogManager.Configuration.Variables["user"] = "";
-                                    LogManager.Configuration.Variables["stepno"] = "5";
-                                    _logger.Info("Start Reading data one by one and validate with database.");
+									LogManager.Configuration.Variables["user"] = "";
+									LogManager.Configuration.Variables["stepno"] = "5";
+									_logger.Info("Start Reading data one by one and validate with database.");
 
-                                    // ---- Global Variable 
-                                    long CurrencyId = 0;
-                                    CurrencyId = (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId ?? 0;
-                                    // ---- Global Variable 
+									// ---- Global Variable 
+									long CurrencyId = 0;
+									CurrencyId = (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId ?? 0;
+									// ---- Global Variable 
 
-                                    for (int j = readingIndex; j < rowcount; j++)
+									for (int j = readingIndex; j < rowcount; j++)
 									{
 										var itemvalue = ((IDictionary<string, object>)csvRecords.ElementAtOrDefault(j)).Where(x => x.Value.ToString() != "").ToList();
 
@@ -11892,25 +12033,25 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        FileGuidNo = filename,
-                                                        ServiceTypeId = ServiceTypeId,
-                                                        CallerName = CallerNameStr,
-                                                        TransType = CallTransTypeStr,
-                                                        Description = descriptionTextStr,
-                                                        CallerNumber = CallNumberStr,
-                                                        CallAmount = CallAmountStr,
-                                                        CallDate = CallDateStr,
-                                                        CallTime = CallTimeStr,
-                                                        CallDuration = DuractionSecondsStr,
-                                                        CallDataKb = CallDataKBStr,
-                                                        MessageCount = MessageCountStr,
-                                                        ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                    });
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														FileGuidNo = filename,
+														ServiceTypeId = ServiceTypeId,
+														CallerName = CallerNameStr,
+														TransType = CallTransTypeStr,
+														Description = descriptionTextStr,
+														CallerNumber = CallNumberStr,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														CallDataKb = CallDataKBStr,
+														MessageCount = MessageCountStr,
+														ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+													});
 
-                                                }
+												}
 
 											}
 											catch (Exception e)
@@ -11932,34 +12073,34 @@ namespace TeleBillingRepository.Repository.BillUpload
 														ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 													});
 
-                                                    datalistError.Add(new ExceldetailError
-                                                    {
-                                                        ExcelUploadLogId = 0,
-                                                        FileGuidNo = filename,
-                                                        ServiceTypeId = ServiceTypeId,
-                                                        CallerName = CallerNameStr,
-                                                        TransType = CallTransTypeStr,
-                                                        Description = descriptionTextStr,
-                                                        CallerNumber = CallNumberStr,
-                                                        CallAmount = CallAmountStr,
-                                                        CallDate = CallDateStr,
-                                                        CallTime = CallTimeStr,
-                                                        CallDuration = DuractionSecondsStr,
-                                                        CallDataKb = CallDataKBStr,
-                                                        MessageCount = MessageCountStr,
-                                                        ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                    });
-                                                }
+													datalistError.Add(new ExceldetailError
+													{
+														ExcelUploadLogId = 0,
+														FileGuidNo = filename,
+														ServiceTypeId = ServiceTypeId,
+														CallerName = CallerNameStr,
+														TransType = CallTransTypeStr,
+														Description = descriptionTextStr,
+														CallerNumber = CallNumberStr,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														CallDataKb = CallDataKBStr,
+														MessageCount = MessageCountStr,
+														ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+													});
+												}
 
 											}
 
 										}
 
 									}
-                                    LogManager.Configuration.Variables["user"] = "";
-                                    LogManager.Configuration.Variables["stepno"] = "6";
-                                    _logger.Info("Over: Reading data one by one and validate with database.");
-                                }
+									LogManager.Configuration.Variables["user"] = "";
+									LogManager.Configuration.Variables["stepno"] = "6";
+									_logger.Info("Over: Reading data one by one and validate with database.");
+								}
 								else
 								{
 									csv.Dispose();
@@ -12062,36 +12203,36 @@ namespace TeleBillingRepository.Repository.BillUpload
 						{
 							int rowcount = sheet.LastRowNum + 1;
 							bool IsServiceTitleRow = false;
-                            LogManager.Configuration.Variables["user"] = "";
-                            LogManager.Configuration.Variables["stepno"] = "5";
-                            _logger.Info("Start Reading data one by one and validate with database.");
+							LogManager.Configuration.Variables["user"] = "";
+							LogManager.Configuration.Variables["stepno"] = "5";
+							_logger.Info("Start Reading data one by one and validate with database.");
 
-                            // ---- Global Variable 
-                            long CurrencyId = 0;
-                            CurrencyId = (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId ?? 0;
-                            // ---- Global Variable 
+							// ---- Global Variable 
+							long CurrencyId = 0;
+							CurrencyId = (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId ?? 0;
+							// ---- Global Variable 
 
-                            for (int j = readingIndex; j <= rowcount; j++)
+							for (int j = readingIndex; j <= rowcount; j++)
 							{
 
-                                // -------- Common variable Data ------------
-                                long? _CallTransactionTypeId = 0;
-                                long? _EmployeeId = 0;
-                                long? _BusinessUnitId = 0;
-                                long? _CostCenterId = 0;
-                                long? _ChargeType = 0;
-                                //------------ validate variable-----------------------
+								// -------- Common variable Data ------------
+								long? _CallTransactionTypeId = 0;
+								long? _EmployeeId = 0;
+								long? _BusinessUnitId = 0;
+								long? _CostCenterId = 0;
+								long? _ChargeType = 0;
+								//------------ validate variable-----------------------
 
-                                string _TransTypestr = string.Empty;
-                                string _CallerNumberstr = string.Empty;
-                                string _CallAmountStr = string.Empty;
-                                string _CallDatestr = string.Empty;
-                                string _CallTimestr = string.Empty;
+								string _TransTypestr = string.Empty;
+								string _CallerNumberstr = string.Empty;
+								string _CallAmountStr = string.Empty;
+								string _CallDatestr = string.Empty;
+								string _CallTimestr = string.Empty;
 
-                                // ----- End : Common Varaiable Data --------
+								// ----- End : Common Varaiable Data --------
 
 
-                                IsServiceTitleRow = false;
+								IsServiceTitleRow = false;
 								int intIndex = (j > 0 ? j - 1 : j); // getRow index start from 0 nad Address call start from 1
 								IRow row = sheet.GetRow(intIndex);
 								if (row == null || row.Cells.All(d => d.CellType == CellType.Blank))
@@ -12290,22 +12431,22 @@ namespace TeleBillingRepository.Repository.BillUpload
 											#region --> TransType Validation 
 											string CallTransTypeStr = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet, (long)EnumList.SupportDataType.String);
 											Transactiontypesetting transtypeDetail = new Transactiontypesetting();
-                                            _TransTypestr = CallTransTypeStr;
-                                            if (!string.IsNullOrEmpty(CallTransTypeStr))
+											_TransTypestr = CallTransTypeStr;
+											if (!string.IsNullOrEmpty(CallTransTypeStr))
 											{
-                                               
 
-                                                transtypeDetail = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == CallTransTypeStr.Trim().ToLower());
+
+												transtypeDetail = await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == CallTransTypeStr.Trim().ToLower());
 												if (transtypeDetail != null)
 												{
-                                                    if (transtypeDetail.Id > 0 && transtypeDetail.SetTypeAs != null)
-                                                    {
-                                                        _CallTransactionTypeId = transtypeDetail.Id;
-                                                        _ChargeType = transtypeDetail.SetTypeAs;
+													if (transtypeDetail.Id > 0 && transtypeDetail.SetTypeAs != null)
+													{
+														_CallTransactionTypeId = transtypeDetail.Id;
+														_ChargeType = transtypeDetail.SetTypeAs;
 
-                                                        isBusinessTransType = (transtypeDetail.SetTypeAs == (int)EnumList.CallType.Business ? true : false);
-                                                    }
-                                                    else
+														isBusinessTransType = (transtypeDetail.SetTypeAs == (int)EnumList.CallType.Business ? true : false);
+													}
+													else
 													{
 														IsFullValid = false;
 														ErrorMessageSummary = ErrorMessageSummary + "Trans Type does not set exists system ! ";
@@ -12329,9 +12470,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 											var dynamicRef = getAddress(mappingExcel.DBFiledMappingList, "CallDate", j);
 											string CallDateStr = getValueFromExcel(dynamicRef, sheet, (long)EnumList.SupportDataType.Date);
-                                            // string dateFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallDate");
-                                            _CallDatestr = CallDateStr;
-                                            if (!string.IsNullOrEmpty(CallDateStr))
+											// string dateFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallDate");
+											_CallDatestr = CallDateStr;
+											if (!string.IsNullOrEmpty(CallDateStr))
 											{
 
 												bool isvalidDate = true;
@@ -12363,9 +12504,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 											var dynamicRef1 = getAddress(mappingExcel.DBFiledMappingList, "CallTime", j);
 											string CallTimeStr = getValueFromExcel(dynamicRef1, sheet, (long)EnumList.SupportDataType.Time);
-                                            // string timeFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallTime");
-                                            _CallTimestr = CallTimeStr;
-                                            if (!string.IsNullOrEmpty(CallTimeStr) && (CallTimeStr != "00:00:00.000000" && CallTimeStr != "00:00:00"))
+											// string timeFormat = getFormatField(mappingExcel.DBFiledMappingList, "CallTime");
+											_CallTimestr = CallTimeStr;
+											if (!string.IsNullOrEmpty(CallTimeStr) && (CallTimeStr != "00:00:00.000000" && CallTimeStr != "00:00:00"))
 											{
 
 												bool isvalidTime = true;
@@ -12476,9 +12617,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 											#region --> Call Amount Required and Format Validation Part
 
 											string CallAmountStr = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet, (long)EnumList.SupportDataType.Number);
-                                            //string CallAmountStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallAmount", i)].Value.ToString());
-                                            _CallAmountStr = CallAmountStr;
-                                            if (!string.IsNullOrEmpty(CallAmountStr))
+											//string CallAmountStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallAmount", i)].Value.ToString());
+											_CallAmountStr = CallAmountStr;
+											if (!string.IsNullOrEmpty(CallAmountStr))
 											{
 												decimal number;
 												if (!decimal.TryParse(CallAmountStr, out number))
@@ -12496,9 +12637,9 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 											#region --> Call Number Required and Format Validation Part
 											string CallNumberStr = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet, (long)EnumList.SupportDataType.String);
-                                            //string CallNumberStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", i)].Value.ToString());
-                                            _CallerNumberstr = CallNumberStr;
-                                            if (!string.IsNullOrEmpty(CallNumberStr))
+											//string CallNumberStr = Convert.ToString(workSheet.Cells[getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", i)].Value.ToString());
+											_CallerNumberstr = CallNumberStr;
+											if (!string.IsNullOrEmpty(CallNumberStr))
 											{
 
 												if (!(CallNumberStr.Length > 5))
@@ -12518,21 +12659,21 @@ namespace TeleBillingRepository.Repository.BillUpload
 														packageData = await _dbTeleBilling_V01Context.Telephonenumberallocationpackage
 																			   .Where(x => (x.ServiceId == ServiceTypeId)
 																			   && x.TelephoneNumberAllocationId == telephoneNumber.Id && !x.IsDelete).FirstOrDefaultAsync();
-                                                       
-                                                        if (telephoneNumber.EmployeeId > 0 && packageData != null && packageData.Id > 0)
-                                                        {
-                                                            _EmployeeId = telephoneNumber.EmployeeId;
-                                                            MstEmployee mstemp = new MstEmployee();
-                                                            mstemp = (await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.UserId == telephoneNumber.EmployeeId));
-                                                            if (mstemp != null)
-                                                            {
-                                                                _BusinessUnitId = mstemp.BusinessUnitId;
-                                                                _CostCenterId = mstemp.CostCenterId;
-                                                            }
-                                                        }
+
+														if (telephoneNumber.EmployeeId > 0 && packageData != null && packageData.Id > 0)
+														{
+															_EmployeeId = telephoneNumber.EmployeeId;
+															MstEmployee mstemp = new MstEmployee();
+															mstemp = (await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.UserId == telephoneNumber.EmployeeId));
+															if (mstemp != null)
+															{
+																_BusinessUnitId = mstemp.BusinessUnitId;
+																_CostCenterId = mstemp.CostCenterId;
+															}
+														}
 
 
-                                                        if (telephoneNumber.EmployeeId <= 0)
+														if (telephoneNumber.EmployeeId <= 0)
 														{
 															IsFullValid = false;
 															ErrorMessageSummary = ErrorMessageSummary + "Caller Number is not allocated to employee!";
@@ -12606,15 +12747,15 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 
 												// --> Required Field Data--------------------											
-                                                data.CallTransactionTypeId = _CallTransactionTypeId;// (await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == callTransactionType.Trim().ToLower()))?.Id;
-                                                data.TransType = _TransTypestr;
-                                                data.CallerNumber = _CallerNumberstr;//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet, (long)EnumList.SupportDataType.String);
-                                                data.CallAmount = string.IsNullOrEmpty(_CallAmountStr) ? 0 : Convert.ToDecimal(_CallAmountStr);
-                                                data.CallDate = string.IsNullOrEmpty(_CallDatestr) ? data.CallDate : Convert.ToDateTime(_CallDatestr);
+												data.CallTransactionTypeId = _CallTransactionTypeId;// (await _dbTeleBilling_V01Context.Transactiontypesetting.FirstOrDefaultAsync(x => x.ProviderId == billUploadAC.ProviderId && !x.IsDelete && x.TransactionType.Trim().ToLower() == callTransactionType.Trim().ToLower()))?.Id;
+												data.TransType = _TransTypestr;
+												data.CallerNumber = _CallerNumberstr;//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet, (long)EnumList.SupportDataType.String);
+												data.CallAmount = string.IsNullOrEmpty(_CallAmountStr) ? 0 : Convert.ToDecimal(_CallAmountStr);
+												data.CallDate = string.IsNullOrEmpty(_CallDatestr) ? data.CallDate : Convert.ToDateTime(_CallDatestr);
 
-                                                if (_CallTime != null)
+												if (_CallTime != null)
 												{
-                                                    data.CallTime = _CallTime;// Convert.ToDateTime(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time)).TimeOfDay;
+													data.CallTime = _CallTime;// Convert.ToDateTime(getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time)).TimeOfDay;
 												}
 												// Call duration hh:mm:ss to long convert and stored
 												data.CallDuration = DuractionSeconds;
@@ -12647,13 +12788,13 @@ namespace TeleBillingRepository.Repository.BillUpload
 												data.CommentOnBandwidth = string.Empty;
 												data.ReceiverNumber = string.Empty;
 												data.ReceiverName = string.Empty;
-                                                data.EmployeeId = _EmployeeId;// (await _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefaultAsync(x => x.TelephoneNumber == data.CallerNumber && !x.IsDelete && x.IsActive))?.EmployeeId;
-                                                data.ServiceTypeId = ServiceTypeId; // (long)EnumList.ServiceType.Mobility;
-                                                data.CurrencyId = CurrencyId;// (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId;
-                                                data.ExcelUploadLogId = 0;
-                                                data.BusinessUnitId = _BusinessUnitId;
-                                                data.CostCenterId = _CostCenterId;
-                                                data.ExcelUploadLogId = 0;
+												data.EmployeeId = _EmployeeId;// (await _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefaultAsync(x => x.TelephoneNumber == data.CallerNumber && !x.IsDelete && x.IsActive))?.EmployeeId;
+												data.ServiceTypeId = ServiceTypeId; // (long)EnumList.ServiceType.Mobility;
+												data.CurrencyId = CurrencyId;// (await _dbTeleBilling_V01Context.Provider.FirstOrDefaultAsync(x => x.Id == billUploadAC.ProviderId && !x.IsDelete && x.IsActive))?.CurrencyId;
+												data.ExcelUploadLogId = 0;
+												data.BusinessUnitId = _BusinessUnitId;
+												data.CostCenterId = _CostCenterId;
+												data.ExcelUploadLogId = 0;
 												data.GroupId = null;
 												data.IsAssigned = (data.EmployeeId > 0 || data.BusinessUnitId > 0) ? true : false;
 												data.AssignType = null;
@@ -12674,11 +12815,11 @@ namespace TeleBillingRepository.Repository.BillUpload
 														#region Get Assign Type Logic from Trans Type
 														if (data.CallTransactionTypeId > 0)
 														{
-                                                            if (_ChargeType > 0)
-                                                            {
-                                                                data.AssignType = _ChargeType;
-                                                            }
-                                                            else
+															if (_ChargeType > 0)
+															{
+																data.AssignType = _ChargeType;
+															}
+															else
 															{
 																if (data.EmployeeId > 0)
 																{
@@ -12716,37 +12857,37 @@ namespace TeleBillingRepository.Repository.BillUpload
 												datalistInvalid.Add(new MobilityExcelUploadDetailStringAC
 												{
 													CallerName = dCallername, //getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerName", j), sheet),
-                                                    CallType = _TransTypestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
-                                                    Description = dDescription,
-                                                    CallerNumber = _CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
-                                                    CallAmount = _CallAmountStr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
-                                                    CallDate = _CallDatestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
-                                                    CallTime = _CallTimestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
-                                                    CallDuration = DuractionSecondsStr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
+													CallType = _TransTypestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
+													Description = dDescription,
+													CallerNumber = _CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
+													CallAmount = _CallAmountStr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
+													CallDate = _CallDatestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
+													CallTime = _CallTimestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
+													CallDuration = DuractionSecondsStr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
 													CallDataKB = CallDataKBStr,
 													MessageCount = MessageCountStr,
 													ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 												});
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    FileGuidNo = filename,
-                                                    ServiceTypeId = ServiceTypeId,
-                                                    CallerName = dCallername,
-                                                    TransType = _TransTypestr,
-                                                    Description = dDescription,
-                                                    CallerNumber = _CallerNumberstr,
-                                                    CallAmount = _CallAmountStr,
-                                                    CallDate = _CallDatestr,
-                                                    CallTime = _CallTimestr,
-                                                    CallDuration = DuractionSecondsStr,
-                                                    CallDataKb = CallDataKBStr,
-                                                    MessageCount = MessageCountStr,
-                                                    ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
-                                                });
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													FileGuidNo = filename,
+													ServiceTypeId = ServiceTypeId,
+													CallerName = dCallername,
+													TransType = _TransTypestr,
+													Description = dDescription,
+													CallerNumber = _CallerNumberstr,
+													CallAmount = _CallAmountStr,
+													CallDate = _CallDatestr,
+													CallTime = _CallTimestr,
+													CallDuration = DuractionSecondsStr,
+													CallDataKb = CallDataKBStr,
+													MessageCount = MessageCountStr,
+													ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+												});
 
-                                            }
+											}
 
 										}
 										catch (Exception e)
@@ -12770,53 +12911,53 @@ namespace TeleBillingRepository.Repository.BillUpload
 												datalistInvalid.Add(new MobilityExcelUploadDetailStringAC
 												{
 													CallerName = dCallername, //getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerName", j), sheet),
-                                                    CallType = _TransTypestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
-                                                    Description = dDescription,
-                                                    CallerNumber = _CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
-                                                    CallAmount = _CallAmountStr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
-                                                    CallDate = _CallDatestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
-                                                    CallTime = _CallTimestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
-                                                    CallDuration = DuractionSecondsStr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
+													CallType = _TransTypestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallType", j), sheet),
+													Description = dDescription,
+													CallerNumber = _CallerNumberstr,//   getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
+													CallAmount = _CallAmountStr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
+													CallDate = _CallDatestr,//getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
+													CallTime = _CallTimestr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
+													CallDuration = DuractionSecondsStr,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
 													CallDataKB = CallDataKBStr,
 													MessageCount = MessageCountStr,
 													ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 												});
 
-                                                datalistError.Add(new ExceldetailError
-                                                {
-                                                    ExcelUploadLogId = 0,
-                                                    FileGuidNo = filename,
-                                                    ServiceTypeId = ServiceTypeId,
-                                                    CallerName = dCallername,
-                                                    TransType = _TransTypestr,
-                                                    Description = dDescription,
-                                                    CallerNumber = _CallerNumberstr,
-                                                    CallAmount = _CallAmountStr,
-                                                    CallDate = _CallDatestr,
-                                                    CallTime = _CallTimestr,
-                                                    CallDuration = DuractionSecondsStr,
-                                                    CallDataKb = CallDataKBStr,
-                                                    MessageCount = MessageCountStr,
-                                                    ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
-                                                });
-                                            }
+												datalistError.Add(new ExceldetailError
+												{
+													ExcelUploadLogId = 0,
+													FileGuidNo = filename,
+													ServiceTypeId = ServiceTypeId,
+													CallerName = dCallername,
+													TransType = _TransTypestr,
+													Description = dDescription,
+													CallerNumber = _CallerNumberstr,
+													CallAmount = _CallAmountStr,
+													CallDate = _CallDatestr,
+													CallTime = _CallTimestr,
+													CallDuration = DuractionSecondsStr,
+													CallDataKb = CallDataKBStr,
+													MessageCount = MessageCountStr,
+													ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+												});
+											}
 
 										}
 									}
 								}
 
 							}
-                            LogManager.Configuration.Variables["user"] = "";
-                            LogManager.Configuration.Variables["stepno"] = "6";
-                            _logger.Info("Over: Reading data one by one and validate with database.");
-                        }
+							LogManager.Configuration.Variables["user"] = "";
+							LogManager.Configuration.Variables["stepno"] = "6";
+							_logger.Info("Over: Reading data one by one and validate with database.");
+						}
 
 					}
 				}
 
 				UploadListAC.InvalidMobilityList = datalistInvalid;
 				UploadListAC.ValidMobilityList = datalist;
-                UploadListAC.InvalidListAllDB = datalistError;
+				UploadListAC.InvalidListAllDB = datalistError;
 
 				ResponseDynamicDataAC<MobilityUploadListAC> responseData = new ResponseDynamicDataAC<MobilityUploadListAC>();
 				responseData.Data = UploadListAC;
@@ -12857,12 +12998,12 @@ namespace TeleBillingRepository.Repository.BillUpload
 		}
 
 
-
 		public async Task<ImportBillDetailAC<VoipUploadListAC>> ReadExcelForVoip(string filepath, string filename, MappingDetailAC mappingExcel, BillUploadAC billUploadAC)
 		{
 			ImportBillDetailAC<VoipUploadListAC> importBillDetail = new ImportBillDetailAC<VoipUploadListAC>();
 			List<Skypeexceldetail> datalist = new List<Skypeexceldetail>();
 			List<VoipExcelUploadDetailStringAC> datalistInvalid = new List<VoipExcelUploadDetailStringAC>();
+			List<SkypeexceldetailError> datalistError = new List<SkypeexceldetailError>();
 
 			try
 			{
@@ -13325,6 +13466,22 @@ namespace TeleBillingRepository.Repository.BillUpload
 														CallDuration = DuractionSecondsStr,
 														ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 													});
+
+													datalistError.Add(new SkypeexceldetailError
+													{
+														ExcelUploadLogId = 0,
+														ServiceTypeId = (long)EnumList.ServiceType.VOIP,
+														FileGuidNo = filename,
+														CallerNumber = _CallerNumber,
+														ReceiverNumber = _ReceiverNumber,
+														Description = descriptionTextStr,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+													});
+
 												}
 
 											}
@@ -13343,6 +13500,21 @@ namespace TeleBillingRepository.Repository.BillUpload
 														CallTime = CallTimeStr,
 														CallDuration = DuractionSecondsStr,
 														ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
+													});
+
+													datalistError.Add(new SkypeexceldetailError
+													{
+														ExcelUploadLogId = 0,
+														ServiceTypeId = (long)EnumList.ServiceType.VOIP,
+														FileGuidNo = filename,
+														CallerNumber = _CallerNumber,
+														ReceiverNumber = _ReceiverNumber,
+														Description = descriptionTextStr,
+														CallAmount = CallAmountStr,
+														CallDate = CallDateStr,
+														CallTime = CallTimeStr,
+														CallDuration = DuractionSecondsStr,
+														ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
 													});
 												}
 
@@ -13700,6 +13872,21 @@ namespace TeleBillingRepository.Repository.BillUpload
 												CallDuration = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
 												ErrorMessage = "At :" + j.ToString() + " " + ErrorMessageSummary
 											});
+
+											datalistError.Add(new SkypeexceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.VOIP,
+												FileGuidNo = filename,
+												Description = dDescription,
+												ReceiverNumber = _ReceiverNumber,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "ReceiverNumber", j), sheet),
+												CallerNumber = _CallerNumber, // getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
+												CallAmount = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
+												CallDate = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
+												CallTime = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
+												CallDuration = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
+												ErrorSummary = "At :" + j.ToString() + " " + ErrorMessageSummary
+											});
 										}
 									}
 									catch (Exception e)
@@ -13724,6 +13911,22 @@ namespace TeleBillingRepository.Repository.BillUpload
 												CallDuration = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
 												ErrorMessage = "At :" + j.ToString() + " " + "Error :" + e.Message
 											});
+
+											datalistError.Add(new SkypeexceldetailError
+											{
+												ExcelUploadLogId = 0,
+												ServiceTypeId = (long)EnumList.ServiceType.VOIP,
+												FileGuidNo = filename,
+												Description = dDescription,
+												ReceiverNumber = _ReceiverNumber,// getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "ReceiverNumber", j), sheet),
+												CallerNumber = _CallerNumber, // getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallerNumber", j), sheet),
+												CallAmount = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallAmount", j), sheet),
+												CallDate = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDate", j), sheet, (long)EnumList.SupportDataType.Date),
+												CallTime = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallTime", j), sheet, (long)EnumList.SupportDataType.Time),
+												CallDuration = getValueFromExcel(getAddress(mappingExcel.DBFiledMappingList, "CallDuration", j), sheet, (long)EnumList.SupportDataType.Time),
+												ErrorSummary = "At :" + j.ToString() + " " + "Error :" + e.Message
+											});
+
 										}
 									}
 								}
@@ -13735,6 +13938,8 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 				voipUploadListAC.InvalidVoipList = datalistInvalid;
 				voipUploadListAC.ValidVoipList = datalist;
+				voipUploadListAC.InvalidAllVoipListDB = datalistError;
+
 				ResponseDynamicDataAC<VoipUploadListAC> responseData = new ResponseDynamicDataAC<VoipUploadListAC>();
 				responseData.Data = voipUploadListAC;
 				importBillDetail.UploadData = responseData;
@@ -13777,7 +13982,6 @@ namespace TeleBillingRepository.Repository.BillUpload
 				return importBillDetail;
 			}
 		}
-
 
 		public async Task<SaveAllServiceExcelResponseAC> CheckMappingWithFileFormat(string filepath, string filename, long MaxWorkSheetNo)
 		{
@@ -13845,9 +14049,7 @@ namespace TeleBillingRepository.Repository.BillUpload
 
 		}
 
-
 		#endregion
-
 
 		#region Bill Allocation
 
@@ -14039,7 +14241,8 @@ namespace TeleBillingRepository.Repository.BillUpload
 				}
 			}
 
-			if (lstExcelDetailForEmployee.Any()) {
+			if (lstExcelDetailForEmployee.Any())
+			{
 
 				#region Bill Master Entry
 				Billmaster billMaster = new Billmaster();
@@ -14074,179 +14277,204 @@ namespace TeleBillingRepository.Repository.BillUpload
 				await _dbTeleBilling_V01Context.AddRangeAsync(billMasterServiceTypes);
 				await _dbTeleBilling_V01Context.SaveChangesAsync();
 
-				decimal totalBillAmount = 0;
-				long? currencyId = null;
-
-				var lstofEmployee = lstExcelDetailForEmployee.GroupBy(x => new { x.EmployeeId, x.CallerNumber }).ToList();
-				List<Notificationlog> notificationlogs = new List<Notificationlog>();
-				Billdelegate billDelegate = new Billdelegate();
-				foreach (var item in lstofEmployee.ToList())
+				bool isSkypService = false;
+				if (billAllocationAC.ServiceTypes.Count() == 1)
 				{
-					decimal totalEmployeeBillAmount = 0;
-					List<Exceldetail> finalItem = item.ToList();
-					if (finalItem.ToList().Any())
+					int mocServiceType = Convert.ToInt32(EnumList.ServiceType.MOC);
+					int voipServiceType = Convert.ToInt32(EnumList.ServiceType.VOIP);
+					isSkypService = billAllocationAC.ServiceTypes.Any(x => x.Id == mocServiceType || x.Id == voipServiceType);
+				}
+
+				//for Only Skyp
+				if (isSkypService)
+				{
+					await BillAllocationForSkyp(lstExcelDetailForEmployee, billAllocationAC.ProviderId,billAllocationAC.ServiceTypes[0].Id, billMaster, userId, lstExcelUploadLogServiceType, loginUserName);
+				}
+				else
+				{
+					decimal totalBillAmount = 0;
+					long? currencyId = null;
+
+					var lstofEmployee = lstExcelDetailForEmployee.GroupBy(x => new { x.EmployeeId, x.CallerNumber }).ToList();
+					List<Notificationlog> notificationlogs = new List<Notificationlog>();
+					Billdelegate billDelegate = new Billdelegate();
+					foreach (var item in lstofEmployee.ToList())
 					{
-
-						#region Employee Bill Master Entry
-						MstEmployee mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.UserId == finalItem[0].EmployeeId && !x.IsDelete);
-						Telephonenumberallocation telephoneNumberAllocation = await _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefaultAsync(x => x.TelephoneNumber == finalItem[0].CallerNumber && x.EmployeeId == mstEmployee.UserId && !x.IsDelete);
-
-						Employeebillmaster employeeBillMaster = new Employeebillmaster();
-						employeeBillMaster.BillMasterId = billMaster.Id;
-
-						#region It's Not Proper Way, Need to clear
-						if (mstEmployee != null)
+						decimal totalEmployeeBillAmount = 0;
+						List<Exceldetail> finalItem = item.ToList();
+						if (finalItem.ToList().Any())
 						{
-							employeeBillMaster.LinemanagerId = mstEmployee.LineManagerId;
-							employeeBillMaster.EmpBusinessUnitId = mstEmployee.BusinessUnitId;
-							employeeBillMaster.EmployeeId = mstEmployee.UserId;
 
-							billDelegate = await _dbTeleBilling_V01Context.Billdelegate.FirstOrDefaultAsync(x => x.EmployeeId == employeeBillMaster.EmployeeId && !x.IsDelete);
-							if (billDelegate != null) { 
-								employeeBillMaster.BillDelegatedEmpId = billDelegate.DelegateEmployeeId;
-							}
-						}
-						#endregion
+							#region Employee Bill Master Entry
+							MstEmployee mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.UserId == finalItem[0].EmployeeId && !x.IsDelete);
+							Telephonenumberallocation telephoneNumberAllocation = await _dbTeleBilling_V01Context.Telephonenumberallocation.FirstOrDefaultAsync(x => x.TelephoneNumber == finalItem[0].CallerNumber && x.EmployeeId == mstEmployee.UserId && !x.IsDelete);
 
-						employeeBillMaster.ProviderId = billAllocationAC.ProviderId;
-						employeeBillMaster.TelephoneNumber = finalItem[0].CallerNumber;
-						employeeBillMaster.BillMonth = billMaster.BillMonth;
-						employeeBillMaster.BillNumber = billMaster.BillNumber;
-						employeeBillMaster.BillYear = billMaster.BillYear;
-						employeeBillMaster.CreatedBy = userId;
-						employeeBillMaster.CreatedDate = DateTime.Now;
-						employeeBillMaster.CurrencyId = finalItem[0].CurrencyId;
-						employeeBillMaster.EmployeeBillStatus = Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForIdentification);
-						employeeBillMaster.MobileAssignType = telephoneNumberAllocation.AssignTypeId;
-						employeeBillMaster.TotalBillAmount = 0;
-						employeeBillMaster.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
+							Employeebillmaster employeeBillMaster = new Employeebillmaster();
+							employeeBillMaster.BillMasterId = billMaster.Id;
 
-						await _dbTeleBilling_V01Context.AddAsync(employeeBillMaster);
-						await _dbTeleBilling_V01Context.SaveChangesAsync();
-
-						#region Notification Log
-						Notificationlog notificationlog = new Notificationlog();
-						//check delegate user have authority to allow bill identification
-						if (employeeBillMaster.BillDelegatedEmpId != null && billDelegate.AllowBillIdentification) {
-							notificationlog = _iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.BillDelegatedEmpId),userId,Convert.ToInt64(EnumList.NotificationType.DelegateBillIdentification),employeeBillMaster.Id);
-							notificationlogs.Add(notificationlog);	
-						}
-						notificationlog = _iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.EmployeeId), userId, Convert.ToInt64(EnumList.NotificationType.EmployeeBillIdentification), employeeBillMaster.Id);
-						notificationlogs.Add(notificationlog);
-						#endregion
-
-						#endregion
-
-						List<Telephonenumberallocationpackage> telePhoneNumberAllocationPackage = await _dbTeleBilling_V01Context.Telephonenumberallocationpackage.Where(x => x.TelephoneNumberAllocationId == telephoneNumberAllocation.Id && !x.IsDelete).ToListAsync();
-						foreach (var itemService in telePhoneNumberAllocationPackage)
-						{
-							foreach (var selectedService in lstExcelUploadLogServiceType)
+							#region It's Not Proper Way, Need to clear
+							if (mstEmployee != null)
 							{
-								if (itemService.ServiceId == selectedService.ServiceTypeId)
-								{
-									if (!_dbTeleBilling_V01Context.Employeebillservicepackage.Any(x => x.ServiceTypeId == itemService.ServiceId && x.EmployeeBillId == employeeBillMaster.Id && !x.IsDelete))
-									{
-										Employeebillservicepackage employeeBillServicePackage = new Employeebillservicepackage();
-										employeeBillServicePackage.PackageId = itemService.PackageId;
-										employeeBillServicePackage.ServiceTypeId = itemService.ServiceId;
-										employeeBillServicePackage.EmployeeBillId = employeeBillMaster.Id;
-										long businessAsignType = Convert.ToInt16(EnumList.AssignType.Business);
-										List<Exceldetail> lstExcelDetils = finalItem.Where(x => x.ServiceTypeId == itemService.ServiceId && x.AssignType == businessAsignType).ToList();
-										decimal totalAutoBusinessAmount = 0;
-										foreach (var exceldetail in lstExcelDetils)
-										{
-											totalAutoBusinessAmount += (exceldetail.CallAmount != null ? Convert.ToDecimal(exceldetail.CallAmount) : 0);
-										}
-										employeeBillServicePackage.BusinessIdentificationAmount = totalAutoBusinessAmount;
-										employeeBillServicePackage.BusinessTotalAmount = totalAutoBusinessAmount;
-										employeeBillServicePackage.PersonalIdentificationAmount = 0;
+								employeeBillMaster.LinemanagerId = mstEmployee.LineManagerId;
+								employeeBillMaster.EmpBusinessUnitId = mstEmployee.BusinessUnitId;
+								employeeBillMaster.EmployeeId = mstEmployee.UserId;
 
-										await _dbTeleBilling_V01Context.AddAsync(employeeBillServicePackage);
-										await _dbTeleBilling_V01Context.SaveChangesAsync();
+								billDelegate = await _dbTeleBilling_V01Context.Billdelegate.FirstOrDefaultAsync(x => x.EmployeeId == employeeBillMaster.EmployeeId && !x.IsDelete);
+								if (billDelegate != null)
+								{
+									employeeBillMaster.BillDelegatedEmpId = billDelegate.DelegateEmployeeId;
+								}
+							}
+							#endregion
+
+							employeeBillMaster.ProviderId = billAllocationAC.ProviderId;
+							employeeBillMaster.TelephoneNumber = finalItem[0].CallerNumber;
+							employeeBillMaster.BillMonth = billMaster.BillMonth;
+							employeeBillMaster.BillNumber = billMaster.BillNumber;
+							employeeBillMaster.BillYear = billMaster.BillYear;
+							employeeBillMaster.CreatedBy = userId;
+							employeeBillMaster.CreatedDate = DateTime.Now;
+							employeeBillMaster.CurrencyId = finalItem[0].CurrencyId;
+							employeeBillMaster.EmployeeBillStatus = Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForIdentification);
+							if (telephoneNumberAllocation != null)
+								employeeBillMaster.MobileAssignType = telephoneNumberAllocation.AssignTypeId;
+
+							employeeBillMaster.TotalBillAmount = 0;
+							employeeBillMaster.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
+
+							await _dbTeleBilling_V01Context.AddAsync(employeeBillMaster);
+							await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+							#region Notification Log
+							Notificationlog notificationlog = new Notificationlog();
+							//check delegate user have authority to allow bill identification
+							if (employeeBillMaster.BillDelegatedEmpId != null && billDelegate.AllowBillIdentification)
+							{
+								notificationlog = _iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.BillDelegatedEmpId), userId, Convert.ToInt64(EnumList.NotificationType.DelegateBillIdentification), employeeBillMaster.Id);
+								notificationlogs.Add(notificationlog);
+							}
+							notificationlog = _iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.EmployeeId), userId, Convert.ToInt64(EnumList.NotificationType.EmployeeBillIdentification), employeeBillMaster.Id);
+							notificationlogs.Add(notificationlog);
+							#endregion
+
+							#endregion
+
+							if (telephoneNumberAllocation != null)
+							{
+								List<Telephonenumberallocationpackage> telePhoneNumberAllocationPackage = await _dbTeleBilling_V01Context.Telephonenumberallocationpackage.Where(x => x.TelephoneNumberAllocationId == telephoneNumberAllocation.Id && !x.IsDelete).ToListAsync();
+								foreach (var itemService in telePhoneNumberAllocationPackage)
+								{
+									foreach (var selectedService in lstExcelUploadLogServiceType)
+									{
+										if (itemService.ServiceId == selectedService.ServiceTypeId)
+										{
+											if (!_dbTeleBilling_V01Context.Employeebillservicepackage.Any(x => x.ServiceTypeId == itemService.ServiceId && x.EmployeeBillId == employeeBillMaster.Id && !x.IsDelete))
+											{
+												Employeebillservicepackage employeeBillServicePackage = new Employeebillservicepackage();
+												employeeBillServicePackage.PackageId = itemService.PackageId;
+												employeeBillServicePackage.ServiceTypeId = itemService.ServiceId;
+												employeeBillServicePackage.EmployeeBillId = employeeBillMaster.Id;
+												long businessAsignType = Convert.ToInt16(EnumList.AssignType.Business);
+												List<Exceldetail> lstExcelDetils = finalItem.Where(x => x.ServiceTypeId == itemService.ServiceId && x.AssignType == businessAsignType).ToList();
+												decimal totalAutoBusinessAmount = 0;
+												foreach (var exceldetail in lstExcelDetils)
+												{
+													totalAutoBusinessAmount += (exceldetail.CallAmount != null ? Convert.ToDecimal(exceldetail.CallAmount) : 0);
+												}
+												employeeBillServicePackage.BusinessIdentificationAmount = totalAutoBusinessAmount;
+												employeeBillServicePackage.BusinessTotalAmount = totalAutoBusinessAmount;
+												employeeBillServicePackage.PersonalIdentificationAmount = 0;
+
+												await _dbTeleBilling_V01Context.AddAsync(employeeBillServicePackage);
+												await _dbTeleBilling_V01Context.SaveChangesAsync();
+											}
+										}
 									}
 								}
 							}
-						}
 
-						List<Billdetails> billDetailList = new List<Billdetails>();
-						foreach (var numberEmployee in finalItem)
-						{
-							Billdetails billDetails = new Billdetails();
-							billDetails.BillMasterId = billMaster.Id;
-							billDetails.CallAmount = numberEmployee.CallAmount;
-							totalEmployeeBillAmount += numberEmployee.CallAmount != null ? Convert.ToDecimal(billDetails.CallAmount) : 0;
-							billDetails.CallAssignedBy = userId;
-							billDetails.CallAssignedDate = DateTime.Now;
-							billDetails.CallDate = numberEmployee.CallDate;
-							billDetails.CallDuration = numberEmployee.CallDuration;
-							billDetails.CallerName = numberEmployee.CallerName;
-							billDetails.CallerNumber = numberEmployee.CallerNumber;
-							billDetails.CallIwithInGroup = numberEmployee.CallWithinGroup;
-							billDetails.CallTime = numberEmployee.CallTime;
-							billDetails.CallTransactionTypeId = numberEmployee.CallTransactionTypeId;
-							billDetails.CallIdentificationType = null;
-							billDetails.CreatedBy = userId;
-							billDetails.CreatedDate = DateTime.Now;
-							billDetails.EmployeeBillId = employeeBillMaster.Id;
-							billDetails.ReceiverName = numberEmployee.ReceiverName;
-							billDetails.ReceiverNumber = numberEmployee.ReceiverNumber;
-							billDetails.ServiceTypeId = numberEmployee.ServiceTypeId;
-							billDetails.SubscriptionType = numberEmployee.SubscriptionType;
-							billDetails.AssignTypeId = numberEmployee.AssignType;
-							billDetails.Description = numberEmployee.Description;
-							if (numberEmployee.AssignType == Convert.ToInt16(EnumList.AssignType.Business))
+							List<Billdetails> billDetailList = new List<Billdetails>();
+							foreach (var numberEmployee in finalItem)
 							{
-								billDetails.BusinessUnitId = numberEmployee.BusinessUnitId;
-								billDetails.CallIdentificationType = (int)numberEmployee.AssignType;
-								billDetails.IsAutoAssigned = true;
+								Billdetails billDetails = new Billdetails();
+								billDetails.BillMasterId = billMaster.Id;
+								billDetails.CallAmount = numberEmployee.CallAmount;
+								totalEmployeeBillAmount += numberEmployee.CallAmount != null ? Convert.ToDecimal(billDetails.CallAmount) : 0;
+								billDetails.CallAssignedBy = userId;
+								billDetails.CallAssignedDate = DateTime.Now;
+								billDetails.CallDate = numberEmployee.CallDate;
+								billDetails.CallDuration = numberEmployee.CallDuration;
+								billDetails.CallerName = numberEmployee.CallerName;
+								billDetails.CallerNumber = numberEmployee.CallerNumber;
+								billDetails.CallIwithInGroup = numberEmployee.CallWithinGroup;
+								billDetails.CallTime = numberEmployee.CallTime;
+								billDetails.CallTransactionTypeId = numberEmployee.CallTransactionTypeId;
+								billDetails.CallIdentificationType = null;
+								billDetails.CreatedBy = userId;
+								billDetails.CreatedDate = DateTime.Now;
+								billDetails.EmployeeBillId = employeeBillMaster.Id;
+								billDetails.ReceiverName = numberEmployee.ReceiverName;
+								billDetails.ReceiverNumber = numberEmployee.ReceiverNumber;
+								billDetails.ServiceTypeId = numberEmployee.ServiceTypeId;
+								billDetails.SubscriptionType = numberEmployee.SubscriptionType;
+								billDetails.AssignTypeId = numberEmployee.AssignType;
+								billDetails.Description = numberEmployee.Description;
+								if (numberEmployee.AssignType == Convert.ToInt16(EnumList.AssignType.Business))
+								{
+									billDetails.BusinessUnitId = numberEmployee.BusinessUnitId;
+									billDetails.CallIdentificationType = (int)numberEmployee.AssignType;
+									billDetails.IsAutoAssigned = true;
+								}
+								billDetails.TransType = numberEmployee.TransType;
+								billDetailList.Add(billDetails);
 							}
-							billDetails.TransType = numberEmployee.TransType;
-							billDetailList.Add(billDetails);
+
+							await _dbTeleBilling_V01Context.AddRangeAsync(billDetailList);
+							await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+
+							#region Employee Total Amount Update
+							Employeebillmaster newEmployeeBillMaster = await _dbTeleBilling_V01Context.Employeebillmaster.FirstAsync(x => x.Id == employeeBillMaster.Id);
+							newEmployeeBillMaster.TotalBillAmount = totalEmployeeBillAmount;
+							totalBillAmount += totalEmployeeBillAmount;
+							currencyId = finalItem[0].CurrencyId;
+							_dbTeleBilling_V01Context.Update(newEmployeeBillMaster);
+							await _dbTeleBilling_V01Context.SaveChangesAsync();
+							#endregion
 						}
-
-						await _dbTeleBilling_V01Context.AddRangeAsync(billDetailList);
-						await _dbTeleBilling_V01Context.SaveChangesAsync();
-
-
-						#region Employee Total Amount Update
-						Employeebillmaster newEmployeeBillMaster = await _dbTeleBilling_V01Context.Employeebillmaster.FirstAsync(x => x.Id == employeeBillMaster.Id);
-						newEmployeeBillMaster.TotalBillAmount = totalEmployeeBillAmount;
-						totalBillAmount += totalEmployeeBillAmount;
-						currencyId = finalItem[0].CurrencyId;
-						_dbTeleBilling_V01Context.Update(newEmployeeBillMaster);
-						await _dbTeleBilling_V01Context.SaveChangesAsync();
-						#endregion
 					}
-				}
 
 
-				#region Bill Master Total Bill AMount Update
-				billMaster = await _dbTeleBilling_V01Context.Billmaster.FirstAsync(x => x.Id == billMaster.Id);
-				billMaster.BillAmount = totalBillAmount;
-				billMaster.CurrencyId = currencyId;
-				_dbTeleBilling_V01Context.Update(billMaster);
-				await _dbTeleBilling_V01Context.SaveChangesAsync();
-				#endregion
-
-				#region Update Excel Upload Log Service Table
-				if (lstExcelUploadLogServiceType.Any())
-				{
-					_dbTeleBilling_V01Context.UpdateRange(lstExcelUploadLogServiceType);
+					#region Bill Master Total Bill AMount Update
+					billMaster = await _dbTeleBilling_V01Context.Billmaster.FirstAsync(x => x.Id == billMaster.Id);
+					billMaster.BillAmount = totalBillAmount;
+					billMaster.CurrencyId = currencyId;
+					_dbTeleBilling_V01Context.Update(billMaster);
 					await _dbTeleBilling_V01Context.SaveChangesAsync();
+					#endregion
+
+					#region Update Excel Upload Log Service Table
+					if (lstExcelUploadLogServiceType.Any())
+					{
+						_dbTeleBilling_V01Context.UpdateRange(lstExcelUploadLogServiceType);
+						await _dbTeleBilling_V01Context.SaveChangesAsync();
+					}
+					#endregion
+
+					#region Insert Into Notification Log Table and Auodit Log Table
+					if (notificationlogs.Any())
+						await _iLogManagement.SaveNotificationList(notificationlogs);
+
+					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BillAllocation, loginUserName, userId, "Bill Allocation(" + billMaster.BillNumber + ")", (int)EnumList.ActionTemplateTypes.BillAllcation, billMaster.Id);
+					#endregion
 				}
-				#endregion
-
-				#region Insert Into Notification Log Table and Auodit Log Table
-				if (notificationlogs.Any())
-					await _iLogManagement.SaveNotificationList(notificationlogs);
-
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BillAllocation, loginUserName, userId, "Bill Allocation("+ billMaster.BillNumber+ ")", (int)EnumList.ActionTemplateTypes.BillAllcation, billMaster.Id);
-				#endregion
 			}
 			responseAc.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
 			responseAc.Message = _iStringConstant.BillAllocatedSuccesfully;
 			return responseAc;
 		}
+
+
 		#endregion
 
 		#endregion
@@ -14302,7 +14530,176 @@ namespace TeleBillingRepository.Repository.BillUpload
 		//    return Convert.ToDateTime(Convert.ToDateTime(date).ToString("dd/MM/yyyy HH:mm:ss"));
 		//}
 
+
+		/// <summary>
+		/// This mthod used for bill allocation for skyp only 
+		/// </summary>
+		/// <param name="lstExcelDetailForEmployee"></param>
+		/// <param name="providerId"></param>
+		/// <param name="serviceTypeId"></param>
+		/// <param name="billMaster"></param>
+		/// <param name="userId"></param>
+		/// <param name="lstExcelUploadLogServiceType"></param>
+		/// <param name="loginUserName"></param>
+		/// <returns></returns>
+		private async Task BillAllocationForSkyp(List<Exceldetail> lstExcelDetailForEmployee,long providerId ,long serviceTypeId, Billmaster billMaster, long userId, List<ExceluploadlogServicetype> lstExcelUploadLogServiceType,string loginUserName)
+		{
+			decimal totalBillAmount = 0;
+			long? currencyId = null;
+
+			var lstofEmployee = lstExcelDetailForEmployee.GroupBy(x => x.EmployeeId).ToList();
+			List<Notificationlog> notificationlogs = new List<Notificationlog>();
+			Billdelegate billDelegate = new Billdelegate();
+			foreach (var item in lstofEmployee.ToList())
+			{
+				List<Exceldetail> finalItem = item.ToList();
+				decimal totalEmployeeBillAmount = 0;
+
+				#region Employee Bill Master Entry
+				MstEmployee mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.UserId == item.Key && !x.IsDelete);
+				Employeebillmaster employeeBillMaster = new Employeebillmaster();
+				employeeBillMaster.BillMasterId = billMaster.Id;
+				#region It's Not Proper Way, Need to clear
+				if (mstEmployee != null)
+				{
+					employeeBillMaster.LinemanagerId = mstEmployee.LineManagerId;
+					employeeBillMaster.EmpBusinessUnitId = mstEmployee.BusinessUnitId;
+					employeeBillMaster.EmployeeId = mstEmployee.UserId;
+
+					billDelegate = await _dbTeleBilling_V01Context.Billdelegate.FirstOrDefaultAsync(x => x.EmployeeId == employeeBillMaster.EmployeeId && !x.IsDelete);
+					if (billDelegate != null)
+					{
+						employeeBillMaster.BillDelegatedEmpId = billDelegate.DelegateEmployeeId;
+					}
+				}
+				#endregion
+
+				employeeBillMaster.ProviderId = providerId;
+				employeeBillMaster.TelephoneNumber = null;
+				employeeBillMaster.BillMonth = billMaster.BillMonth;
+				employeeBillMaster.BillNumber = billMaster.BillNumber;
+				employeeBillMaster.BillYear = billMaster.BillYear;
+				employeeBillMaster.CreatedBy = userId;
+				employeeBillMaster.CreatedDate = DateTime.Now;
+				employeeBillMaster.CurrencyId = finalItem[0].CurrencyId;
+				employeeBillMaster.EmployeeBillStatus = Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForIdentification);
+				employeeBillMaster.MobileAssignType = null;
+				employeeBillMaster.TotalBillAmount = 0;
+				employeeBillMaster.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
+
+				await _dbTeleBilling_V01Context.AddAsync(employeeBillMaster);
+				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				#region Notification Log
+				Notificationlog notificationlog = new Notificationlog();
+				//check delegate user have authority to allow bill identification
+				if (employeeBillMaster.BillDelegatedEmpId != null && billDelegate.AllowBillIdentification)
+				{
+					notificationlog = _iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.BillDelegatedEmpId), userId, Convert.ToInt64(EnumList.NotificationType.DelegateBillIdentification), employeeBillMaster.Id);
+					notificationlogs.Add(notificationlog);
+				}
+				notificationlog = _iLogManagement.GenerateNotificationObject(Convert.ToInt16(employeeBillMaster.EmployeeId), userId, Convert.ToInt64(EnumList.NotificationType.EmployeeBillIdentification), employeeBillMaster.Id);
+				notificationlogs.Add(notificationlog);
+				#endregion
+
+				#endregion
+
+				Employeebillservicepackage employeeBillServicePackage = new Employeebillservicepackage();
+				employeeBillServicePackage.ServiceTypeId = serviceTypeId;
+				employeeBillServicePackage.PackageId = null;
+				long businessAsignType = Convert.ToInt16(EnumList.AssignType.Business);
+				employeeBillServicePackage.EmployeeBillId = employeeBillMaster.Id;
+				List<Exceldetail> lstExcelDetils = finalItem.Where(x => x.ServiceTypeId == serviceTypeId && x.AssignType == businessAsignType).ToList();
+				decimal totalAutoBusinessAmount = 0;
+				foreach (var exceldetail in lstExcelDetils)
+				{
+					totalAutoBusinessAmount += (exceldetail.CallAmount != null ? Convert.ToDecimal(exceldetail.CallAmount) : 0);
+				}
+				employeeBillServicePackage.BusinessIdentificationAmount = totalAutoBusinessAmount;
+				employeeBillServicePackage.BusinessTotalAmount = totalAutoBusinessAmount;
+				employeeBillServicePackage.PersonalIdentificationAmount = 0;
+
+				await _dbTeleBilling_V01Context.AddAsync(employeeBillServicePackage);
+				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				List<Billdetails> billDetailList = new List<Billdetails>();
+				foreach (var numberEmployee in finalItem)
+				{
+					Billdetails billDetails = new Billdetails();
+					billDetails.BillMasterId = billMaster.Id;
+					billDetails.CallAmount = numberEmployee.CallAmount;
+					totalEmployeeBillAmount += numberEmployee.CallAmount != null ? Convert.ToDecimal(billDetails.CallAmount) : 0;
+					billDetails.CallAssignedBy = userId;
+					billDetails.CallAssignedDate = DateTime.Now;
+					billDetails.CallDate = numberEmployee.CallDate;
+					billDetails.CallDuration = numberEmployee.CallDuration;
+					billDetails.CallerName = numberEmployee.CallerName;
+					billDetails.CallerNumber = numberEmployee.CallerNumber;
+					billDetails.CallIwithInGroup = numberEmployee.CallWithinGroup;
+					billDetails.CallTime = numberEmployee.CallTime;
+					billDetails.CallTransactionTypeId = numberEmployee.CallTransactionTypeId;
+					billDetails.CallIdentificationType = null;
+					billDetails.CreatedBy = userId;
+					billDetails.CreatedDate = DateTime.Now;
+					billDetails.EmployeeBillId = employeeBillMaster.Id;
+					billDetails.ReceiverName = numberEmployee.ReceiverName;
+					billDetails.ReceiverNumber = numberEmployee.ReceiverNumber;
+					billDetails.ServiceTypeId = numberEmployee.ServiceTypeId;
+					billDetails.SubscriptionType = numberEmployee.SubscriptionType;
+					billDetails.AssignTypeId = numberEmployee.AssignType;
+					billDetails.Description = numberEmployee.Description;
+					if (numberEmployee.AssignType == Convert.ToInt16(EnumList.AssignType.Business))
+					{
+						billDetails.BusinessUnitId = numberEmployee.BusinessUnitId;
+						billDetails.CallIdentificationType = (int)numberEmployee.AssignType;
+						billDetails.IsAutoAssigned = true;
+					}
+					billDetails.TransType = numberEmployee.TransType;
+					billDetailList.Add(billDetails);
+				}
+
+				await _dbTeleBilling_V01Context.AddRangeAsync(billDetailList);
+				await _dbTeleBilling_V01Context.SaveChangesAsync();
+
+				#region Employee Total Amount Update
+				Employeebillmaster newEmployeeBillMaster = await _dbTeleBilling_V01Context.Employeebillmaster.FirstAsync(x => x.Id == employeeBillMaster.Id);
+				newEmployeeBillMaster.TotalBillAmount = totalEmployeeBillAmount;
+				totalBillAmount += totalEmployeeBillAmount;
+				currencyId = finalItem[0].CurrencyId;
+				_dbTeleBilling_V01Context.Update(newEmployeeBillMaster);
+				await _dbTeleBilling_V01Context.SaveChangesAsync();
+				#endregion
+
+			}
+
+
+			#region Bill Master Total Bill AMount Update
+			billMaster = await _dbTeleBilling_V01Context.Billmaster.FirstAsync(x => x.Id == billMaster.Id);
+			billMaster.BillAmount = totalBillAmount;
+			billMaster.CurrencyId = currencyId;
+			_dbTeleBilling_V01Context.Update(billMaster);
+			await _dbTeleBilling_V01Context.SaveChangesAsync();
+			#endregion
+
+			#region Update Excel Upload Log Service Table
+			if (lstExcelUploadLogServiceType.Any())
+			{
+				_dbTeleBilling_V01Context.UpdateRange(lstExcelUploadLogServiceType);
+				await _dbTeleBilling_V01Context.SaveChangesAsync();
+			}
+			#endregion
+
+			#region Insert Into Notification Log Table and Auodit Log Table
+			if (notificationlogs.Any())
+				await _iLogManagement.SaveNotificationList(notificationlogs);
+
+			await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.BillAllocation, loginUserName, userId, "Bill Allocation(" + billMaster.BillNumber + ")", (int)EnumList.ActionTemplateTypes.BillAllcation, billMaster.Id);
+			#endregion
+
+		}
 		#endregion
+
+
 
 	}
 

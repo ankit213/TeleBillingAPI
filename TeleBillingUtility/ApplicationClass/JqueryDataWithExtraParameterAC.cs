@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
@@ -88,6 +87,7 @@ namespace TeleBillingUtility.ApplicationClass
             UserId = 0;
             BusinessUnitId = 0;
             CostCenterId = 0;
+            MultipleItems = new List<DrpResponseAC>();
         }
 
         [JsonProperty("monthid")]
@@ -131,6 +131,9 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("costcenterid")]
         public long CostCenterId { get; set; }
+
+        [JsonProperty("multipleitems")]
+        public List<DrpResponseAC> MultipleItems { get; set; }
 
     }
 

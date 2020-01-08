@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
@@ -9,8 +8,8 @@ namespace TeleBillingUtility.Models
         public long Id { get; set; }
         public long BillMasterId { get; set; }
         public long ServiceTypeId { get; set; }
-        public long EmployeeBillId { get; set; }
-        public long? AssignTypeId { get; set; }
+		public long? EmployeeBillId { get; set; }
+		public long? AssignTypeId { get; set; }
         public DateTime? CallDate { get; set; }
         public TimeSpan? CallTime { get; set; }
         public long? CallDuration { get; set; }
@@ -34,10 +33,10 @@ namespace TeleBillingUtility.Models
         public DateTime? CallAssignedDate { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
         public bool? IsAutoAssigned { get; set; }
-		public string Description { get; set;}
+        public string Description { get; set; }
         public virtual Billmaster BillMaster { get; set; }
         public virtual FixCalltype CallIdentificationTypeNavigation { get; set; }
         public virtual Transactiontypesetting CallTransactionType { get; set; }

@@ -1,35 +1,35 @@
-﻿using TeleBillingUtility.Models;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Threading.Tasks;
+using TeleBillingUtility.Models;
 
 namespace TeleBillingRepository.Repository.Account
 {
-	public class AccountRepository : IAccountRepository
-	{
-		#region "Private Variable(s)"
-		private readonly telebilling_v01Context  _dbTeleBilling_V01Context;
-		#endregion
+    public class AccountRepository : IAccountRepository
+    {
+        #region "Private Variable(s)"
+        private readonly telebilling_v01Context _dbTeleBilling_V01Context;
+        #endregion
 
-		#region "Constructor"
+        #region "Constructor"
 
-		public AccountRepository(telebilling_v01Context  dbTeleBilling_V01Context)
-		{
-			_dbTeleBilling_V01Context = dbTeleBilling_V01Context;
-		}
-		#endregion
+        public AccountRepository(telebilling_v01Context dbTeleBilling_V01Context)
+        {
+            _dbTeleBilling_V01Context = dbTeleBilling_V01Context;
+        }
+        #endregion
 
-		#region "Public Method(s)"
+        #region "Public Method(s)"
 
-		public async Task<MstEmployee> GetEmployeeBy(string emailOrPfNumber)
-		{
-             MstEmployee mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => !x.IsDelete && x.IsActive && x.EmailId.Trim() == emailOrPfNumber.Trim());
-			if (mstEmployee == null)
-			{
-				mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => !x.IsDelete && x.IsActive && x.EmpPfnumber.Trim() == emailOrPfNumber.Trim());
-			}
-			return mstEmployee;
-		}
+        public async Task<MstEmployee> GetEmployeeBy(string emailOrPfNumber)
+        {
+            MstEmployee mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => !x.IsDelete && x.IsActive && x.EmailId.Trim() == emailOrPfNumber.Trim());
+            if (mstEmployee == null)
+            {
+                mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => !x.IsDelete && x.IsActive && x.EmpPfnumber.Trim() == emailOrPfNumber.Trim());
+            }
+            return mstEmployee;
+        }
 
         public async Task<MstEmployee> checkEmployeeIsActive(string emailOrPfNumber)
         {
@@ -41,8 +41,9 @@ namespace TeleBillingRepository.Repository.Account
             return mstEmployee;
         }
 
-        public async Task<bool> CheckUserCredentail(string email,string pfnumber, string password) {
-			string encryptPassword = password;
+        public async Task<bool> CheckUserCredentail(string email, string pfnumber, string password)
+        {
+            string encryptPassword = password;
             if (string.IsNullOrEmpty(email))
             {
                 return await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => x.EmpPfnumber.Trim() == pfnumber.Trim() && x.Password.Trim() == encryptPassword.Trim() && !x.IsDelete) != null;
@@ -60,7 +61,7 @@ namespace TeleBillingRepository.Repository.Account
             MstEmployee mstEmployee = await _dbTeleBilling_V01Context.MstEmployee.FirstOrDefaultAsync(x => !x.IsDelete && x.IsActive && x.UserId == Userid);
             if (mstEmployee != null)
             {
-                LineManageEmail = mstEmployee.EmailId;               
+                LineManageEmail = mstEmployee.EmailId;
             }
             return LineManageEmail;
         }

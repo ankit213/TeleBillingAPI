@@ -1,28 +1,28 @@
-﻿using System.Data;
-using System.Collections;
-using System;
+﻿using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
-using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections;
+using System.Data;
 
 namespace TeleBillingUtility.Helpers
 {
-    public class DALMySql 
+    public class DALMySql
     {
-		public readonly string _ConnString;
-	
-		public DALMySql()
-		{
-			var builder = new ConfigurationBuilder()
-					.AddJsonFile("appsettings.json", true, true);
+        public readonly string _ConnString;
 
-			IConfigurationRoot configuration = builder.Build();
+        public DALMySql()
+        {
+            var builder = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json", true, true);
 
-			_ConnString = configuration.GetConnectionString("DefaultConnection");
-		}
+            IConfigurationRoot configuration = builder.Build();
 
-       
+            _ConnString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+
         public DataSet GetDataSet(string sSQL, SortedList paramList)
-        {	
+        {
             MySqlConnection myConnection = new MySqlConnection(_ConnString);
             MySqlCommand cmd = new MySqlCommand(sSQL, myConnection);
             int x = 0;
@@ -80,45 +80,45 @@ namespace TeleBillingUtility.Helpers
         }
 
 
-		public object ExecuteScaler(string sSQL, SortedList paramList)
-		{
+        public object ExecuteScaler(string sSQL, SortedList paramList)
+        {
 
-			// Create Instance of Connection and Command Object
-			MySqlConnection myConnection = new MySqlConnection(_ConnString);
-			MySqlCommand cmd = new MySqlCommand(sSQL, myConnection);
-			object result = null;
-			Int16 x = default(Int16);
-			// Execute the command
-			try
-			{
-				cmd.CommandType = CommandType.StoredProcedure;
-				for (x = 0; x <= paramList.Count - 1; x++)
-				{
-					//cmd.Parameters.Add(paramList.GetKey(x), paramList.GetByIndex(x));
-					cmd.Parameters.AddWithValue((String)paramList.GetKey(x), paramList.GetByIndex(x));
-				}
-				myConnection.Open();
-				result = cmd.ExecuteScalar();
-				myConnection.Close();
-			}
-			catch (Exception ex)
-			{
-				try
-				{
-					if (myConnection.State == ConnectionState.Open)
-					{
-						myConnection.Close();
-					}
-				}
-				catch (Exception ex2)
-				{
-					//ErrorHandler.WriteError(Convert.ToString(ex2));
-					return null;
-				}
-				//ErrorHandler.WriteError(Convert.ToString(ex));
-			}
-			// Return the result
-			return result;
-		}
-	}
+            // Create Instance of Connection and Command Object
+            MySqlConnection myConnection = new MySqlConnection(_ConnString);
+            MySqlCommand cmd = new MySqlCommand(sSQL, myConnection);
+            object result = null;
+            Int16 x = default(Int16);
+            // Execute the command
+            try
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                for (x = 0; x <= paramList.Count - 1; x++)
+                {
+                    //cmd.Parameters.Add(paramList.GetKey(x), paramList.GetByIndex(x));
+                    cmd.Parameters.AddWithValue((String)paramList.GetKey(x), paramList.GetByIndex(x));
+                }
+                myConnection.Open();
+                result = cmd.ExecuteScalar();
+                myConnection.Close();
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    if (myConnection.State == ConnectionState.Open)
+                    {
+                        myConnection.Close();
+                    }
+                }
+                catch (Exception ex2)
+                {
+                    //ErrorHandler.WriteError(Convert.ToString(ex2));
+                    return null;
+                }
+                //ErrorHandler.WriteError(Convert.ToString(ex));
+            }
+            // Return the result
+            return result;
+        }
+    }
 }

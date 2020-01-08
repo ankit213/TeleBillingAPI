@@ -38,10 +38,10 @@ namespace TeleBillingUtility.Models
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public long? TransactionId { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? UpdatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? UpdatedDateInt { get; set; }
 
         public virtual MstCountry Country { get; set; }
         public virtual MstCurrency Currency { get; set; }

@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class AutocompleteAC {
-		 
-		public List<EmployeeAC> data { get; set;}
-	}
+    public class AutocompleteAC
+    {
 
-	public class AutocompleteNumberAC
-	{
-		public List<TelephoneNumberAC> data { get; set; }
-	}
+        public List<EmployeeAC> data { get; set; }
+    }
+
+    public class AutocompleteNumberAC
+    {
+        public List<TelephoneNumberAC> data { get; set; }
+    }
 }

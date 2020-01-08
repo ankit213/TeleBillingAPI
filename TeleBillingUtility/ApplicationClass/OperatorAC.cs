@@ -1,35 +1,34 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class OperatorCallLogAC {
+    public class OperatorCallLogAC
+    {
 
-		[JsonProperty("id")]
-		public long Id { get; set; }
+        [JsonProperty("id")]
+        public long Id { get; set; }
 
-		[JsonProperty("calldate")]
-		public DateTime CallDate { get; set; }
+        [JsonProperty("calldate")]
+        public DateTime CallDate { get; set; }
 
-		[JsonProperty("employeename")]
-		public string EmployeeName { get; set; }
+        [JsonProperty("employeename")]
+        public string EmployeeName { get; set; }
 
-		[JsonProperty("emppfnumber")]
-		public string EmpPfnumber { get; set; }
+        [JsonProperty("emppfnumber")]
+        public string EmpPfnumber { get; set; }
 
-		[JsonProperty("extensionnumber")]
-		public string ExtensionNumber { get; set; }
+        [JsonProperty("extensionnumber")]
+        public string ExtensionNumber { get; set; }
 
-		[JsonProperty("dialednumber")]
-		public string DialedNumber { get; set; }
+        [JsonProperty("dialednumber")]
+        public string DialedNumber { get; set; }
 
-		[JsonProperty("providername")]
-		public string ProviderName { get; set; }
+        [JsonProperty("providername")]
+        public string ProviderName { get; set; }
 
-		[JsonProperty("calltypename")]
-		public string CallTypeName { get; set; }
+        [JsonProperty("calltypename")]
+        public string CallTypeName { get; set; }
 
-	}
+    }
 }

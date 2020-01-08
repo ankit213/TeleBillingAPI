@@ -1,13 +1,11 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-   public class ExcelMappingAC
+    public class ExcelMappingAC
     {
-       public  ExcelMappingAC()
+        public ExcelMappingAC()
         {
             List<MappingServiceTypeFieldAC> dbfieldList = new List<MappingServiceTypeFieldAC>();
         }

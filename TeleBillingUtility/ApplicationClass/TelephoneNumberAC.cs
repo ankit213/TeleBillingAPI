@@ -1,26 +1,23 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class TelephoneNumberAC
-	{
-		[JsonProperty("id")]
-		public long Id { get; set; }
+    public class TelephoneNumberAC
+    {
+        [JsonProperty("id")]
+        public long Id { get; set; }
 
-		[JsonProperty("telephonenumber")]
-		public string TelephoneNumber1 { get; set; }
+        [JsonProperty("telephonenumber")]
+        public string TelephoneNumber1 { get; set; }
 
-		[JsonProperty("providerid")]
-		public long ProviderId { get; set; }
-		
-		[JsonProperty("providername")]
-		public string ProviderName { get; set; }
+        [JsonProperty("providerid")]
+        public long ProviderId { get; set; }
 
-		[JsonProperty("isdelete")]
-		public bool IsDelete { get; set;}
+        [JsonProperty("providername")]
+        public string ProviderName { get; set; }
 
-	}
+        [JsonProperty("isdelete")]
+        public bool IsDelete { get; set; }
+
+    }
 }

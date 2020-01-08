@@ -1,43 +1,43 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class BillIdentificationAC {
+    public class BillIdentificationAC
+    {
 
-		[JsonProperty("lstunassignedbill")]
-		public List<UnAssignedBillAC> lstUnAssignedBill { get; set; }
+        [JsonProperty("lstunassignedbill")]
+        public List<UnAssignedBillAC> lstUnAssignedBill { get; set; }
 
-		[JsonProperty("calltypeid")]
-		public long CallTypeId { get; set; }
+        [JsonProperty("calltypeid")]
+        public long CallTypeId { get; set; }
 
-		[JsonProperty("callid")]
-		public long CallId { get; set; }
+        [JsonProperty("callid")]
+        public long CallId { get; set; }
 
-		[JsonProperty("servicepackageamountdetails")]
-		public List<ServicePackageAmountDetail> ServicePackageAmountDetail { get; set; }
-	}
+        [JsonProperty("servicepackageamountdetails")]
+        public List<ServicePackageAmountDetail> ServicePackageAmountDetail { get; set; }
+    }
 
 
-	public class ServicePackageAmountDetail {
+    public class ServicePackageAmountDetail
+    {
 
-		[JsonProperty("businesscharge")]
-		public decimal BusinessCharge { get; set;}
+        [JsonProperty("businesscharge")]
+        public decimal BusinessCharge { get; set; }
 
-		[JsonProperty("personaldeduction")]
-		public decimal PersonalDeduction { get; set; }
+        [JsonProperty("personaldeduction")]
+        public decimal PersonalDeduction { get; set; }
 
-		[JsonProperty("deductibleamount")]
-		public decimal DeductibleAmount { get; set; }
+        [JsonProperty("deductibleamount")]
+        public decimal DeductibleAmount { get; set; }
 
-		[JsonProperty("servicetype")]
-		public string ServiceType { get; set; }
+        [JsonProperty("servicetype")]
+        public string ServiceType { get; set; }
 
-		[JsonProperty("servicetypeid")]
-		public long ServiceTypeId { get; set; }
-	}
+        [JsonProperty("servicetypeid")]
+        public long ServiceTypeId { get; set; }
+    }
 
 
 

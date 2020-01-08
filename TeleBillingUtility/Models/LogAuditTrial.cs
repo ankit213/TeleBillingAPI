@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TeleBillingUtility.Models
@@ -15,8 +14,8 @@ namespace TeleBillingUtility.Models
         public string Version { get; set; }
         public bool IsMobile { get; set; }
         public DateTime AuditDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? AuditDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? AuditDateInt { get; set; }
 
         public virtual FixLogtype LogType { get; set; }
     }

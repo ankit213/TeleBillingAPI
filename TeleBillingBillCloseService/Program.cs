@@ -1,16 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MailKit.Security;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.ServiceProcess;
 using System.Timers;
 using TeleBillingUtility.Helpers.Enums;
 using TeleBillingUtility.Models;
-using MailKit.Security;
 
 
 namespace TeleBillingBillCloseService
@@ -24,13 +23,11 @@ namespace TeleBillingBillCloseService
 				ServiceBase.Run(service);
 			}
 		}
-
 	}
 
 	internal class TestSevice : ServiceBase
 	{
 		Timer timerService = new Timer();
-
 		public TestSevice()
 		{
 			ServiceName = "Tell Billing Bill Cose";
@@ -45,8 +42,6 @@ namespace TeleBillingBillCloseService
 
 			//handle Elapsed event
 			timerService.Elapsed += timerBillClosed_Elapsed;
-
-
 
 			//This statement is used to set interval to 1 minute (= 60,000 milliseconds)
 			timerService.Interval = !string.IsNullOrEmpty(configuration["TimerService"]) ? Convert.ToDouble(configuration["TimerService"]) : 60000;
@@ -93,108 +88,132 @@ namespace TeleBillingBillCloseService
 											List<Employeebillservicepackage> employeeBillServicePackages = _dbTeleBillingContext.Employeebillservicepackage.Where(x => x.EmployeeBillId == subItem.Id && !x.IsDelete).Include(x => x.Package).ToList();
 											foreach (var employeeBillServicePackage in employeeBillServicePackages)
 											{
-												//#region Transaction Log Entry For Service
-												//if (employeeBillServicePackage.TransactionId == null)
-												//	employeeBillServicePackage.TransactionId = GenerateTeleBillingTransctionID();
-
-												//var jsonSerailzeObjforService = JsonConvert.SerializeObject(employeeBillServicePackage);
-												//SaveRequestTraseLog(Convert.ToInt64(subItem.TransactionId), 0, Convert.ToInt64(EnumList.TransactionTraseLog.BillClosed), jsonSerailzeObjforService);
-												//#endregion
-
 												if (!subItem.Employee.IsPresidentOffice)
 												{
-													var telephoneNumberAllocation = _dbTeleBillingContext.Telephonenumberallocation.FirstOrDefault(x => x.TelephoneNumber == subItem.TelephoneNumber && x.EmployeeId == subItem.EmployeeId && !x.IsDelete);
-													if (telephoneNumberAllocation.AssignTypeId != Convert.ToInt16(EnumList.AssignType.Business))
+													if (string.IsNullOrEmpty(subItem.TelephoneNumber))//For Skyp
 													{
-
-														employeeBillServicePackage.DeductionAmount = 0;
-														List<Billdetails> billDetails = _dbTeleBillingContext.Billdetails.Where(x => x.EmployeeBillId == subItem.Id && x.ServiceTypeId == employeeBillServicePackage.ServiceTypeId).ToList();
-														decimal totalAmount = billDetails.Sum(x => x.CallAmount).Value;
-
 														//for service landline or voip 
-														if (employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.LandLine) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.VOIP) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.StaticIP))
-														{
-															//remaning
-															employeeBillServicePackage.DeductionAmount = employeeBillServicePackage.PersonalIdentificationAmount;
-															SendEmailNotificationToEmployee(employeeBillServicePackage, subItem);
-														}
-														else
+														if (employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.VOIP) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.MOC))
 														{
 															if (subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForIdentification) || subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.BillReject))
 															{
-																if (employeeBillServicePackage.Package.PackageAmount < totalAmount)
+																List<Billdetails> billdetails = _dbTeleBillingContext.Billdetails.Where(x => x.EmployeeBillId == subItem.Id && x.ServiceTypeId == employeeBillServicePackage.ServiceTypeId).ToList();
+																decimal personalDeduction = 0;
+																decimal businessCharge = 0;
+																foreach (var subBillDetail in billdetails)
 																{
-																	decimal amount = 0;
-																	decimal businessIdentificationAmount = employeeBillServicePackage.BusinessIdentificationAmount != null ? Convert.ToDecimal(employeeBillServicePackage.BusinessIdentificationAmount) : 0;
-																	if (employeeBillServicePackage.Package.PackageAmount < businessIdentificationAmount)
+																	if (subBillDetail.CallIdentificationType == Convert.ToInt16(EnumList.AssignType.Business))
 																	{
-																		amount = businessIdentificationAmount;
+																		businessCharge += subBillDetail.CallAmount != null ? Convert.ToDecimal(subBillDetail.CallAmount) : 0;
 																	}
-																	else
+																	else if (subBillDetail.CallIdentificationType == Convert.ToInt16(EnumList.AssignType.Employee))
 																	{
-																		amount = employeeBillServicePackage.Package.PackageAmount != null ? Convert.ToDecimal(employeeBillServicePackage.Package.PackageAmount) : 0;
+																		personalDeduction += subBillDetail.CallAmount != null ? Convert.ToDecimal(subBillDetail.CallAmount) : 0;
 																	}
-																	//BusinessIdentificationAmount alway less than or equal Package Amount
-																	employeeBillServicePackage.DeductionAmount = totalAmount - amount;
-																	SendEmailNotificationToEmployee(employeeBillServicePackage, subItem);
 																}
-																else
-																	employeeBillServicePackage.DeductionAmount = 0;
+																employeeBillServicePackage.PersonalIdentificationAmount = personalDeduction;
+																employeeBillServicePackage.BusinessIdentificationAmount = businessCharge;
+																employeeBillServicePackage.DeductionAmount = personalDeduction;
 															}
 															else if (subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForLineManagerApproval) || subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.LineManagerApproved))
 															{
+																employeeBillServicePackage.DeductionAmount = employeeBillServicePackage.PersonalIdentificationAmount;
+															}
+															SendEmailNotificationToEmployee(employeeBillServicePackage, subItem);
+														}
+													}
+													else
+													{
+														var telephoneNumberAllocation = _dbTeleBillingContext.Telephonenumberallocation.FirstOrDefault(x => x.TelephoneNumber == subItem.TelephoneNumber && x.EmployeeId == subItem.EmployeeId && !x.IsDelete);
+														if (telephoneNumberAllocation.AssignTypeId != Convert.ToInt16(EnumList.AssignType.Business))
+														{
+															employeeBillServicePackage.DeductionAmount = 0;
+															List<Billdetails> billDetails = _dbTeleBillingContext.Billdetails.Where(x => x.EmployeeBillId == subItem.Id && x.ServiceTypeId == employeeBillServicePackage.ServiceTypeId).ToList();
+															decimal totalAmount = billDetails.Sum(x => x.CallAmount).Value;
 
-																if (subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForLineManagerApproval))
+															//for service landline
+															if (employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.LandLine) || employeeBillServicePackage.ServiceTypeId == Convert.ToInt64(EnumList.ServiceType.StaticIP))
+															{
+																//remaning
+																employeeBillServicePackage.DeductionAmount = employeeBillServicePackage.PersonalIdentificationAmount;
+																SendEmailNotificationToEmployee(employeeBillServicePackage, subItem);
+															}
+															else
+															{
+																if (subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForIdentification) || subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.BillReject))
 																{
-																	List<Billdetails> billdetails = _dbTeleBillingContext.Billdetails.Where(x => x.EmployeeBillId == subItem.Id).ToList();
-																	var serviceBillDetials = billdetails.GroupBy(x => x.ServiceTypeId);
-																	var finalServiceDetails = serviceBillDetials.Where(x => x.Key == employeeBillServicePackage.ServiceTypeId);
-
-																	foreach (var billDetailsData in finalServiceDetails)
+																	if (employeeBillServicePackage.Package.PackageAmount < totalAmount)
 																	{
-																		decimal personalDeduction = 0;
-																		decimal businessCharge = 0;
-																		foreach (var subBillDetail in billDetailsData)
+																		decimal amount = 0;
+																		decimal businessIdentificationAmount = employeeBillServicePackage.BusinessIdentificationAmount != null ? Convert.ToDecimal(employeeBillServicePackage.BusinessIdentificationAmount) : 0;
+																		if (employeeBillServicePackage.Package.PackageAmount < businessIdentificationAmount)
 																		{
-																			if (subBillDetail.CallIdentificationType == Convert.ToInt16(EnumList.AssignType.Business))
-																			{
-																				businessCharge += subBillDetail.CallAmount != null ? Convert.ToDecimal(subBillDetail.CallAmount) : 0;
-																			}
-																			else if (subBillDetail.CallIdentificationType == Convert.ToInt16(EnumList.AssignType.Employee))
-																			{
-																				personalDeduction += subBillDetail.CallAmount != null ? Convert.ToDecimal(subBillDetail.CallAmount) : 0;
-																			}
+																			amount = businessIdentificationAmount;
 																		}
-																		employeeBillServicePackage.PersonalIdentificationAmount = personalDeduction;
-																		employeeBillServicePackage.BusinessIdentificationAmount = businessCharge;
-																	}
-																}
-
-																if (employeeBillServicePackage.Package.PackageAmount < totalAmount)
-																{
-																	decimal businessIdentificationAmount = employeeBillServicePackage.BusinessIdentificationAmount != null ? Convert.ToDecimal(employeeBillServicePackage.BusinessIdentificationAmount) : 0;
-																	decimal amount = 0;
-																	if (employeeBillServicePackage.Package.PackageAmount < businessIdentificationAmount)
-																	{
-																		amount = businessIdentificationAmount;
+																		else
+																		{
+																			amount = employeeBillServicePackage.Package.PackageAmount != null ? Convert.ToDecimal(employeeBillServicePackage.Package.PackageAmount) : 0;
+																		}
+																		//BusinessIdentificationAmount alway less than or equal Package Amount
+																		employeeBillServicePackage.DeductionAmount = totalAmount - amount;
+																		SendEmailNotificationToEmployee(employeeBillServicePackage, subItem);
 																	}
 																	else
+																		employeeBillServicePackage.DeductionAmount = 0;
+																}
+																else if (subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForLineManagerApproval) || subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.LineManagerApproved))
+																{
+
+																	if (subItem.EmployeeBillStatus == Convert.ToInt16(EnumList.EmployeeBillStatus.WaitingForLineManagerApproval))
 																	{
-																		amount = employeeBillServicePackage.Package.PackageAmount != null ? Convert.ToDecimal(employeeBillServicePackage.Package.PackageAmount) : 0;
+																		List<Billdetails> billdetails = _dbTeleBillingContext.Billdetails.Where(x => x.EmployeeBillId == subItem.Id).ToList();
+																		var serviceBillDetials = billdetails.GroupBy(x => x.ServiceTypeId);
+																		var finalServiceDetails = serviceBillDetials.Where(x => x.Key == employeeBillServicePackage.ServiceTypeId);
+
+																		foreach (var billDetailsData in finalServiceDetails)
+																		{
+																			decimal personalDeduction = 0;
+																			decimal businessCharge = 0;
+																			foreach (var subBillDetail in billDetailsData)
+																			{
+																				if (subBillDetail.CallIdentificationType == Convert.ToInt16(EnumList.AssignType.Business))
+																				{
+																					businessCharge += subBillDetail.CallAmount != null ? Convert.ToDecimal(subBillDetail.CallAmount) : 0;
+																				}
+																				else if (subBillDetail.CallIdentificationType == Convert.ToInt16(EnumList.AssignType.Employee))
+																				{
+																					personalDeduction += subBillDetail.CallAmount != null ? Convert.ToDecimal(subBillDetail.CallAmount) : 0;
+																				}
+																			}
+																			employeeBillServicePackage.PersonalIdentificationAmount = personalDeduction;
+																			employeeBillServicePackage.BusinessIdentificationAmount = businessCharge;
+																		}
 																	}
-																	employeeBillServicePackage.DeductionAmount = totalAmount - amount;
-																	SendEmailNotificationToEmployee(employeeBillServicePackage, subItem);
+
+																	if (employeeBillServicePackage.Package.PackageAmount < totalAmount)
+																	{
+																		decimal businessIdentificationAmount = employeeBillServicePackage.BusinessIdentificationAmount != null ? Convert.ToDecimal(employeeBillServicePackage.BusinessIdentificationAmount) : 0;
+																		decimal amount = 0;
+																		if (employeeBillServicePackage.Package.PackageAmount < businessIdentificationAmount)
+																		{
+																			amount = businessIdentificationAmount;
+																		}
+																		else
+																		{
+																			amount = employeeBillServicePackage.Package.PackageAmount != null ? Convert.ToDecimal(employeeBillServicePackage.Package.PackageAmount) : 0;
+																		}
+																		employeeBillServicePackage.DeductionAmount = totalAmount - amount;
+																		SendEmailNotificationToEmployee(employeeBillServicePackage, subItem);
+																	}
 																}
 															}
 														}
-
+														else
+															employeeBillServicePackage.DeductionAmount = 0;
 													}
-													else
-														employeeBillServicePackage.DeductionAmount = 0;
 												}
 												else
 													employeeBillServicePackage.DeductionAmount = 0;
-
 												employeeBillServicePackage.UpdateDate = DateTime.Now;
 											}
 
@@ -212,7 +231,8 @@ namespace TeleBillingBillCloseService
 
 										}
 
-										if (notificationlogs.Any()) {
+										if (notificationlogs.Any())
+										{
 											_dbTeleBillingContext.AddRange(notificationlogs);
 											_dbTeleBillingContext.SaveChanges();
 										}
@@ -302,29 +322,32 @@ namespace TeleBillingBillCloseService
 		{
 			try
 			{
-				var builder = new ConfigurationBuilder()
-				.AddJsonFile("appsettings.json", true, true);
-
-				IConfigurationRoot configuration = builder.Build();
-
-				var msg = new MimeMessage();
-				msg.From.Add(new MailboxAddress(emailFrom, emailFrom));
-				msg.To.Add(new MailboxAddress(toEmail));
-
-				if (!string.IsNullOrEmpty(emailBcc))
-					msg.Bcc.Add(new MailboxAddress(emailBcc));
-
-				msg.Subject = subject;
-				var bodyBuilder = new BodyBuilder();
-				bodyBuilder.HtmlBody = body;
-				msg.Body = bodyBuilder.ToMessageBody();
-
-				using (var smtp = new MailKit.Net.Smtp.SmtpClient())
+				if (!string.IsNullOrEmpty(toEmail))
 				{
-					smtp.Connect(configuration.GetSection("EmailCrednetials").GetSection("Host").Value, Convert.ToInt16(configuration.GetSection("EmailCrednetials").GetSection("Port").Value), SecureSocketOptions.SslOnConnect);
-					smtp.Authenticate(credentials: new NetworkCredential(configuration.GetSection("EmailCrednetials").GetSection("From").Value, configuration.GetSection("EmailCrednetials").GetSection("Password").Value));
-					smtp.Send(msg, System.Threading.CancellationToken.None);
-					smtp.Disconnect(true, System.Threading.CancellationToken.None);
+					var builder = new ConfigurationBuilder()
+					.AddJsonFile("appsettings.json", true, true);
+
+					IConfigurationRoot configuration = builder.Build();
+
+					var msg = new MimeMessage();
+					msg.From.Add(new MailboxAddress(emailFrom, emailFrom));
+					msg.To.Add(new MailboxAddress(toEmail));
+
+					if (!string.IsNullOrEmpty(emailBcc))
+						msg.Bcc.Add(new MailboxAddress(emailBcc));
+
+					msg.Subject = subject;
+					var bodyBuilder = new BodyBuilder();
+					bodyBuilder.HtmlBody = body;
+					msg.Body = bodyBuilder.ToMessageBody();
+
+					using (var smtp = new MailKit.Net.Smtp.SmtpClient())
+					{
+						smtp.Connect(configuration.GetSection("EmailCrednetials").GetSection("Host").Value, Convert.ToInt16(configuration.GetSection("EmailCrednetials").GetSection("Port").Value), SecureSocketOptions.SslOnConnect);
+						smtp.Authenticate(credentials: new NetworkCredential(configuration.GetSection("EmailCrednetials").GetSection("From").Value, configuration.GetSection("EmailCrednetials").GetSection("Password").Value));
+						smtp.Send(msg, System.Threading.CancellationToken.None);
+						smtp.Disconnect(true, System.Threading.CancellationToken.None);
+					}
 				}
 				return true;
 			}
@@ -348,7 +371,7 @@ namespace TeleBillingBillCloseService
 				newEmailReminderLog.CreatedDate = DateTime.Now;
 				newEmailReminderLog.IsReminderMail = isReminderMail;
 				newEmailReminderLog.TemplateId = emailTemplateId;
-				newEmailReminderLog.EmailTo = emailTo;
+				newEmailReminderLog.EmailTo = string.IsNullOrEmpty(emailTo) ? string.Empty : emailTo;
 				newEmailReminderLog.EmployeeBillId = employeeBillId;
 
 				_dbTeleBillingContext.Add(newEmailReminderLog);
@@ -373,7 +396,8 @@ namespace TeleBillingBillCloseService
 				replacements.Add("{BillYear}", employeeBillMaster.BillYear.ToString());
 				replacements.Add("{newEmpName}", employeeBillMaster.Employee.FullName);
 				replacements.Add("{Provider}", employeeBillMaster.Provider.Name);
-				replacements.Add("{TelePhoneNumber}", employeeBillMaster.TelephoneNumber.Trim());
+				string telphoneNumber = !string.IsNullOrEmpty(employeeBillMaster.TelephoneNumber) ? employeeBillMaster.TelephoneNumber.Trim() : string.Empty;
+				replacements.Add("{TelePhoneNumber}", telphoneNumber);
 
 				string deductionAmount = string.Empty;
 				if (employeeBillServicePackage.DeductionAmount != null)

@@ -23,7 +23,7 @@ namespace TeleBillingRepository.Repository.Employee
     {
 
         #region "Private Variable(s)"
-        private readonly telebilling_v01Context  _dbTeleBilling_V01Context;
+        private readonly telebilling_v01Context _dbTeleBilling_V01Context;
         private readonly ILogManagement _iLogManagement;
         private readonly IStringConstant _iStringConstant;
         private readonly IEmailSender _iEmailSender;
@@ -33,7 +33,7 @@ namespace TeleBillingRepository.Repository.Employee
         #endregion
 
         #region "Constructor"
-        public EmployeeRepository(telebilling_v01Context  dbTeleBilling_V01Context, IMapper mapper, IStringConstant iStringConstant
+        public EmployeeRepository(telebilling_v01Context dbTeleBilling_V01Context, IMapper mapper, IStringConstant iStringConstant
             , ILogManagement ilogManagement
             , IEmailSender iemailSender)
         {
@@ -60,7 +60,7 @@ namespace TeleBillingRepository.Repository.Employee
 
                 SortedList sl = new SortedList();
                 sl.Add("userId", userId);
-               
+
                 DataSet ds = _objDalmysql.GetDataSet("uspGetUserProfile", sl);
                 if (ds != null)
                 {
@@ -123,8 +123,8 @@ namespace TeleBillingRepository.Repository.Employee
                     await _dbTeleBilling_V01Context.SaveChangesAsync();
                     responeAC.Message = "Password Reset Successfully";
                     responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ResetPassword, mstEmployee.FullName, userId, string.Empty, (int)EnumList.ActionTemplateTypes.ResetPassword, mstEmployee.UserId);
-				}
+                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ResetPassword, mstEmployee.FullName, userId, string.Empty, (int)EnumList.ActionTemplateTypes.ResetPassword, mstEmployee.UserId);
+                }
                 else
                 {
                     responeAC.Message = "Employee does not found";
@@ -135,105 +135,105 @@ namespace TeleBillingRepository.Repository.Employee
             {
                 throw e;
             }
-       
+
             return responeAC;
         }
 
         public JqueryDataTablesPagedResults<EmployeeProfileDetailAC> GetEmployeeList(JqueryDataTablesParameters param)
-		{
+        {
             List<EmployeeProfileDetailSP> employeelistData = new List<EmployeeProfileDetailSP>();
             List<EmployeeProfileDetailAC> employeelist = new List<EmployeeProfileDetailAC>();
             try
             {
-				long skipRecord = param.Start;
-				int length = param.Length;
-				int? sortColumnNumber = null;
-				string sortType = string.Empty;
-				string searchValue = param.Search.Value;
-				int totalSize = 0;
+                long skipRecord = param.Start;
+                int length = param.Length;
+                int? sortColumnNumber = null;
+                string sortType = string.Empty;
+                string searchValue = param.Search.Value;
+                int totalSize = 0;
 
-				if (param.Order.Length > 0)
-				{
-					sortColumnNumber = param.Order[0].Column;
-					sortType = param.Order[0].Dir.ToString();
-				}
+                if (param.Order.Length > 0)
+                {
+                    sortColumnNumber = param.Order[0].Column;
+                    sortType = param.Order[0].Dir.ToString();
+                }
 
-				SortedList sl = new SortedList();
-				sl.Add("SkipRecord", skipRecord);
-				sl.Add("Length", length);
-				sl.Add("SearchValue", searchValue);
+                SortedList sl = new SortedList();
+                sl.Add("SkipRecord", skipRecord);
+                sl.Add("Length", length);
+                sl.Add("SearchValue", searchValue);
 
-				DataSet ds = _objDalmysql.GetDataSet("usp_GetEmployeesWithPagging",sl);
+                DataSet ds = _objDalmysql.GetDataSet("usp_GetEmployeesWithPagging", sl);
                 if (ds != null)
                 {
                     if (ds.Tables[0].Rows.Count > 0 && ds.Tables[0] != null)
                     {
                         employeelistData = _objDal.ConvertDataTableToGenericList<EmployeeProfileDetailSP>(ds.Tables[0]).ToList();
                     }
-					if (ds.Tables[1].Rows.Count > 0 && ds.Tables[1] != null)
-					{
-						totalSize = Convert.ToInt16(ds.Tables[1].Rows[0]["TotalSize"]);
-					}
-				}
+                    if (ds.Tables[1].Rows.Count > 0 && ds.Tables[1] != null)
+                    {
+                        totalSize = Convert.ToInt16(ds.Tables[1].Rows[0]["TotalSize"]);
+                    }
+                }
 
-				if (employeelistData.Any())
+                if (employeelistData.Any())
                 {
                     employeelist = _mapper.Map<List<EmployeeProfileDetailAC>>(employeelistData);
                 }
 
-				return new JqueryDataTablesPagedResults<EmployeeProfileDetailAC>
-				{
-					Items = employeelist,
-					TotalSize = totalSize
-				};
+                return new JqueryDataTablesPagedResults<EmployeeProfileDetailAC>
+                {
+                    Items = employeelist,
+                    TotalSize = totalSize
+                };
 
-			}
+            }
             catch (Exception e)
             {
                 return null;
             }
         }
 
-		public List<ExportEmployeeDetailAC> GetExportEmployeeList()
-		{
-			List<ExportEmployeeDetailAC> exportEmployeeDetailACs = new List<ExportEmployeeDetailAC>();
-			DataSet ds = _objDalmysql.GetDataSet("usp_GetEmployeeListForExport");
-			if (ds != null)
-			{
-				if (ds.Tables[0].Rows.Count > 0 && ds.Tables[0] != null)
-				{
-					exportEmployeeDetailACs = _objDal.ConvertDataTableToGenericList<ExportEmployeeDetailAC>(ds.Tables[0]).ToList();
-				}
-			}
-			return exportEmployeeDetailACs;
-		}
-
-		public async Task<long> DeleteEmployee(long id, long userId, string loginUserName)
+        public List<ExportEmployeeDetailAC> GetExportEmployeeList()
         {
-			if (!await _dbTeleBilling_V01Context.MstEmployee.AnyAsync(x => !x.IsDelete && x.LineManagerId == id))
-			{
-				SortedList sl = new SortedList();
-				sl.Add("Employee_Id", id);
-				int result = Convert.ToInt16(_objDalmysql.ExecuteScaler("usp_GetEmployeeExists", sl));
-				if (result == 0)
-				{
-					TeleBillingUtility.Models.MstEmployee employee = await _dbTeleBilling_V01Context.MstEmployee.FindAsync(id);
-					if (employee.IsSystemUser)
-					{
-						employee.IsDelete = true;
-						employee.UpdatedBy = userId;
-						employee.UpdatedDate = DateTime.Now;
-						_dbTeleBilling_V01Context.Update(employee);
-						await _dbTeleBilling_V01Context.SaveChangesAsync();
-						await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteEmployee, loginUserName, userId, "Employee(" + employee.FullName + ")", (int)EnumList.ActionTemplateTypes.Delete, employee.UserId);
-						return Convert.ToInt16(EnumList.ResponseType.Success);
+            List<ExportEmployeeDetailAC> exportEmployeeDetailACs = new List<ExportEmployeeDetailAC>();
+            DataSet ds = _objDalmysql.GetDataSet("usp_GetEmployeeListForExport");
+            if (ds != null)
+            {
+                if (ds.Tables[0].Rows.Count > 0 && ds.Tables[0] != null)
+                {
+                    exportEmployeeDetailACs = _objDal.ConvertDataTableToGenericList<ExportEmployeeDetailAC>(ds.Tables[0]).ToList();
+                }
+            }
+            return exportEmployeeDetailACs;
+        }
 
-					}
-				}
-				return Convert.ToInt16(EnumList.ResponseType.Error);
-			}
-			return Convert.ToInt16(EnumList.ResponseType.UserAsLineManager);
-		}
+        public async Task<long> DeleteEmployee(long id, long userId, string loginUserName)
+        {
+            if (!await _dbTeleBilling_V01Context.MstEmployee.AnyAsync(x => !x.IsDelete && x.LineManagerId == id))
+            {
+                SortedList sl = new SortedList();
+                sl.Add("Employee_Id", id);
+                int result = Convert.ToInt16(_objDalmysql.ExecuteScaler("usp_GetEmployeeExists", sl));
+                if (result == 0)
+                {
+                    TeleBillingUtility.Models.MstEmployee employee = await _dbTeleBilling_V01Context.MstEmployee.FindAsync(id);
+                    if (employee.IsSystemUser)
+                    {
+                        employee.IsDelete = true;
+                        employee.UpdatedBy = userId;
+                        employee.UpdatedDate = DateTime.Now;
+                        _dbTeleBilling_V01Context.Update(employee);
+                        await _dbTeleBilling_V01Context.SaveChangesAsync();
+                        await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteEmployee, loginUserName, userId, "Employee(" + employee.FullName + ")", (int)EnumList.ActionTemplateTypes.Delete, employee.UserId);
+                        return Convert.ToInt16(EnumList.ResponseType.Success);
+
+                    }
+                }
+                return Convert.ToInt16(EnumList.ResponseType.Error);
+            }
+            return Convert.ToInt16(EnumList.ResponseType.UserAsLineManager);
+        }
 
         public async Task<bool> ChangeEmployeeStatus(long Id, long userId, string loginUserName)
         {
@@ -254,19 +254,20 @@ namespace TeleBillingRepository.Repository.Employee
                 _dbTeleBilling_V01Context.Update(mstEmployee);
                 await _dbTeleBilling_V01Context.SaveChangesAsync();
 
-				if(mstEmployee.IsActive)
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ActiveEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Active, mstEmployee.UserId);
-				else
-					await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeactiveEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Deactive, mstEmployee.UserId);
+                if (mstEmployee.IsActive)
+                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ActiveEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Active, mstEmployee.UserId);
+                else
+                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeactiveEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Deactive, mstEmployee.UserId);
 
-				return true;
+                return true;
             }
             return false;
         }
 
-        public async Task<bool> checkPFNumberUnique(string EmpPFNumber, long empId = 0) { 
-				return await _dbTeleBilling_V01Context.MstEmployee.AnyAsync(x=>x.EmpPfnumber.Trim() == EmpPFNumber.Trim() && !x.IsDelete && x.UserId != empId);
-		}
+        public async Task<bool> checkPFNumberUnique(string EmpPFNumber, long empId = 0)
+        {
+            return await _dbTeleBilling_V01Context.MstEmployee.AnyAsync(x => x.EmpPfnumber.Trim() == EmpPFNumber.Trim() && !x.IsDelete && x.UserId != empId);
+        }
 
         public async Task<ResponseAC> AddEmployee(MstEmployeeAC employee, long userId, string loginUserName)
         {
@@ -324,10 +325,10 @@ namespace TeleBillingRepository.Repository.Employee
                         await _dbTeleBilling_V01Context.SaveChangesAsync();
                         responeAC.Message = "Employee Added Successfully !";
                         responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-						await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Add, mstEmployee.UserId);
+                        await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Add, mstEmployee.UserId);
 
-						#region Send Email for Registration Confirmation
-						EmployeeProfileAC empDetail = new EmployeeProfileAC();
+                        #region Send Email for Registration Confirmation
+                        EmployeeProfileAC empDetail = new EmployeeProfileAC();
                         try
                         {
                             empDetail = await GetUserProfile(mstEmployee.UserId);
@@ -349,8 +350,8 @@ namespace TeleBillingRepository.Repository.Employee
                                     replacement.Add("{EmpBusinessUnit}", empDetail.UserProfileData.BusinessUnit);
                                     bool issent = false;
                                     string EmailId = empDetail.UserProfileData.EmailId;
-                                    
-                                    if (!(string.IsNullOrEmpty(empDetail.UserProfileData.EmailId)  || empDetail.UserProfileData.EmailId == "n/a"))
+
+                                    if (!(string.IsNullOrEmpty(empDetail.UserProfileData.EmailId) || empDetail.UserProfileData.EmailId == "n/a"))
                                     {
                                         issent = await _iEmailSender.SendEmail(Convert.ToInt64(EnumList.EmailTemplateType.NewRegistrationConfirmation), replacement, employee.EmailId);
                                     }
@@ -420,7 +421,7 @@ namespace TeleBillingRepository.Repository.Employee
         public async Task<MstEmployeeAC> GetEmployeeById(long userId)
         {
             MstEmployeeAC responseAc = new MstEmployeeAC();
-          
+
             try
             {
                 MstEmployee employee = await _dbTeleBilling_V01Context.MstEmployee.FindAsync(userId);
@@ -556,7 +557,7 @@ namespace TeleBillingRepository.Repository.Employee
                                         return responeAC;
                                     }
 
-                                   
+
                                     mstEmployee.UpdatedBy = userId;
                                     mstEmployee.UpdatedDate = DateTime.Now;
                                     mstEmployee.TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
@@ -565,13 +566,13 @@ namespace TeleBillingRepository.Repository.Employee
 
                                     responeAC.Message = "Employee Updated Successfully !";
                                     responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-									await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Edit, mstEmployee.UserId);
-									return responeAC;
+                                    await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditEmployee, loginUserName, userId, "Employee(" + mstEmployee.FullName + ")", (int)EnumList.ActionTemplateTypes.Edit, mstEmployee.UserId);
+                                    return responeAC;
                                 }
                                 else
                                 {
                                     responeAC.Message = "PFNumber is already exists!";
-									responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
+                                    responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
                                     return responeAC;
                                 }
                             }
@@ -656,12 +657,13 @@ namespace TeleBillingRepository.Repository.Employee
             return IsValid;
         }
 
-		public async Task<bool> LogOutUser(long userId, string loginUserName) {
-			await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.LogOut, loginUserName, userId,loginUserName, (int)EnumList.ActionTemplateTypes.LogOut, userId);
-			return true;
-		}
+        public async Task<bool> LogOutUser(long userId, string loginUserName)
+        {
+            await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.LogOut, loginUserName, userId, loginUserName, (int)EnumList.ActionTemplateTypes.LogOut, userId);
+            return true;
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 
 }

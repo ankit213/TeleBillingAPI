@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
@@ -60,6 +58,12 @@ namespace TeleBillingUtility.ApplicationClass
 
     public class PbxBillUploadListAC
     {
+
+        public PbxBillUploadListAC()
+        {
+            TotalRecordImportCount = 0;
+            TotalImportedBillAmount = 0;
+        }
         [JsonProperty("id")]
         public long Id { get; set; }
 
@@ -77,5 +81,12 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("isapproved")]
         public bool? IsApproved { get; set; }
+
+        [JsonProperty("totalrecord")]
+        public int TotalRecordImportCount { get; set; }
+
+        [JsonProperty("billamount")]
+        public decimal TotalImportedBillAmount { get; set; }
+
     }
 }

@@ -26,18 +26,18 @@ namespace TeleBillingUtility.Models
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
 
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? UpdatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
         // Added ON 2019/10/04
         public bool? IsCommonMapped { get; set; }
         public long? MappedMappingId { get; set; }
-        public long? MappedServiceTypeId { get; set; }          
+        public long? MappedServiceTypeId { get; set; }
 
         public virtual Provider Provider { get; set; }
         public virtual FixServicetype ServiceType { get; set; }

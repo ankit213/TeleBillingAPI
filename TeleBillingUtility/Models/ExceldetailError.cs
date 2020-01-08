@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TeleBillingUtility.Models
+﻿namespace TeleBillingUtility.Models
 {
     public partial class ExceldetailError
     {

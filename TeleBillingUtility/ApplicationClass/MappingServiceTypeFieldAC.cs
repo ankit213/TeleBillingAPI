@@ -1,11 +1,8 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-   public class MappingServiceTypeFieldAC
+    public class MappingServiceTypeFieldAC
     {
         [JsonProperty("id")]
         public long Id { get; set; }
@@ -30,5 +27,5 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("formatfield")]
         public string FormatField { get; set; }
-	}
+    }
 }

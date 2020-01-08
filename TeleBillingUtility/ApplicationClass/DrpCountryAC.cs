@@ -1,7 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
@@ -15,7 +12,7 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("currencyId")]
         public long currencyId { get; set; }
-        
+
         [JsonProperty("currency")]
         public string currency { get; set; }
     }

@@ -14,3 +14,9 @@
 /TeleBillingUtility/obj
 /TeleBillingAPIXUnit.Tests/bin/Debug/netcoreapp2.2
 /TeleBillingAPIXUnit.Tests/obj
+/TeleBillingAPI/wwwroot
+/.vs/TeleBillingAPI/v16
+/TeleBillingBillCloseService/Properties/PublishProfiles
+/TeleBillingBillCloseService/bin/Release/netcoreapp2.2/win10-x64
+/TeleBillingRemiderService/bin
+/TeleBillingRemiderService/obj

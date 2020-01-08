@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using TeleBillingRepository.Repository.Account;
 using TeleBillingRepository.Service;
 using TeleBillingRepository.Service.Constants;
@@ -17,7 +17,7 @@ using TeleBillingUtility.Helpers.Enums;
 
 namespace TeleBillingAPI.Controllers
 {
-	[EnableCors("CORS")]
+    [EnableCors("CORS")]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
@@ -26,21 +26,21 @@ namespace TeleBillingAPI.Controllers
         private readonly IAccountRepository _iAccountRepository;
         private readonly IStringConstant _iStringConstant;
         private readonly IEmailSender _iEmailSender;
-		private readonly ILogManagement _iLogManagement;
-		public IConfiguration Configuration { get; }
+        private readonly ILogManagement _iLogManagement;
+        public IConfiguration Configuration { get; }
 
         #endregion
 
         #region "Constructor"
-        public AccountController(IAccountRepository iAccountRepository, IStringConstant iStringConstant, IEmailSender iEmailSender, IConfiguration configuration,ILogManagement iLogManagement)
+        public AccountController(IAccountRepository iAccountRepository, IStringConstant iStringConstant, IEmailSender iEmailSender, IConfiguration configuration, ILogManagement iLogManagement)
         {
             _iAccountRepository = iAccountRepository;
             _iStringConstant = iStringConstant;
             _iEmailSender = iEmailSender;
             Configuration = configuration;
-			_iLogManagement = iLogManagement;
+            _iLogManagement = iLogManagement;
 
-		}
+        }
         #endregion
 
         #region "Public Method(s)"
@@ -49,11 +49,11 @@ namespace TeleBillingAPI.Controllers
         [Route("login")]
         public async Task<IActionResult> Login([FromBody]LoginAC loginAC)
         {
-			LoginReponseAC loginResponseAc = new LoginReponseAC();
+            LoginReponseAC loginResponseAc = new LoginReponseAC();
             try
             {
                 var userexists = await _iAccountRepository.checkEmployeeIsActive(loginAC.EmailOrPfNumber);
-				if (userexists != null)
+                if (userexists != null)
                 {
                     if (userexists.IsActive)
                     {
@@ -64,11 +64,11 @@ namespace TeleBillingAPI.Controllers
                             if (await _iAccountRepository.CheckUserCredentail(user.EmailId, user.EmpPfnumber, loginAC.Password))
                             {
 
-								var claims = new[] {
-								new Claim("user_id", user.UserId.ToString()),
-								new Claim("role_id", user.RoleId.ToString()),
-								new Claim("fullname", user.FullName),
-								};
+                                var claims = new[] {
+                                new Claim("user_id", user.UserId.ToString()),
+                                new Claim("role_id", user.RoleId.ToString()),
+                                new Claim("fullname", user.FullName),
+                                };
 
                                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SigninKey"]));
                                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
@@ -80,8 +80,8 @@ namespace TeleBillingAPI.Controllers
                                     signingCredentials: signinCredentials
                                 );
 
-								await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.Login, user.FullName,user.UserId,"",(int)EnumList.ActionTemplateTypes.Login, user.UserId);
-
+                                await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.Login, user.FullName, user.UserId, "", (int)EnumList.ActionTemplateTypes.Login, user.UserId);
+								loginResponseAc.RoleId = user.RoleId;
 								loginResponseAc.AccessToken = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
                                 loginResponseAc.StatusCode = Convert.ToInt32(EnumList.ResponseType.Success);
                             }
@@ -98,10 +98,10 @@ namespace TeleBillingAPI.Controllers
                         }
                     }
                     else
-                        {
-                            loginResponseAc.StatusCode = Convert.ToInt32(EnumList.ResponseType.NotFound);
-                            loginResponseAc.Message = _iStringConstant.UserAccountDeactivated;
-                        }
+                    {
+                        loginResponseAc.StatusCode = Convert.ToInt32(EnumList.ResponseType.NotFound);
+                        loginResponseAc.Message = _iStringConstant.UserAccountDeactivated;
+                    }
                 }
                 else
                 {
@@ -174,9 +174,9 @@ namespace TeleBillingAPI.Controllers
                             ResponseAc.StatusCode = Convert.ToInt32(EnumList.ResponseType.Success);
                             ResponseAc.Message = _iStringConstant.EmailSent;
 
-							await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ForgotPassword, user.FullName, user.UserId, "", (int)EnumList.ActionTemplateTypes.ForgotPassword, user.UserId);
-						}
-						else
+                            await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.ForgotPassword, user.FullName, user.UserId, "", (int)EnumList.ActionTemplateTypes.ForgotPassword, user.UserId);
+                        }
+                        else
                         {
                             ResponseAc.StatusCode = Convert.ToInt32(EnumList.ResponseType.Error);
                             ResponseAc.Message = "Email not sent";
@@ -204,8 +204,8 @@ namespace TeleBillingAPI.Controllers
             }
         }
 
-		#endregion
+        #endregion
 
 
-	}
+    }
 }

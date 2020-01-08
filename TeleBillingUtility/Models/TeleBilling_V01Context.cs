@@ -1,11 +1,9 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace TeleBillingUtility.Models
 {
     public partial class telebilling_v01Context : DbContext
-    {  
+    {
         public telebilling_v01Context()
         {
         }
@@ -15,8 +13,8 @@ namespace TeleBillingUtility.Models
         {
         }
 
-		public virtual DbSet<Auditactionlog> Auditactionlog { get; set; }
-		public virtual DbSet<Billdelegate> Billdelegate { get; set; }
+        public virtual DbSet<Auditactionlog> Auditactionlog { get; set; }
+        public virtual DbSet<Billdelegate> Billdelegate { get; set; }
         public virtual DbSet<Billdetails> Billdetails { get; set; }
         public virtual DbSet<Billmaster> Billmaster { get; set; }
         public virtual DbSet<BillmasterServicetype> BillmasterServicetype { get; set; }
@@ -32,8 +30,8 @@ namespace TeleBillingUtility.Models
         public virtual DbSet<ExceluploadlogServicetype> ExceluploadlogServicetype { get; set; }
         public virtual DbSet<Exceluploadlogpbx> Exceluploadlogpbx { get; set; }
         public virtual DbSet<FixAssigntype> FixAssigntype { get; set; }
-		public virtual DbSet<FixAuditlogactiontype> FixAuditlogactiontype { get; set; }
-		public virtual DbSet<FixBillemployeestatus> FixBillemployeestatus { get; set; }
+        public virtual DbSet<FixAuditlogactiontype> FixAuditlogactiontype { get; set; }
+        public virtual DbSet<FixBillemployeestatus> FixBillemployeestatus { get; set; }
         public virtual DbSet<FixBillstatus> FixBillstatus { get; set; }
         public virtual DbSet<FixCalltype> FixCalltype { get; set; }
         public virtual DbSet<FixDevice> FixDevice { get; set; }
@@ -43,8 +41,8 @@ namespace TeleBillingUtility.Models
         public virtual DbSet<FixLinetype> FixLinetype { get; set; }
         public virtual DbSet<FixLogtype> FixLogtype { get; set; }
         public virtual DbSet<FixServicetype> FixServicetype { get; set; }
-		public virtual DbSet<FixNotificationtype> FixNotificationtype { get; set; }
-		public virtual DbSet<LogAudittrial> LogAudittrial { get; set; }
+        public virtual DbSet<FixNotificationtype> FixNotificationtype { get; set; }
+        public virtual DbSet<LogAudittrial> LogAudittrial { get; set; }
         public virtual DbSet<LogEmail> LogEmail { get; set; }
         public virtual DbSet<Mappingexcel> Mappingexcel { get; set; }
         public virtual DbSet<MappingexcelPbx> MappingexcelPbx { get; set; }
@@ -67,8 +65,8 @@ namespace TeleBillingUtility.Models
         public virtual DbSet<MstRequestaction> MstRequestaction { get; set; }
         public virtual DbSet<MstRole> MstRole { get; set; }
         public virtual DbSet<MstRolerights> MstRolerights { get; set; }
-		public virtual DbSet<Notificationlog> Notificationlog { get; set; }
-		public virtual DbSet<Operatorcalllog> Operatorcalllog { get; set; }
+        public virtual DbSet<Notificationlog> Notificationlog { get; set; }
+        public virtual DbSet<Operatorcalllog> Operatorcalllog { get; set; }
         public virtual DbSet<Provider> Provider { get; set; }
         public virtual DbSet<Providercontactdetail> Providercontactdetail { get; set; }
         public virtual DbSet<Providerpackage> Providerpackage { get; set; }
@@ -91,53 +89,53 @@ namespace TeleBillingUtility.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-				#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseMySql("Server=172.16.4.185;Database=telebilling_v01;User ID=aspnet;Password=aspnet;persist security info=True;Connect Timeout=200;Max Pool Size=200;Min Pool Size=5;Pooling=true;Connection Lifetime=300");
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseMySql("Server=192.168.1.5;Database=telebilling_v01;User ID=aspnet;Password=aspnet;persist security info=True;Connect Timeout=200;Max Pool Size=200;Min Pool Size=5;Pooling=true;Connection Lifetime=300");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-			modelBuilder.Entity<Auditactionlog>(entity =>
-			{
-				entity.ToTable("auditactionlog");
+            modelBuilder.Entity<Auditactionlog>(entity =>
+            {
+                entity.ToTable("auditactionlog");
 
-				entity.HasIndex(e => e.AuditLogActionType)
-					.HasName("FK_AuditActionLog_AuditLogActionType");
+                entity.HasIndex(e => e.AuditLogActionType)
+                    .HasName("FK_AuditActionLog_AuditLogActionType");
 
-				entity.HasIndex(e => e.CreatedBy)
-					.HasName("FK_AuditActionLog_LoginUserId");
+                entity.HasIndex(e => e.CreatedBy)
+                    .HasName("FK_AuditActionLog_LoginUserId");
 
-				entity.Property(e => e.Id).HasColumnType("bigint(20)");
+                entity.Property(e => e.Id).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.AuditLogActionType).HasColumnType("bigint(20)");
+                entity.Property(e => e.AuditLogActionType).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.CreatedBy).HasColumnType("bigint(20)");
+                entity.Property(e => e.CreatedBy).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-				entity.Property(e => e.CreatedDateInt).HasColumnType("bigint(20)");
+                entity.Property(e => e.CreatedDateInt).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.Description)
-					.IsRequired()
-					.HasColumnType("longtext");
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasColumnType("longtext");
 
-				entity.Property(e => e.ReflectedTableId).HasColumnType("bigint(20)");
+                entity.Property(e => e.ReflectedTableId).HasColumnType("bigint(20)");
 
-				entity.HasOne(d => d.AuditLogActionTypeNavigation)
-					.WithMany(p => p.Auditactionlog)
-					.HasForeignKey(d => d.AuditLogActionType)
-					.OnDelete(DeleteBehavior.ClientSetNull)
-					.HasConstraintName("FK_AuditActionLog_AuditLogActionType");
+                entity.HasOne(d => d.AuditLogActionTypeNavigation)
+                    .WithMany(p => p.Auditactionlog)
+                    .HasForeignKey(d => d.AuditLogActionType)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_AuditActionLog_AuditLogActionType");
 
-				entity.HasOne(d => d.CreatedByNavigation)
-					.WithMany(p => p.Auditactionlog)
-					.HasForeignKey(d => d.CreatedBy)
-					.OnDelete(DeleteBehavior.ClientSetNull)
-					.HasConstraintName("FK_AuditActionLog_LoginUserId");
-			});
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.Auditactionlog)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_AuditActionLog_LoginUserId");
+            });
 
-			modelBuilder.Entity<Billdelegate>(entity =>
+            modelBuilder.Entity<Billdelegate>(entity =>
             {
                 entity.ToTable("billdelegate");
 
@@ -283,13 +281,12 @@ namespace TeleBillingUtility.Models
                     .HasForeignKey(d => d.CallTransactionTypeId)
                     .HasConstraintName("FK_BillDetails_Fix_CallType");
 
-                entity.HasOne(d => d.EmployeeBill)
-                    .WithMany(p => p.Billdetails)
-                    .HasForeignKey(d => d.EmployeeBillId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_BillDetails_EmployeeBillMaster");
+				entity.HasOne(d => d.EmployeeBill)
+				  .WithMany(p => p.Billdetails)
+				  .HasForeignKey(d => d.EmployeeBillId)
+				  .HasConstraintName("FK_BillDetails_EmployeeBillMaster");
 
-                entity.HasOne(d => d.ServiceType)
+				entity.HasOne(d => d.ServiceType)
                     .WithMany(p => p.Billdetails)
                     .HasForeignKey(d => d.ServiceTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
@@ -553,8 +550,8 @@ namespace TeleBillingUtility.Models
             modelBuilder.Entity<Emailreminderlog>(entity =>
             {
                 entity.ToTable("emailreminderlog");
-				
-				entity.HasIndex(e => e.EmployeeBillId)
+
+                entity.HasIndex(e => e.EmployeeBillId)
                     .HasName("FK_EmailReminderLog_EmployeeBillMaster");
 
                 entity.HasIndex(e => e.TemplateId)
@@ -577,7 +574,7 @@ namespace TeleBillingUtility.Models
                     .HasForeignKey(d => d.EmployeeBillId)
                     .HasConstraintName("FK_EmailReminderLog_EmployeeBillMaster");
 
-				entity.HasOne(d => d.Template)
+                entity.HasOne(d => d.Template)
                     .WithMany(p => p.Emailreminderlog)
                     .HasForeignKey(d => d.TemplateId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
@@ -630,170 +627,170 @@ namespace TeleBillingUtility.Models
                     .HasConstraintName("FK_Email_EType");
             });
 
-			modelBuilder.Entity<Employeebillmaster>(entity =>
-			{
-				entity.ToTable("employeebillmaster");
+            modelBuilder.Entity<Employeebillmaster>(entity =>
+            {
+                entity.ToTable("employeebillmaster");
 
-				entity.HasIndex(e => e.BillDelegatedEmpId)
-					.HasName("FK_EmployeeBillMaster_DelegatedEmpId");
+                entity.HasIndex(e => e.BillDelegatedEmpId)
+                    .HasName("FK_EmployeeBillMaster_DelegatedEmpId");
 
-				entity.HasIndex(e => e.BillMasterId)
-					.HasName("FK_EmployeeBillMaster_BillMaster");
+                entity.HasIndex(e => e.BillMasterId)
+                    .HasName("FK_EmployeeBillMaster_BillMaster");
 
-				entity.HasIndex(e => e.CurrencyId)
-					.HasName("FK_EmployeeBillMaster_Mst_Currency");
+                entity.HasIndex(e => e.CurrencyId)
+                    .HasName("FK_EmployeeBillMaster_Mst_Currency");
 
-				entity.HasIndex(e => e.EmpBusinessUnitId)
-					.HasName("FK_EmployeeBillMaster_Mst_BusinessUnit");
+                entity.HasIndex(e => e.EmpBusinessUnitId)
+                    .HasName("FK_EmployeeBillMaster_Mst_BusinessUnit");
 
-				entity.HasIndex(e => e.EmployeeBillStatus)
-					.HasName("FK_EmployeeBillMaster_Fix_BillEmployeeStatus");
+                entity.HasIndex(e => e.EmployeeBillStatus)
+                    .HasName("FK_EmployeeBillMaster_Fix_BillEmployeeStatus");
 
-				entity.HasIndex(e => e.EmployeeId)
-					.HasName("FK_EmployeeBillMaster_Mst_Employee");
+                entity.HasIndex(e => e.EmployeeId)
+                    .HasName("FK_EmployeeBillMaster_Mst_Employee");
 
-				entity.HasIndex(e => e.LinemanagerId)
-					.HasName("FK_EmployeeBillMaster_Mst_Employee1");
+                entity.HasIndex(e => e.LinemanagerId)
+                    .HasName("FK_EmployeeBillMaster_Mst_Employee1");
 
-				entity.HasIndex(e => e.MobileAssignType)
-					.HasName("FK_EmployeeBillMaster_Fix_AssignType");
+                entity.HasIndex(e => e.MobileAssignType)
+                    .HasName("FK_EmployeeBillMaster_Fix_AssignType");
 
-				entity.HasIndex(e => e.ProviderId)
-					.HasName("FK_EmployeeBillMaster_Provider");
+                entity.HasIndex(e => e.ProviderId)
+                    .HasName("FK_EmployeeBillMaster_Provider");
 
-				entity.Property(e => e.Id).HasColumnType("bigint(20)");
+                entity.Property(e => e.Id).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.ApprovalComment).HasColumnType("longtext");
+                entity.Property(e => e.ApprovalComment).HasColumnType("longtext");
 
-				entity.Property(e => e.ApprovalDate).HasColumnType("datetime");
+                entity.Property(e => e.ApprovalDate).HasColumnType("datetime");
 
-				entity.Property(e => e.ApprovalDateInt).HasColumnType("bigint(20)");
+                entity.Property(e => e.ApprovalDateInt).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.ApprovalById).HasColumnType("bigint(20)");
+                entity.Property(e => e.ApprovalById).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.BillClosedDate).HasColumnType("datetime(3)");
+                entity.Property(e => e.BillClosedDate).HasColumnType("datetime(3)");
 
-				entity.Property(e => e.BillClosedDateInt).HasColumnType("bigint(20)");
+                entity.Property(e => e.BillClosedDateInt).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.BillDelegatedEmpId).HasColumnType("bigint(20)");
+                entity.Property(e => e.BillDelegatedEmpId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.BillMasterId).HasColumnType("bigint(20)");
+                entity.Property(e => e.BillMasterId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.BillMonth).HasColumnType("int(11)");
+                entity.Property(e => e.BillMonth).HasColumnType("int(11)");
 
-				entity.Property(e => e.BillNumber)
-					.IsRequired()
-					.HasColumnType("varchar(50)");
+                entity.Property(e => e.BillNumber)
+                    .IsRequired()
+                    .HasColumnType("varchar(50)");
 
-				entity.Property(e => e.BillYear).HasColumnType("int(11)");
+                entity.Property(e => e.BillYear).HasColumnType("int(11)");
 
-				entity.Property(e => e.CreatedBy).HasColumnType("bigint(20)");
+                entity.Property(e => e.CreatedBy).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.CreatedDate).HasColumnType("datetime(3)");
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime(3)");
 
-				entity.Property(e => e.CreatedDateInt).HasColumnType("bigint(20)");
+                entity.Property(e => e.CreatedDateInt).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.CurrencyId).HasColumnType("bigint(20)");
+                entity.Property(e => e.CurrencyId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.Description).HasColumnType("longtext");
+                entity.Property(e => e.Description).HasColumnType("longtext");
 
-				entity.Property(e => e.EmpBusinessUnitId).HasColumnType("bigint(20)");
+                entity.Property(e => e.EmpBusinessUnitId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.EmployeeBillStatus).HasColumnType("int(11)");
+                entity.Property(e => e.EmployeeBillStatus).HasColumnType("int(11)");
 
-				entity.Property(e => e.EmployeeId).HasColumnType("bigint(20)");
+                entity.Property(e => e.EmployeeId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.IdentificationById).HasColumnType("bigint(20)");
+                entity.Property(e => e.IdentificationById).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.IdentificationDate).HasColumnType("datetime(3)");
+                entity.Property(e => e.IdentificationDate).HasColumnType("datetime(3)");
 
-				entity.Property(e => e.IdentificationDateInt).HasColumnType("bigint(20)");
+                entity.Property(e => e.IdentificationDateInt).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.IsApproved).HasColumnType("bit(1)");
+                entity.Property(e => e.IsApproved).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsApprovedByDelegate).HasColumnType("bit(1)");
+                entity.Property(e => e.IsApprovedByDelegate).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsDelete).HasColumnType("bit(1)");
+                entity.Property(e => e.IsDelete).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsIdentificationByDelegate).HasColumnType("bit(1)");
+                entity.Property(e => e.IsIdentificationByDelegate).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsReIdentificationRequest).HasColumnType("bit(1)");
+                entity.Property(e => e.IsReIdentificationRequest).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsReImbursementRequest).HasColumnType("bit(1)");
+                entity.Property(e => e.IsReImbursementRequest).HasColumnType("bit(1)");
 
-				entity.Property(e => e.LinemanagerId).HasColumnType("bigint(20)");
+                entity.Property(e => e.LinemanagerId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.MobileAssignType).HasColumnType("bigint(20)");
+                entity.Property(e => e.MobileAssignType).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.PreviousEmployeeBillId).HasColumnType("bigint(20)");
+                entity.Property(e => e.PreviousEmployeeBillId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.ProviderId).HasColumnType("bigint(20)");
+                entity.Property(e => e.ProviderId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.TelephoneNumber).HasColumnType("varchar(20)");
+                entity.Property(e => e.TelephoneNumber).HasColumnType("varchar(20)");
 
-				entity.Property(e => e.TotalBillAmount).HasColumnType("decimal(20,2)");
+                entity.Property(e => e.TotalBillAmount).HasColumnType("decimal(20,2)");
 
-				entity.Property(e => e.TransactionId).HasColumnType("bigint(20)");
+                entity.Property(e => e.TransactionId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.UpdatedBy).HasColumnType("bigint(20)");
+                entity.Property(e => e.UpdatedBy).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-				entity.Property(e => e.UpdatedDateInt).HasColumnType("bigint(20)");
+                entity.Property(e => e.UpdatedDateInt).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.BillDelegatedEmpId).HasColumnType("bigint(20)");
+                entity.Property(e => e.BillDelegatedEmpId).HasColumnType("bigint(20)");
 
 
-				entity.HasOne(d => d.BillDelegatedEmp)
-					.WithMany(p => p.EmployeebillmasterBillDelegatedEmp)
-					.HasForeignKey(d => d.BillDelegatedEmpId)
-					.HasConstraintName("FK_EmployeeBillMaster_DelegatedEmpId");
+                entity.HasOne(d => d.BillDelegatedEmp)
+                    .WithMany(p => p.EmployeebillmasterBillDelegatedEmp)
+                    .HasForeignKey(d => d.BillDelegatedEmpId)
+                    .HasConstraintName("FK_EmployeeBillMaster_DelegatedEmpId");
 
-				entity.HasOne(d => d.BillMaster)
-					.WithMany(p => p.Employeebillmaster)
-					.HasForeignKey(d => d.BillMasterId)
-					.OnDelete(DeleteBehavior.ClientSetNull)
-					.HasConstraintName("FK_EmployeeBillMaster_BillMaster");
+                entity.HasOne(d => d.BillMaster)
+                    .WithMany(p => p.Employeebillmaster)
+                    .HasForeignKey(d => d.BillMasterId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeBillMaster_BillMaster");
 
-				entity.HasOne(d => d.Currency)
-					.WithMany(p => p.Employeebillmaster)
-					.HasForeignKey(d => d.CurrencyId)
-					.HasConstraintName("FK_EmployeeBillMaster_Mst_Currency");
+                entity.HasOne(d => d.Currency)
+                    .WithMany(p => p.Employeebillmaster)
+                    .HasForeignKey(d => d.CurrencyId)
+                    .HasConstraintName("FK_EmployeeBillMaster_Mst_Currency");
 
-				entity.HasOne(d => d.EmpBusinessUnit)
-					.WithMany(p => p.Employeebillmaster)
-					.HasForeignKey(d => d.EmpBusinessUnitId)
-					.HasConstraintName("FK_EmployeeBillMaster_Mst_BusinessUnit");
+                entity.HasOne(d => d.EmpBusinessUnit)
+                    .WithMany(p => p.Employeebillmaster)
+                    .HasForeignKey(d => d.EmpBusinessUnitId)
+                    .HasConstraintName("FK_EmployeeBillMaster_Mst_BusinessUnit");
 
-				entity.HasOne(d => d.EmployeeBillStatusNavigation)
-					.WithMany(p => p.Employeebillmaster)
-					.HasForeignKey(d => d.EmployeeBillStatus)
-					.OnDelete(DeleteBehavior.ClientSetNull)
-					.HasConstraintName("FK_EmployeeBillMaster_Fix_BillEmployeeStatus");
+                entity.HasOne(d => d.EmployeeBillStatusNavigation)
+                    .WithMany(p => p.Employeebillmaster)
+                    .HasForeignKey(d => d.EmployeeBillStatus)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeBillMaster_Fix_BillEmployeeStatus");
 
-				entity.HasOne(d => d.Employee)
-					.WithMany(p => p.EmployeebillmasterEmployee)
-					.HasForeignKey(d => d.EmployeeId)
-					.HasConstraintName("FK_EmployeeBillMaster_Mst_Employee");
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.EmployeebillmasterEmployee)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK_EmployeeBillMaster_Mst_Employee");
 
-				entity.HasOne(d => d.Linemanager)
-					.WithMany(p => p.EmployeebillmasterLinemanager)
-					.HasForeignKey(d => d.LinemanagerId)
-					.HasConstraintName("FK_EmployeeBillMaster_Mst_Employee1");
+                entity.HasOne(d => d.Linemanager)
+                    .WithMany(p => p.EmployeebillmasterLinemanager)
+                    .HasForeignKey(d => d.LinemanagerId)
+                    .HasConstraintName("FK_EmployeeBillMaster_Mst_Employee1");
 
-				entity.HasOne(d => d.MobileAssignTypeNavigation)
-					.WithMany(p => p.Employeebillmaster)
-					.HasForeignKey(d => d.MobileAssignType)
-					.HasConstraintName("FK_EmployeeBillMaster_Fix_AssignType");
+                entity.HasOne(d => d.MobileAssignTypeNavigation)
+                    .WithMany(p => p.Employeebillmaster)
+                    .HasForeignKey(d => d.MobileAssignType)
+                    .HasConstraintName("FK_EmployeeBillMaster_Fix_AssignType");
 
-				entity.HasOne(d => d.Provider)
-					.WithMany(p => p.Employeebillmaster)
-					.HasForeignKey(d => d.ProviderId)
-					.OnDelete(DeleteBehavior.ClientSetNull)
-					.HasConstraintName("FK_EmployeeBillMaster_Provider");
-			});
+                entity.HasOne(d => d.Provider)
+                    .WithMany(p => p.Employeebillmaster)
+                    .HasForeignKey(d => d.ProviderId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeBillMaster_Provider");
+            });
 
-			modelBuilder.Entity<Employeebillservicepackage>(entity =>
+            modelBuilder.Entity<Employeebillservicepackage>(entity =>
             {
                 entity.ToTable("employeebillservicepackage");
 
@@ -818,7 +815,7 @@ namespace TeleBillingUtility.Models
 
                 entity.Property(e => e.IsDelete).HasColumnType("bit(1)");
 
-                entity.Property(e => e.PackageId).HasColumnType("bigint(20)");
+				entity.Property(e => e.PackageId).HasColumnType("bigint(20)");
 
                 entity.Property(e => e.PersonalIdentificationAmount).HasColumnType("decimal(20,0)");
 
@@ -838,13 +835,12 @@ namespace TeleBillingUtility.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_EmployeeBillServicePackage_EmployeeBillMaster");
 
-                entity.HasOne(d => d.Package)
-                    .WithMany(p => p.Employeebillservicepackage)
-                    .HasForeignKey(d => d.PackageId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeBillServicePackage_ProviderPackage");
+				entity.HasOne(d => d.Package)
+				  .WithMany(p => p.Employeebillservicepackage)
+				  .HasForeignKey(d => d.PackageId)
+				  .HasConstraintName("FK_EmployeeBillServicePackage_ProviderPackage");
 
-                entity.HasOne(d => d.ServiceType)
+				entity.HasOne(d => d.ServiceType)
                     .WithMany(p => p.Employeebillservicepackage)
                     .HasForeignKey(d => d.ServiceTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1243,20 +1239,20 @@ namespace TeleBillingUtility.Models
                     .HasColumnType("varchar(50)");
             });
 
-			modelBuilder.Entity<FixAuditlogactiontype>(entity =>
-			{
-				entity.ToTable("fix_auditlogactiontype");
+            modelBuilder.Entity<FixAuditlogactiontype>(entity =>
+            {
+                entity.ToTable("fix_auditlogactiontype");
 
-				entity.Property(e => e.Id).HasColumnType("bigint(20)");
+                entity.Property(e => e.Id).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.IsDeleted).HasColumnType("bit(1)");
+                entity.Property(e => e.IsDeleted).HasColumnType("bit(1)");
 
-				entity.Property(e => e.Name)
-					.IsRequired()
-					.HasColumnType("varchar(255)");
-			});
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnType("varchar(255)");
+            });
 
-			modelBuilder.Entity<FixBillemployeestatus>(entity =>
+            modelBuilder.Entity<FixBillemployeestatus>(entity =>
             {
                 entity.ToTable("fix_billemployeestatus");
 
@@ -1414,20 +1410,20 @@ namespace TeleBillingUtility.Models
                     .HasColumnType("varchar(50)");
             });
 
-			modelBuilder.Entity<FixNotificationtype>(entity =>
-			{
-				entity.ToTable("fix_notificationtype");
+            modelBuilder.Entity<FixNotificationtype>(entity =>
+            {
+                entity.ToTable("fix_notificationtype");
 
-				entity.Property(e => e.Id).HasColumnType("bigint(20)");
+                entity.Property(e => e.Id).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-				entity.Property(e => e.Name)
-					.IsRequired()
-					.HasColumnType("varchar(255)");
-			});
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasColumnType("varchar(255)");
+            });
 
-			modelBuilder.Entity<FixServicetype>(entity =>
+            modelBuilder.Entity<FixServicetype>(entity =>
             {
                 entity.ToTable("fix_servicetype");
 
@@ -1621,8 +1617,8 @@ namespace TeleBillingUtility.Models
 
                 entity.Property(e => e.ExcelColumnNameForTitle).HasColumnType("varchar(6)");
 
-				entity.Property(e => e.ExcelReadingColumn).HasColumnType("varchar(6)");
-				
+                entity.Property(e => e.ExcelReadingColumn).HasColumnType("varchar(6)");
+
                 entity.Property(e => e.HaveHeader).HasColumnType("bit(1)");
 
                 entity.Property(e => e.HaveTitle).HasColumnType("bit(1)");
@@ -2341,9 +2337,9 @@ namespace TeleBillingUtility.Models
 
                 entity.Property(e => e.IsReadOnly).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsEditable).HasColumnType("bit(1)");
+                entity.Property(e => e.IsEditable).HasColumnType("bit(1)");
 
-				entity.Property(e => e.LinkId).HasColumnType("bigint(20)");
+                entity.Property(e => e.LinkId).HasColumnType("bigint(20)");
 
                 entity.Property(e => e.RoleId).HasColumnType("bigint(20)");
 
@@ -2356,60 +2352,60 @@ namespace TeleBillingUtility.Models
                     .HasConstraintName("FK_Role");
             });
 
-			modelBuilder.Entity<Notificationlog>(entity =>
-			{
-				entity.ToTable("notificationlog");
+            modelBuilder.Entity<Notificationlog>(entity =>
+            {
+                entity.ToTable("notificationlog");
 
-				entity.HasIndex(e => e.ActionUserId)
-					.HasName("FK_NotificationLog_ActionMstEmployee");
+                entity.HasIndex(e => e.ActionUserId)
+                    .HasName("FK_NotificationLog_ActionMstEmployee");
 
-				entity.HasIndex(e => e.NotificationTypeId)
-					.HasName("FK_NotificationLog_NotificationType");
+                entity.HasIndex(e => e.NotificationTypeId)
+                    .HasName("FK_NotificationLog_NotificationType");
 
-				entity.HasIndex(e => e.UserId)
-					.HasName("FK_NotificaitonLog_MstEmployee");
+                entity.HasIndex(e => e.UserId)
+                    .HasName("FK_NotificaitonLog_MstEmployee");
 
-				entity.Property(e => e.Id).HasColumnType("bigint(20)");
+                entity.Property(e => e.Id).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.ActionUserId).HasColumnType("bigint(20)");
+                entity.Property(e => e.ActionUserId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-				entity.Property(e => e.CreatedDateInt).HasColumnType("bigint(20)");
+                entity.Property(e => e.CreatedDateInt).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.EmployeeBillIormemoId)
-					.HasColumnName("EmployeeBillIORMemoId")
-					.HasColumnType("bigint(20)");
+                entity.Property(e => e.EmployeeBillIormemoId)
+                    .HasColumnName("EmployeeBillIORMemoId")
+                    .HasColumnType("bigint(20)");
 
-				entity.Property(e => e.IsDeleted).HasColumnType("bit(1)");
+                entity.Property(e => e.IsDeleted).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsReadNotification).HasColumnType("bit(1)");
+                entity.Property(e => e.IsReadNotification).HasColumnType("bit(1)");
 
-				entity.Property(e => e.NotificationText).HasColumnType("varchar(255)");
+                entity.Property(e => e.NotificationText).HasColumnType("varchar(255)");
 
-				entity.Property(e => e.NotificationTypeId).HasColumnType("bigint(20)");
+                entity.Property(e => e.NotificationTypeId).HasColumnType("bigint(20)");
 
-				entity.Property(e => e.UserId).HasColumnType("bigint(20)");
+                entity.Property(e => e.UserId).HasColumnType("bigint(20)");
 
-				entity.HasOne(d => d.ActionUser)
-					.WithMany(p => p.NotificationlogActionUser)
-					.HasForeignKey(d => d.ActionUserId)
-					.HasConstraintName("FK_NotificationLog_ActionMstEmployee");
+                entity.HasOne(d => d.ActionUser)
+                    .WithMany(p => p.NotificationlogActionUser)
+                    .HasForeignKey(d => d.ActionUserId)
+                    .HasConstraintName("FK_NotificationLog_ActionMstEmployee");
 
-				entity.HasOne(d => d.NotificationType)
-					.WithMany(p => p.Notificationlog)
-					.HasForeignKey(d => d.NotificationTypeId)
-					.OnDelete(DeleteBehavior.ClientSetNull)
-					.HasConstraintName("FK_NotificationLog_NotificationType");
+                entity.HasOne(d => d.NotificationType)
+                    .WithMany(p => p.Notificationlog)
+                    .HasForeignKey(d => d.NotificationTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_NotificationLog_NotificationType");
 
-				entity.HasOne(d => d.User)
-					.WithMany(p => p.NotificationlogUser)
-					.HasForeignKey(d => d.UserId)
-					.OnDelete(DeleteBehavior.ClientSetNull)
-					.HasConstraintName("FK_NotificaitonLog_MstEmployee");
-			});
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.NotificationlogUser)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_NotificaitonLog_MstEmployee");
+            });
 
-			modelBuilder.Entity<Operatorcalllog>(entity =>
+            modelBuilder.Entity<Operatorcalllog>(entity =>
             {
                 entity.ToTable("operatorcalllog");
 
@@ -3056,9 +3052,9 @@ namespace TeleBillingUtility.Models
 
                 entity.Property(e => e.IsDelete).HasColumnType("bit(1)");
 
-				entity.Property(e => e.IsActive).HasColumnType("bit(1)");
-					
-				entity.Property(e => e.ProviderId).HasColumnType("bigint(20)");
+                entity.Property(e => e.IsActive).HasColumnType("bit(1)");
+
+                entity.Property(e => e.ProviderId).HasColumnType("bigint(20)");
 
                 entity.Property(e => e.SetTypeAs)
                     .HasColumnName("SetTypeAS")
@@ -3110,7 +3106,7 @@ namespace TeleBillingUtility.Models
 
                 entity.Property(e => e.CallTime).HasColumnType("longtext");
 
-             
+
 
                 entity.Property(e => e.CallWithinGroup).HasColumnType("longtext");
 
@@ -3124,7 +3120,7 @@ namespace TeleBillingUtility.Models
 
                 entity.Property(e => e.CostCentre).HasColumnType("longtext");
 
-                
+
 
                 entity.Property(e => e.Description).HasColumnType("longtext");
 

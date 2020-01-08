@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class AssignTelePhoneSP
-	{
+    public class AssignTelePhoneSP
+    {
         public AssignTelePhoneSP()
         {
             AllocatePackageDetails = new List<AssignTelePhonePackageDetailAC>();
@@ -13,19 +12,19 @@ namespace TeleBillingUtility.ApplicationClass
         }
 
         [JsonProperty("id")]
-		public long Id { get; set; }
+        public long Id { get; set; }
 
-		[JsonProperty("telephonenumber")]
-		public string TelephoneNumber { get; set; }
+        [JsonProperty("telephonenumber")]
+        public string TelephoneNumber { get; set; }
 
         [JsonProperty("addtionalinfo")]
         public string AdditionalInfo { get; set; }
 
-		[JsonProperty("employeename")]
-		public string EmployeeName { get; set; }
+        [JsonProperty("employeename")]
+        public string EmployeeName { get; set; }
 
-		[JsonProperty("emppfnumber")]
-		public string EmpPFNumber { get; set; }
+        [JsonProperty("emppfnumber")]
+        public string EmpPFNumber { get; set; }
 
         [JsonProperty("emailid")]
         public string EmailId { get; set; }
@@ -37,30 +36,30 @@ namespace TeleBillingUtility.ApplicationClass
         public string DelegateUser { get; set; }
 
         [JsonProperty("description")]
-		public string Description { get; set; }
+        public string Description { get; set; }
 
-		[JsonProperty("department")]
-		public string Department { get; set; }       
+        [JsonProperty("department")]
+        public string Department { get; set; }
 
         [JsonProperty("assigntype")]
-		public string AssignType { get; set; }
+        public string AssignType { get; set; }
 
-		[JsonProperty("costcenter")]
-		public string CostCenter { get; set; }
+        [JsonProperty("costcenter")]
+        public string CostCenter { get; set; }
 
-		[JsonProperty("linestatus")]
-		public string LineStatus { get; set; }
+        [JsonProperty("linestatus")]
+        public string LineStatus { get; set; }
 
         [JsonProperty("reason")]
-        public string Reason { get; set; }      
+        public string Reason { get; set; }
 
-		[JsonProperty("isactive")]
-		public long IsActive { get; set; }
+        [JsonProperty("isactive")]
+        public long IsActive { get; set; }
 
         [JsonProperty("AllocatepackageDetails")]
         public List<AssignTelePhonePackageDetailAC> AllocatePackageDetails { get; set; }
- 
-	}
+
+    }
     public class AssignTelePhoneAC
     {
         public AssignTelePhoneAC()
@@ -112,7 +111,8 @@ namespace TeleBillingUtility.ApplicationClass
         public string Reason { get; set; }
 
         [JsonProperty("isactive")]
-        public bool IsActive {
+        public bool IsActive
+        {
 
             get { return (IsActive1 == 1 ? true : false); }
             set
@@ -154,6 +154,6 @@ namespace TeleBillingUtility.ApplicationClass
         [JsonProperty("packagecurrentstatus")]
         public string PackageCurrentStatus { get; set; }
 
-        
+
     }
- }
+}

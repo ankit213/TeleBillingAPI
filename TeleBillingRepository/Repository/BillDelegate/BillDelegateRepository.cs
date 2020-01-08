@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using TeleBillingRepository.Service.Constants;
 using TeleBillingRepository.Service.LogMangement;
@@ -17,15 +16,15 @@ namespace TeleBillingRepository.Repository.BillDelegate
     public class BillDelegateRepository : IBillDelegateRepository
     {
         #region "Private Variable(s)"
-        private readonly telebilling_v01Context  _dbTeleBilling_V01Context;
+        private readonly telebilling_v01Context _dbTeleBilling_V01Context;
         private readonly ILogManagement _iLogManagement;
         private readonly IStringConstant _iStringConstant;
         private IMapper _mapper;
-     
+
         #endregion
 
         #region "Constructor"
-        public BillDelegateRepository(telebilling_v01Context  dbTeleBilling_V01Context, IMapper mapper, ILogManagement ilogManagement,
+        public BillDelegateRepository(telebilling_v01Context dbTeleBilling_V01Context, IMapper mapper, ILogManagement ilogManagement,
             IStringConstant iStringConstant)
         {
             _dbTeleBilling_V01Context = dbTeleBilling_V01Context;
@@ -38,32 +37,32 @@ namespace TeleBillingRepository.Repository.BillDelegate
         #region "Public Method(s)"
 
 
-   
+
         public async Task<List<BillDelegatesListAC>> GetDelegates()
         {
             try
             {
-			
-				List<TeleBillingUtility.Models.Billdelegate> lstDetails = await _dbTeleBilling_V01Context.Billdelegate
+
+                List<TeleBillingUtility.Models.Billdelegate> lstDetails = await _dbTeleBilling_V01Context.Billdelegate
                                                                       .Where(x => !x.IsDelete)
                                                                       .OrderByDescending(x => x.CreatedDate)
                                                                       .Include(x => x.DelegateEmployee)
                                                                       .Include(x => x.Employee)
-                                                                      .ToListAsync();      
+                                                                      .ToListAsync();
                 return _mapper.Map<List<BillDelegatesListAC>>(lstDetails);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return new List<BillDelegatesListAC>();
             }
-           
-           
+
+
         }
 
 
         public async Task<BillDelegatesAC> GetDelegateById(long id)
         {
-            TeleBillingUtility.Models.Billdelegate delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Include(x=>x.Employee).Include(x=>x.DelegateEmployee).FirstOrDefaultAsync(x => !x.IsDelete && x.Id == id);
+            TeleBillingUtility.Models.Billdelegate delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Include(x => x.Employee).Include(x => x.DelegateEmployee).FirstOrDefaultAsync(x => !x.IsDelete && x.Id == id);
             BillDelegatesAC billDelegatesAC = new BillDelegatesAC();
             billDelegatesAC.Id = id;
             billDelegatesAC.Employee = new EmployeeAC();
@@ -101,9 +100,9 @@ namespace TeleBillingRepository.Repository.BillDelegate
                 await _dbTeleBilling_V01Context.SaveChangesAsync();
                 responeAC.Message = _iStringConstant.DelegateUpdateSuccessfully;
                 responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditDelegate, loginUserName, userId, "Delegate user", (int)EnumList.ActionTemplateTypes.Edit, delegateDetail.Id);
-			}
-			else
+                await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.EditDelegate, loginUserName, userId, "Delegate user", (int)EnumList.ActionTemplateTypes.Edit, delegateDetail.Id);
+            }
+            else
             {
                 responeAC.Message = _iStringConstant.DelegateAlreadyExists;
                 responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
@@ -114,7 +113,7 @@ namespace TeleBillingRepository.Repository.BillDelegate
         public async Task<ResponseAC> AddDelegate(BillDelegatesAC billDelegatesAC, long userId, string loginUserName)
         {
             ResponseAC responeAC = new ResponseAC();
-            
+
             if (await _dbTeleBilling_V01Context.Billdelegate.FirstOrDefaultAsync(x => x.EmployeeId == billDelegatesAC.Employee.UserId && x.DelegateEmployeeId == billDelegatesAC.DelegateEmployee.UserId && !x.IsDelete) == null)
             {
                 TeleBillingUtility.Models.Billdelegate delegateDetail = new TeleBillingUtility.Models.Billdelegate();
@@ -132,8 +131,8 @@ namespace TeleBillingRepository.Repository.BillDelegate
                 responeAC.Message = _iStringConstant.DelegateAddedSuccessfully;
                 responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
 
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddDelegate, loginUserName, userId, "Delegate user", (int)EnumList.ActionTemplateTypes.Add, delegateDetail.Id);
-			}
+                await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.AddDelegate, loginUserName, userId, "Delegate user", (int)EnumList.ActionTemplateTypes.Add, delegateDetail.Id);
+            }
             else
             {
                 responeAC.Message = _iStringConstant.DelegateAlreadyExists;
@@ -152,75 +151,75 @@ namespace TeleBillingRepository.Repository.BillDelegate
                 delegateDetail.UpdatedDate = DateTime.Now;
                 _dbTeleBilling_V01Context.Update(delegateDetail);
                 await _dbTeleBilling_V01Context.SaveChangesAsync();
-				await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteDelegate, loginUserName, userId, "Delegate user", (int)EnumList.ActionTemplateTypes.Delete, delegateDetail.Id);
-				return true;
+                await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.DeleteDelegate, loginUserName, userId, "Delegate user", (int)EnumList.ActionTemplateTypes.Delete, delegateDetail.Id);
+                return true;
             }
             return false;
         }
 
-        public async Task<ResponseAC> checkDelegatePair(EmployeeAC Employee, EmployeeAC DelegateEmployee,long delegateid=0)
+        public async Task<ResponseAC> checkDelegatePair(EmployeeAC Employee, EmployeeAC DelegateEmployee, long delegateid = 0)
         {
             ResponseAC responeAC = new ResponseAC();
 
 
-			#region --> Check Pair Wise
+            #region --> Check Pair Wise
 
-			if (Employee != null && Employee.UserId > 0 && DelegateEmployee != null && DelegateEmployee.UserId > 0)
-			{
-				TeleBillingUtility.Models.Billdelegate delegateDetail = new TeleBillingUtility.Models.Billdelegate();
-				// check both not same
-				if (Employee.UserId == DelegateEmployee.UserId)
-				{
-					responeAC.Message = "Employee can't delegate itself";
-					responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
-					return responeAC;
-				}
+            if (Employee != null && Employee.UserId > 0 && DelegateEmployee != null && DelegateEmployee.UserId > 0)
+            {
+                TeleBillingUtility.Models.Billdelegate delegateDetail = new TeleBillingUtility.Models.Billdelegate();
+                // check both not same
+                if (Employee.UserId == DelegateEmployee.UserId)
+                {
+                    responeAC.Message = "Employee can't delegate itself";
+                    responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
+                    return responeAC;
+                }
 
-				// check same pair dose not exists before
-				delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Where(x => x.EmployeeId == Employee.UserId && x.DelegateEmployeeId == DelegateEmployee.UserId && !x.IsDelete).FirstOrDefaultAsync();
+                // check same pair dose not exists before
+                delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Where(x => x.EmployeeId == Employee.UserId && x.DelegateEmployeeId == DelegateEmployee.UserId && !x.IsDelete).FirstOrDefaultAsync();
 
-				if (delegateDetail != null)
-				{
-					if (delegateDetail.Id > 0 && delegateDetail.Id != delegateid)
-					{
-						responeAC.Message = _iStringConstant.DelegateAlreadyExists;
-						responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
-						return responeAC;
-					}
-					else if (delegateDetail.Id == delegateid)
-					{
-						responeAC.Message = "valid";
-						responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
-						return responeAC;
-					}
-				}
+                if (delegateDetail != null)
+                {
+                    if (delegateDetail.Id > 0 && delegateDetail.Id != delegateid)
+                    {
+                        responeAC.Message = _iStringConstant.DelegateAlreadyExists;
+                        responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
+                        return responeAC;
+                    }
+                    else if (delegateDetail.Id == delegateid)
+                    {
+                        responeAC.Message = "valid";
+                        responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
+                        return responeAC;
+                    }
+                }
 
-			}
+            }
 
-			#endregion
+            #endregion
 
-			#region --> Check it is not Multi level Delegate 
+            #region --> Check it is not Multi level Delegate 
 
-			if (DelegateEmployee != null && DelegateEmployee.UserId > 0)
-			{
-				TeleBillingUtility.Models.Billdelegate delegateDetail = new TeleBillingUtility.Models.Billdelegate();
-				List<TeleBillingUtility.Models.Billdelegate> delegatelist = new List<TeleBillingUtility.Models.Billdelegate>();
+            if (DelegateEmployee != null && DelegateEmployee.UserId > 0)
+            {
+                TeleBillingUtility.Models.Billdelegate delegateDetail = new TeleBillingUtility.Models.Billdelegate();
+                List<TeleBillingUtility.Models.Billdelegate> delegatelist = new List<TeleBillingUtility.Models.Billdelegate>();
 
-				delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Where(x => x.EmployeeId == DelegateEmployee.UserId && !x.IsDelete).FirstOrDefaultAsync();
-				if (delegateDetail != null)
-				{
-					if (delegateDetail.Id > 0)
-					{
-						responeAC.Message = "Invalid multilevel delegate! This employee (" + DelegateEmployee.FullName + ") is already delegated to another.";
-						responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
-						return responeAC;
-					}
-				}
-			}
-			#endregion
+                delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Where(x => x.EmployeeId == DelegateEmployee.UserId && !x.IsDelete).FirstOrDefaultAsync();
+                if (delegateDetail != null)
+                {
+                    if (delegateDetail.Id > 0)
+                    {
+                        responeAC.Message = "Invalid multilevel delegate! This employee (" + DelegateEmployee.FullName + ") is already delegated to another.";
+                        responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
+                        return responeAC;
+                    }
+                }
+            }
+            #endregion
 
-			#region --> Check Employee can delegate to other ?
-			if (Employee != null && Employee.UserId > 0)
+            #region --> Check Employee can delegate to other ?
+            if (Employee != null && Employee.UserId > 0)
             {
                 TeleBillingUtility.Models.Billdelegate delegateDetail = new TeleBillingUtility.Models.Billdelegate();
                 List<TeleBillingUtility.Models.Billdelegate> delegatelist = new List<TeleBillingUtility.Models.Billdelegate>();
@@ -229,22 +228,23 @@ namespace TeleBillingRepository.Repository.BillDelegate
                 {
                     delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.FindAsync(delegateid);
 
-                    if (delegateDetail != null) { 
-                    if (delegateDetail.EmployeeId != Employee.UserId)
+                    if (delegateDetail != null)
                     {
-                        delegatelist = await _dbTeleBilling_V01Context.Billdelegate.Where(x => (x.EmployeeId == Employee.UserId || x.DelegateEmployeeId == Employee.UserId) && !x.IsDelete).ToListAsync();
-                        if (delegatelist != null)
+                        if (delegateDetail.EmployeeId != Employee.UserId)
                         {
-                            if (delegatelist.Count() > 0)
+                            delegatelist = await _dbTeleBilling_V01Context.Billdelegate.Where(x => (x.EmployeeId == Employee.UserId || x.DelegateEmployeeId == Employee.UserId) && !x.IsDelete).ToListAsync();
+                            if (delegatelist != null)
                             {
-                                responeAC.Message = "Employee (" + Employee.FullName + ") can't delegate to other because it is already used in delegate.";
-                                responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
-                                return responeAC;
+                                if (delegatelist.Count() > 0)
+                                {
+                                    responeAC.Message = "Employee (" + Employee.FullName + ") can't delegate to other because it is already used in delegate.";
+                                    responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
+                                    return responeAC;
+                                }
                             }
-                        }
 
+                        }
                     }
-                }
                 }
                 else
                 {
@@ -263,7 +263,7 @@ namespace TeleBillingRepository.Repository.BillDelegate
 
             #endregion
 
-            
+
 
             responeAC.Message = "valid";
             responeAC.StatusCode = Convert.ToInt16(EnumList.ResponseType.Success);
@@ -322,7 +322,7 @@ namespace TeleBillingRepository.Repository.BillDelegate
             List<TeleBillingUtility.Models.Billdelegate> delegatelist = new List<TeleBillingUtility.Models.Billdelegate>();
             if (DelegateToEmployee != null && DelegateToEmployee.UserId > 0)
             {
-                delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Where(x =>x.EmployeeId == DelegateToEmployee.UserId && !x.IsDelete).FirstOrDefaultAsync();
+                delegateDetail = await _dbTeleBilling_V01Context.Billdelegate.Where(x => x.EmployeeId == DelegateToEmployee.UserId && !x.IsDelete).FirstOrDefaultAsync();
 
                 if (delegateDetail.Id > 0)
                 {

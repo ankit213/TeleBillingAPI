@@ -16,8 +16,8 @@ namespace TeleBillingUtility.Models
         public long ProviderId { get; set; }
         public string Name { get; set; }
         public DateTime StartDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? StartDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? StartDateInt { get; set; }
         public string Description { get; set; }
         public long ServiceTypeId { get; set; }
         public int PackageMonth { get; set; }
@@ -46,12 +46,12 @@ namespace TeleBillingUtility.Models
         public decimal? DevicePenaltyAmount { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
         public long? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? UpdatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? UpdatedDateInt { get; set; }
         public long? TransactionId { get; set; }
 
         public virtual MstInternetdevicedetail InternetDevice { get; set; }

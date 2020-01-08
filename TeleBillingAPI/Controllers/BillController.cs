@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NLog;
 using OfficeOpenXml;
@@ -43,9 +42,9 @@ namespace TeleBillingAPI.Controllers
 
         #region "Constructor"
         public BillController(IBillUploadRepository iBillUploadRepository, ILogManagement ilogManagement
-            ,IBillDelegateRepository ibillDelegateRepository
+            , IBillDelegateRepository ibillDelegateRepository
             , IEmployeeRepository iEmployeeRepository
-            ,IHostingEnvironment hostingEnvironment
+            , IHostingEnvironment hostingEnvironment
             )
         {
             _iBillUploadRepository = iBillUploadRepository;
@@ -58,18 +57,10 @@ namespace TeleBillingAPI.Controllers
 
         #region "Public Method(s)"
 
-
-
         [HttpGet]
         [Route("billuploadedlist")]
         public async Task<IActionResult> GetBillUplaodedList()
         {
-            //string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-            //string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-            //LogManager.Configuration.Variables["user"] = fullname + '('+ userId + ')';
-            //LogManager.Configuration.Variables["stepno"] = "0-list";
-            //_logger.Info("Request bill uplaoded list");
-
             return Ok(await _iBillUploadRepository.GetBillUploadedList());
         }
 
@@ -80,50 +71,48 @@ namespace TeleBillingAPI.Controllers
             return Ok(await _iBillUploadRepository.GetPbxBillUploadedList());
         }
 
-
         [HttpGet]
         [Route("deleteupload/{id}")]
         public async Task<IActionResult> DeleteExcelUpload(long id)
         {
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _iBillUploadRepository.DeleteExcelUplaod(Convert.ToInt64(userId), id, fullname));
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _iBillUploadRepository.DeleteExcelUplaod(Convert.ToInt64(userId), id, fullname));
         }
 
         [HttpGet]
         [Route("approveupload/{id}")]
         public async Task<IActionResult> ApproveExcelUpload(long id)
         {
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _iBillUploadRepository.ApproveExcelUploadLog(Convert.ToInt64(userId), id, fullname));
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _iBillUploadRepository.ApproveExcelUploadLog(Convert.ToInt64(userId), id, fullname));
         }
 
         [HttpGet]
         [Route("approveuploadpbx/{id}")]
         public async Task<IActionResult> ApproveExcelUploadPbx(long id)
         {
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _iBillUploadRepository.ApproveExcelUploadPbxLog(Convert.ToInt64(userId), id, fullname));
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _iBillUploadRepository.ApproveExcelUploadPbxLog(Convert.ToInt64(userId), id, fullname));
         }
 
         [HttpGet]
         [Route("checkisbillallocated/{id}")]
         public IActionResult CheckIsBillAllocated(long id)
         {
-            return Ok( _iBillUploadRepository.CheckIsBillAllocated(id));
+            return Ok(_iBillUploadRepository.CheckIsBillAllocated(id));
         }
 
         [HttpGet]
         [Route("deletepbxupload/{id}")]
         public async Task<IActionResult> DeletePbxExcelUpload(long id)
         {
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _iBillUploadRepository.DeletePbxExcelUplaod(Convert.ToInt64(userId), id, fullname));
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _iBillUploadRepository.DeletePbxExcelUplaod(Convert.ToInt64(userId), id, fullname));
         }
-
 
         [HttpGet]
         [Route("checkBillExists/{providerid}/{month}/{year}")]
@@ -138,7 +127,6 @@ namespace TeleBillingAPI.Controllers
         {
             return Ok(await _iBillUploadRepository.ChekBillMergeIdPbx(deviceid, month, year));
         }
-
 
         [HttpPost]
         [Route("checkuploadbillmerge")]
@@ -182,7 +170,7 @@ namespace TeleBillingAPI.Controllers
                     }
                 }
 
-                
+
                 responedefault.Message = "Service function not found";
                 responedefault.StatusCode = Convert.ToInt16(EnumList.ResponseType.Error);
                 responedefault.Id = ExcelBilluploadId;
@@ -197,7 +185,6 @@ namespace TeleBillingAPI.Controllers
                 return Ok(responeAC);
             }
         }
-
 
         [HttpPost]
         [Route("checkuploadbillpbxmerge")]
@@ -250,8 +237,6 @@ namespace TeleBillingAPI.Controllers
             }
         }
 
-
-
         [HttpPost]
         [Route("uploadnewbill")]
         public async Task<IActionResult> UploadNewBill([FromForm]BillUploadFormDataAC billUploadFormDataAC)
@@ -264,7 +249,7 @@ namespace TeleBillingAPI.Controllers
             _logger.Info("Start : Upload New Bill ---" + JsonConvert.SerializeObject(billUploadFormDataAC.BillUploadAc));
 
             long TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
-            string logDescription = string.Empty;          
+            string logDescription = string.Empty;
             string ServiceSelected = String.Empty;
             bool IsSkypeData = false;
             bool iserrorDataSaved = false;
@@ -272,9 +257,9 @@ namespace TeleBillingAPI.Controllers
             try
             {
                 SaveAllServiceExcelResponseAC responeAC = new SaveAllServiceExcelResponseAC();
-               
 
-                if (billUploadFormDataAC.File==null)
+
+                if (billUploadFormDataAC.File == null)
                 {
                     #region --> Please select file if null.
                     responeAC.StatusCode = (int)EnumList.ExcelUploadResponseType.FileNotFound;
@@ -293,11 +278,11 @@ namespace TeleBillingAPI.Controllers
                 ExcelFileAC excelFileAC = new ExcelFileAC();
                 ExcelUploadResponseAC exceluploadDetail = new ExcelUploadResponseAC();
                 List<MappingDetailAC> mappingExcellist = new List<MappingDetailAC>();
-             
+
 
                 #region --> Get Excel mapping details
 
-                if (billUploadModel != null) 
+                if (billUploadModel != null)
                 {
                     mappingExcellist = await _iBillUploadRepository.GetExcelMapping(billUploadModel);
                     LogManager.Configuration.Variables["user"] = fullname + '(' + userId + ')';
@@ -306,9 +291,9 @@ namespace TeleBillingAPI.Controllers
 
                     if (billUploadModel.ServiceTypes.Count() > 0)
                     {
-                        ServiceSelected = string.Join(",", billUploadModel.ServiceTypes.Select(x=>x.Name).ToArray());
+                        ServiceSelected = string.Join(",", billUploadModel.ServiceTypes.Select(x => x.Name).ToArray());
                     }
-                   
+
                 }
 
                 if (mappingExcellist != null)
@@ -319,15 +304,15 @@ namespace TeleBillingAPI.Controllers
                     {
                         #region --> if mapping is missing for selected services
                         responeAC.StatusCode = (int)EnumList.ExcelUploadResponseType.NoDataFound;
-                        responeAC.Message = "Mapping details does not exist!"; 
+                        responeAC.Message = "Mapping details does not exist!";
                         responeAC.TotalValidCount = "0";
                         responeAC.TotalAmount = "0";
                         return Ok(responeAC);
                         #endregion
                     }
                 }
-                #endregion                   
-                               
+                #endregion
+
                 #region --> Save File to temp Folder                
                 if (file != null)
                 {
@@ -377,10 +362,10 @@ namespace TeleBillingAPI.Controllers
                                 if (fileExtension.ToLower() == "xls" || fileExtension.ToLower() == "xlsx")
                                 {
                                     responeAC = await _iBillUploadRepository.CheckMappingWithFileFormat(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, MaxWorkSheetNo);
-                                     if(responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.NoDataFound)
-                                      {
+                                    if (responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.NoDataFound)
+                                    {
                                         return Ok(responeAC);
-                                      }                                
+                                    }
                                 }
                             }
                         }
@@ -417,7 +402,7 @@ namespace TeleBillingAPI.Controllers
                 ImportBillDetailMultipleAC<VoipUploadListAC> uploadDetailListVoipM = new ImportBillDetailMultipleAC<VoipUploadListAC>();
 
                 AllServiceTypeDataAC allserviceTypeData = new AllServiceTypeDataAC();
-                
+
 
                 if (mappingExcellist != null)
                 {
@@ -426,7 +411,7 @@ namespace TeleBillingAPI.Controllers
                     _logger.Info("Find service based on mapping");
 
                     #region ---> Add New code fpr optimization  | Save file log before detail upload | ADD | 29 Nov 2019
-                     before_excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLog(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
+                    before_excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLog(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
                     #endregion
 
 
@@ -436,7 +421,7 @@ namespace TeleBillingAPI.Controllers
                         foreach (var mapservice in mappingExcellist)
                         {
                             MappingDetailAC mappingDetail = new MappingDetailAC();
-                            if ( mapservice.ServiceTypeId == (long)EnumList.ServiceType.Mobility
+                            if (mapservice.ServiceTypeId == (long)EnumList.ServiceType.Mobility
                                 || mapservice.ServiceTypeId == (long)EnumList.ServiceType.StaticIP
                                 || mapservice.ServiceTypeId == (long)EnumList.ServiceType.VoiceOnly
                                 || mapservice.ServiceTypeId == (long)EnumList.ServiceType.InternetPlanDeviceOffer
@@ -447,10 +432,11 @@ namespace TeleBillingAPI.Controllers
                                 ImportBillDetailAC<MobilityUploadListAC> mobilityList = await _iBillUploadRepository.ReadExcelForMobility(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailList = mobilityList;
                                 responeAC.mode = 1;
+                                responeAC.FileGuidNo = FileNameGuid;
 
                                 #region --> Handel If Exception Found
-                                if (mobilityList.Status==(long)EnumList.ExcelUploadResponseType.ExceptionError)
-                                {                                
+                                if (mobilityList.Status == (long)EnumList.ExcelUploadResponseType.ExceptionError)
+                                {
 
                                     #region Transaction Log Entry 
                                     logDescription += " Service : " + ServiceSelected + " , Status Code : "
@@ -465,18 +451,18 @@ namespace TeleBillingAPI.Controllers
                                     responeAC.TotalValidCount = "0";
                                     responeAC.TotalAmount = "0";
                                     return Ok(responeAC);
-                                 
+
                                 }
 
                                 #endregion
 
-                                                               
+
                                 if (mobilityList.Status == (long)EnumList.ExcelUploadResponseType.MultipleServiceFound)
                                 {
 
                                     #region Transaction Log Entry 
-                                    logDescription += " Service : "+ ServiceSelected + " , Status Code : " 
-                                                        + Convert.ToString((long)EnumList.ExcelUploadResponseType.MultipleServiceFound) 
+                                    logDescription += " Service : " + ServiceSelected + " , Status Code : "
+                                                        + Convert.ToString((long)EnumList.ExcelUploadResponseType.MultipleServiceFound)
                                                         + " , Respnse Message : " + mobilityList.Message + ".";
 
                                     await _iLogManagement.SaveRequestTraseLog(Convert.ToInt64(TransactionId), Convert.ToInt64(userId), Convert.ToInt64(EnumList.TransactionTraseLog.ExcelFileUpload), logDescription);
@@ -487,7 +473,7 @@ namespace TeleBillingAPI.Controllers
                                     responeAC.StatusCode = (long)EnumList.ExcelUploadResponseType.MultipleServiceFound;
                                     return Ok(responeAC);
                                 }
-                            
+
                                 #endregion
 
                                 #region --> store in common class allserviceTypeData
@@ -504,11 +490,14 @@ namespace TeleBillingAPI.Controllers
                                 ImportBillDetailAC<VoipUploadListAC> voipList = await _iBillUploadRepository.ReadExcelForVoip(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailListVoip = voipList;
                                 responeAC.mode = 7;
+                                responeAC.FileGuidNo = FileNameGuid;
                                 #endregion
 
                                 #region --> store in common class allserviceTypeData
                                 allserviceTypeData.ValidListSkype.AddRange(voipList.UploadData.Data.ValidVoipList);
                                 allserviceTypeData.InvalidList7.AddRange(voipList.UploadData.Data.InvalidVoipList);
+                                allserviceTypeData.InvalidListSkypeAllDB.AddRange(voipList.UploadData.Data.InvalidAllVoipListDB);
+
                                 #endregion
                             }
                             else if (mapservice.ServiceTypeId == (long)EnumList.ServiceType.GeneralServiceMada)
@@ -518,6 +507,7 @@ namespace TeleBillingAPI.Controllers
                                 ImportBillDetailAC<MadaUploadListAC> madaserviceList = await _iBillUploadRepository.ReadExcelForMadaService(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailListMada = madaserviceList;
                                 responeAC.mode = 9;
+                                responeAC.FileGuidNo = FileNameGuid;
                                 #endregion
 
                                 #region --> Handel If Exception Found
@@ -556,6 +546,7 @@ namespace TeleBillingAPI.Controllers
                                 ImportBillDetailAC<InternetServiceUploadListAC> internetserviceList = await _iBillUploadRepository.ReadExcelForInternetService(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailListInternetservice = internetserviceList;
                                 responeAC.mode = 345;
+                                responeAC.FileGuidNo = FileNameGuid;
                                 #endregion
 
                                 #region --> Handel If Exception Found
@@ -594,6 +585,7 @@ namespace TeleBillingAPI.Controllers
                                 ImportBillDetailAC<DataCenterFacilityUploadListAC> dataCenterserviceList = await _iBillUploadRepository.ReadExcelForDataCenterFacility(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailListDataCenter = dataCenterserviceList;
                                 responeAC.mode = 345;
+                                responeAC.FileGuidNo = FileNameGuid;
                                 #endregion
 
                                 #region --> Handel If Exception Found
@@ -632,6 +624,7 @@ namespace TeleBillingAPI.Controllers
                                 ImportBillDetailAC<ManagedHostingServiceUploadListAC> managedHostingServiceList = await _iBillUploadRepository.ReadExcelForManagedHostingService(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailListManagedHosting = managedHostingServiceList;
                                 responeAC.mode = 345;
+                                responeAC.FileGuidNo = FileNameGuid;
                                 #endregion
 
                                 #region --> Handel If Exception Found
@@ -674,11 +667,11 @@ namespace TeleBillingAPI.Controllers
                         List<MappingDetailAC> mappingExcellistWithoutCommon = new List<MappingDetailAC>();
 
 
-                        mappingExcellistWithoutCommon = mappingExcellist.Where(x => x.IsCommonMapped !=true).ToList();
+                        mappingExcellistWithoutCommon = mappingExcellist.Where(x => x.IsCommonMapped != true).ToList();
 
                         if (mappingExcellistWithoutCommon != null)
                         {
-                            if(mappingExcellistWithoutCommon.Count() == 1)
+                            if (mappingExcellistWithoutCommon.Count() == 1)
                             {
 
                                 #region Read Data Service wise one by one for single service selected at once
@@ -696,6 +689,7 @@ namespace TeleBillingAPI.Controllers
                                         ImportBillDetailAC<MobilityUploadListAC> mobilityList = await _iBillUploadRepository.ReadExcelForMobility(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetails, billUploadModel);
                                         uploadDetailList = mobilityList;
                                         responeAC.mode = 1;
+                                        responeAC.FileGuidNo = FileNameGuid;
 
                                         #region --> Handel If Exception Found
                                         if (mobilityList.Status == (long)EnumList.ExcelUploadResponseType.ExceptionError)
@@ -753,6 +747,7 @@ namespace TeleBillingAPI.Controllers
                                         ImportBillDetailAC<MadaUploadListAC> madaserviceList = await _iBillUploadRepository.ReadExcelForMadaService(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetails, billUploadModel);
                                         uploadDetailListMada = madaserviceList;
                                         responeAC.mode = 9;
+                                        responeAC.FileGuidNo = FileNameGuid;
                                         #endregion
 
                                         #region --> Handel If Exception Found
@@ -790,6 +785,7 @@ namespace TeleBillingAPI.Controllers
                                         ImportBillDetailAC<InternetServiceUploadListAC> internetserviceList = await _iBillUploadRepository.ReadExcelForInternetService(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetails, billUploadModel);
                                         uploadDetailListInternetservice = internetserviceList;
                                         responeAC.mode = 345;
+                                        responeAC.FileGuidNo = FileNameGuid;
                                         #endregion
 
                                         #region --> Handel If Exception Found
@@ -828,6 +824,7 @@ namespace TeleBillingAPI.Controllers
                                         ImportBillDetailAC<DataCenterFacilityUploadListAC> dataCenterserviceList = await _iBillUploadRepository.ReadExcelForDataCenterFacility(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetails, billUploadModel);
                                         uploadDetailListDataCenter = dataCenterserviceList;
                                         responeAC.mode = 345;
+                                        responeAC.FileGuidNo = FileNameGuid;
                                         #endregion
 
                                         #region --> Handel If Exception Found
@@ -869,7 +866,7 @@ namespace TeleBillingAPI.Controllers
 
                         if (mappingExcellistWithoutCommon != null)
                         {
-                            if (mappingExcellistWithoutCommon.Count()>1)
+                            if (mappingExcellistWithoutCommon.Count() > 1)
                             {
 
 
@@ -927,13 +924,14 @@ namespace TeleBillingAPI.Controllers
 
                                             if (serviceCountWithTitle > 0)
                                             {
-                                                 ServiceTitle = SingleWorksheetservice.Select(i => i.TitleName.ToString().ToLower().Trim()).ToArray();
+                                                ServiceTitle = SingleWorksheetservice.Select(i => i.TitleName.ToString().ToLower().Trim()).ToArray();
                                                 responseIndexService = _iBillUploadRepository.getReadingIndexWithServiceFromSingleWorksheet(
                                                                                          exceluploadDetail.FilePath,
                                                                                          exceluploadDetail.FileNameGuid,
                                                                                          SingleWorksheetservice,
                                                                                          billUploadModel, ServiceTitle, worksheetNo);
-                                            }else if(serviceCountWithTitle == 0)
+                                            }
+                                            else if (serviceCountWithTitle == 0)
                                             {
                                                 if (SingleWorksheetservice.Count() == 1)
                                                 {
@@ -943,8 +941,9 @@ namespace TeleBillingAPI.Controllers
                                                 else
                                                 {
 
-                                                    List<long> BusinessServiceID = new List<long>() { 3,4,5 };
-                                                    if (SingleWorksheetservice.Any(w => BusinessServiceID.Contains(w.ServiceTypeId))) {
+                                                    List<long> BusinessServiceID = new List<long>() { 3, 4, 5 };
+                                                    if (SingleWorksheetservice.Any(w => BusinessServiceID.Contains(w.ServiceTypeId)))
+                                                    {
 
                                                         #region Transaction Log Entry 
                                                         logDescription += " Service : " + ServiceSelected + " , Status Code : "
@@ -962,7 +961,7 @@ namespace TeleBillingAPI.Controllers
                                                     }
 
 
-                                                    List<long> MobilityCommonServiceId = new List<long>() {1,2,6,12 };
+                                                    List<long> MobilityCommonServiceId = new List<long>() { 1, 2, 6, 12 };
                                                     // Get Unique Mapped Service List & REmove Common Mapped service 
                                                     List<MappingDetailAC> SingleWorksheetserviceUniqueMapped = new List<MappingDetailAC>();
                                                     SingleWorksheetserviceUniqueMapped = SingleWorksheetservice.Where(x => x.IsCommonMapped == false).ToList();
@@ -974,9 +973,9 @@ namespace TeleBillingAPI.Controllers
                                                             responseIndexService.ReadingIndex = Convert.ToInt64(SingleWorksheetserviceUniqueMapped.Select(x => x.ExcelReadingColumn).FirstOrDefault());
                                                         }
                                                     }
-                                                  
+
                                                 }
-                                                
+
                                             }
 
                                             if (responseIndexService.ServiceTypeId > 0)
@@ -1032,6 +1031,7 @@ namespace TeleBillingAPI.Controllers
                                                             readingIndex = (int)responseIndexService.ReadingIndex;
                                                             mappingDetail = SingleWorksheetservice.FirstOrDefault(x => x.ServiceTypeId == responseIndexService.ServiceTypeId);
                                                             responeAC.mode = 345;
+                                                            responeAC.FileGuidNo = FileNameGuid;
 
                                                         }
 
@@ -1080,6 +1080,7 @@ namespace TeleBillingAPI.Controllers
                                                             readingIndex = (int)responseIndexService.ReadingIndex;
                                                             mappingDetail = SingleWorksheetservice.FirstOrDefault(x => x.ServiceTypeId == responseIndexService.ServiceTypeId);
                                                             responeAC.mode = 345;
+                                                            responeAC.FileGuidNo = FileNameGuid;
                                                         }
                                                     }
 
@@ -1126,11 +1127,12 @@ namespace TeleBillingAPI.Controllers
                                                             readingIndex = (int)responseIndexService.ReadingIndex;
                                                             mappingDetail = SingleWorksheetservice.FirstOrDefault(x => x.ServiceTypeId == responseIndexService.ServiceTypeId);
                                                             responeAC.mode = 345;
+                                                            responeAC.FileGuidNo = FileNameGuid;
                                                         }
                                                     }
 
 
-                                                    if (  responseIndexService.ServiceTypeId == (long)EnumList.ServiceType.Mobility
+                                                    if (responseIndexService.ServiceTypeId == (long)EnumList.ServiceType.Mobility
                                                          || responseIndexService.ServiceTypeId == (long)EnumList.ServiceType.StaticIP
                                                          || responseIndexService.ServiceTypeId == (long)EnumList.ServiceType.VoiceOnly
                                                          || responseIndexService.ServiceTypeId == (long)EnumList.ServiceType.InternetPlanDeviceOffer
@@ -1143,14 +1145,14 @@ namespace TeleBillingAPI.Controllers
                                                             list.Remove(mappingDetail.TitleName.ToLower().Trim());
 
                                                             string[] ServiceTitleSelected = list.ToArray();
-                                                           
+
                                                         }
                                                         uploadDetailListM = await _iBillUploadRepository.ReadExcelForMobilityServiceMultiple
                                                                                                 (exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid,
                                                                                                  mappingDetail, SingleWorksheetservice, billUploadModel,
                                                                                                  readingIndex, ServiceTitle, worksheetNo, responseIndexService.ServiceTypeId);
 
-                                                        if (uploadDetailListM!= null)
+                                                        if (uploadDetailListM != null)
                                                         {
                                                             #region --> Handel If Exception Found
                                                             if (uploadDetailListM.Status == (long)EnumList.ExcelUploadResponseType.ExceptionError)
@@ -1181,13 +1183,14 @@ namespace TeleBillingAPI.Controllers
                                                             readingIndex = (int)responseIndexService.ReadingIndex;
                                                             mappingDetail = SingleWorksheetservice.FirstOrDefault(x => x.ServiceTypeId == responseIndexService.ServiceTypeId);
                                                             responeAC.mode = 1;
+                                                            responeAC.FileGuidNo = FileNameGuid;
                                                         }
                                                     }
 
                                                 }
 
                                             }
-                                           
+
                                         }
                                         catch (Exception e)
                                         {
@@ -1217,7 +1220,7 @@ namespace TeleBillingAPI.Controllers
                         }
 
 
-                            
+
                     }
 
                     else
@@ -1252,7 +1255,7 @@ namespace TeleBillingAPI.Controllers
                    )
                 {
 
-                   
+
 
                     #region Transaction Log Entry 
                     logDescription += " Service : " + ServiceSelected + " , Status Code : "
@@ -1295,7 +1298,7 @@ namespace TeleBillingAPI.Controllers
                     responeAC.TotalValidCount = "0";
                     bool isRemove = await _iBillUploadRepository.RemoveExcelUploadLog(before_excelUploadLogId);
                     return Ok(responeAC);
-                }               
+                }
                 else if (allserviceTypeData.InvalidList1.Count() <= 0
                   && (allserviceTypeData.ValidList.Count() > 0 || allserviceTypeData.ValidListSkype.Count() > 0)
                   && allserviceTypeData.InvalidList3.Count() <= 0 && allserviceTypeData.InvalidList4.Count() <= 0
@@ -1307,7 +1310,7 @@ namespace TeleBillingAPI.Controllers
                     responeAC.Message = "Bill uploaded successfully!";
                     responeAC.TotalValidCount = Convert.ToString(allserviceTypeData.ValidList.Count());
                     decimal? amount = 0;
-                    amount = allserviceTypeData.ValidList.Sum(x => x.CallAmount)??0;
+                    amount = allserviceTypeData.ValidList.Sum(x => x.CallAmount) ?? 0;
                     responeAC.TotalAmount = Convert.ToString(amount);
                     // return Ok(responeAC);
                 }
@@ -1324,6 +1327,7 @@ namespace TeleBillingAPI.Controllers
                     decimal? amount = 0;
                     amount = allserviceTypeData.ValidList.Sum(x => x.CallAmount) ?? 0;
                     responeAC.TotalAmount = Convert.ToString(amount);
+                    responeAC.FileGuidNo = FileNameGuid;
                     //return Ok(responeAC);
                 }
                 else if (allserviceTypeData.InvalidList1.Count() == 0 && allserviceTypeData.InvalidList3.Count() == 0
@@ -1332,7 +1336,7 @@ namespace TeleBillingAPI.Controllers
                         && allserviceTypeData.InvalidList7.Count() == 0 && allserviceTypeData.ValidListSkype.Count() == 0
                      )
                 {
-                   
+
 
                     responeAC.StatusCode = (int)EnumList.ExcelUploadResponseType.NoDataFound;
                     responeAC.Message = "Data doesnot exists!";
@@ -1368,7 +1372,7 @@ namespace TeleBillingAPI.Controllers
                     responeAC.Message = "All data invalid";
                     responeAC.TotalAmount = "0";
                     responeAC.TotalValidCount = "0";
-
+                    responeAC.FileGuidNo = FileNameGuid;
 
                     if (allserviceTypeData.InvalidList1.Count() > 0)
                     {
@@ -1413,30 +1417,30 @@ namespace TeleBillingAPI.Controllers
                     bool isRemove = await _iBillUploadRepository.RemoveExcelUploadLog(before_excelUploadLogId);
                     return Ok(responeAC);
                 }
-                
+
                 #region Save Error Data In Database for temp | Add | 02122019 | sweta patel
 
-                if (   responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.SomeDataInvalid
+                if (responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.SomeDataInvalid
                     || responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.DataInvalid && !iserrorDataSaved)
                 {
-                     iserrorDataSaved = await _iBillUploadRepository.AddExcelDetailError(allserviceTypeData, exceluploadDetail.FileNameGuid);                  
+                    iserrorDataSaved = await _iBillUploadRepository.AddExcelDetailError(allserviceTypeData, exceluploadDetail.FileNameGuid);
                 }
                 #endregion
 
                 if (responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.Success
                   || responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.SomeDataInvalid)
-                {                   
+                {
 
                     #region --> Save Data to DB
 
                     LogManager.Configuration.Variables["user"] = "";
                     LogManager.Configuration.Variables["stepno"] = "8";
                     _logger.Info("Start : Data Save Into database");
-                  //  long excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLog(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
-                    if(before_excelUploadLogId > 0)
+                    //  long excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLog(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
+                    if (before_excelUploadLogId > 0)
                     {
                         responeAC.ExcelUploadId = before_excelUploadLogId;
-                    }                   
+                    }
                     else
                     {
                         ResponseAC responeACd = new ResponseAC();
@@ -1447,7 +1451,7 @@ namespace TeleBillingAPI.Controllers
                         logDescription += " Service : " + ServiceSelected + " , Status Code : "
                                             + Convert.ToString(responeAC.StatusCode)
                                             + " , Respnse Message : " + responeAC.Message;
-                                        
+
                         await _iLogManagement.SaveRequestTraseLog(Convert.ToInt64(TransactionId), Convert.ToInt64(userId), Convert.ToInt64(EnumList.TransactionTraseLog.ExcelFileUpload), logDescription);
                         #endregion
 
@@ -1504,8 +1508,8 @@ namespace TeleBillingAPI.Controllers
                                 LogManager.Configuration.Variables["user"] = "";
                                 LogManager.Configuration.Variables["stepno"] = "10";
                                 _logger.Info("END : Call details  Saved Into database");
-                            }                          
-                           
+                            }
+
                         }
                     }
 
@@ -1537,27 +1541,27 @@ namespace TeleBillingAPI.Controllers
                         {
                             responeAC.TotalAmount = Convert.ToString(updateExcelLog.TotalImportedBillAmount);
                             responeAC.TotalValidCount = Convert.ToString(updateExcelLog.TotalRecordImportCount);
-                        }                  
+                        }
 
                         #endregion
 
                         #region --- > Audit Log 
                         //string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
 
-                        await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.UploadNewBill, fullname,Convert.ToInt64(userId),"New bill(" + exceluploadDetail.FileName + ")",(int)EnumList.ActionTemplateTypes.Upload, responeAC.ExcelUploadId);
+                        await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.UploadNewBill, fullname, Convert.ToInt64(userId), "New bill(" + exceluploadDetail.FileName + ")", (int)EnumList.ActionTemplateTypes.Upload, responeAC.ExcelUploadId);
 
-						#endregion
+                        #endregion
 
 
-					}
+                    }
 
-					responeAC.InvalidList1 = allserviceTypeData.InvalidList1.Take(100).ToList();
+                    responeAC.InvalidList1 = allserviceTypeData.InvalidList1.Take(100).ToList();
                     responeAC.InvalidList3 = allserviceTypeData.InvalidList3.Take(100).ToList();
                     responeAC.InvalidList4 = allserviceTypeData.InvalidList4.Take(100).ToList();
                     responeAC.InvalidList5 = allserviceTypeData.InvalidList5.Take(100).ToList();
                     responeAC.InvalidList9 = allserviceTypeData.InvalidList9.Take(100).ToList();
                     responeAC.InvalidList7 = allserviceTypeData.InvalidList7.Take(100).ToList();
-
+                    responeAC.FileGuidNo = FileNameGuid;
                     #region Transaction Log Entry 
                     logDescription += " Service : " + ServiceSelected + " , Status Code : "
                                         + Convert.ToString(responeAC.StatusCode)
@@ -1569,9 +1573,9 @@ namespace TeleBillingAPI.Controllers
                     #endregion
 
 
-                    LogManager.Configuration.Variables["user"] = fullname +'('+userId+')';
+                    LogManager.Configuration.Variables["user"] = fullname + '(' + userId + ')';
                     LogManager.Configuration.Variables["stepno"] = "11";
-                    _logger.Info("END :Bill Upload Process. Status Message : "+ responeAC.Message);
+                    _logger.Info("END :Bill Upload Process. Status Message : " + responeAC.Message);
 
                     return Ok(responeAC);
                 }
@@ -1587,7 +1591,7 @@ namespace TeleBillingAPI.Controllers
                 #region Transaction Log Entry 
                 logDescription += " Service : " + ServiceSelected + " , Status Code : "
                                     + Convert.ToString(responedefault.StatusCode)
-                                    + " , Respnse Message : " + responedefault.Message;                       
+                                    + " , Respnse Message : " + responedefault.Message;
 
                 await _iLogManagement.SaveRequestTraseLog(Convert.ToInt64(TransactionId), Convert.ToInt64(userId), Convert.ToInt64(EnumList.TransactionTraseLog.ExcelFileUpload), logDescription);
                 #endregion
@@ -1613,9 +1617,7 @@ namespace TeleBillingAPI.Controllers
             }
         }
 
-
-        [HttpPost]       
-        //[Route("exporterrorlist/{fileguidno}/{mode}")]
+        [HttpPost]
         [Route("exporterrorlist")]
         public IActionResult ExportErrorList(ErrorExportAc errorExportAc)
         {
@@ -1626,11 +1628,11 @@ namespace TeleBillingAPI.Controllers
                 List<MobilityExcelUploadDetailStringAC> datalistError = new List<MobilityExcelUploadDetailStringAC>();
                 datalistError.Add(new MobilityExcelUploadDetailStringAC()
                 {
-                    CallDate= "Mobility Error List",
+                    CallDate = "Mobility Error List",
                     ErrorMessage = "Mobility Error List"
                 });
-               var result  = _iBillUploadRepository.ExportMobilityErrorList(fileGuidNo);             
-               if(result!=null && result.Count() > 0)
+                var result = _iBillUploadRepository.ExportMobilityErrorList(fileGuidNo);
+                if (result != null && result.Count() > 0)
                 {
                     datalistError.AddRange(result);
                 }
@@ -1650,11 +1652,11 @@ namespace TeleBillingAPI.Controllers
                     worksheet.Row(1).Height = 20;
                     worksheet.Row(1).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                     worksheet.Row(1).Style.Font.Bold = true;
-                   
+
                     worksheet.Cells.LoadFromCollection(datalistError, true);
                     if (datalistError.Count() > 0)
                     {
-                       
+
                         worksheet.Cells["A2:O2"].Merge = true;
                         worksheet.Row(2).Height = 30;
                         worksheet.Row(2).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
@@ -1667,8 +1669,102 @@ namespace TeleBillingAPI.Controllers
 
                     package.Save();
                 }
-            }           
-            
+            }
+
+            if (mode == 7)
+            {
+                List<VoipExcelUploadDetailStringAC> datalistError = new List<VoipExcelUploadDetailStringAC>();
+                datalistError.Add(new VoipExcelUploadDetailStringAC()
+                {
+                    CallDate = "VOIP Error List",
+                    ErrorMessage = "VOIP Error List"
+                });
+                var result = _iBillUploadRepository.ExportVoipErrorList(fileGuidNo);
+                if (result != null && result.Count() > 0)
+                {
+                    datalistError.AddRange(result);
+                }
+                string fileName = "ExcelUploadVOIPError.xlsx";
+                string folderPath = Path.Combine(_hostingEnvironment.WebRootPath, "TempUploadTelePhone");
+                string filePath = Path.Combine(folderPath, fileName);
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+                FileInfo file = new FileInfo(Path.Combine(folderPath, fileName));
+                using (var package = new ExcelPackage(file))
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("ErrorList");
+                    worksheet.Row(1).Height = 20;
+                    worksheet.Row(1).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    worksheet.Row(1).Style.Font.Bold = true;
+
+                    worksheet.Cells.LoadFromCollection(datalistError, true);
+                    if (datalistError.Count() > 0)
+                    {
+
+                        worksheet.Cells["A2:H2"].Merge = true;
+                        worksheet.Row(2).Height = 30;
+                        worksheet.Row(2).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Row(2).Style.Font.Bold = true;
+                        worksheet.Row(2).Style.Font.Color.SetColor(System.Drawing.Color.Blue);
+                        worksheet.Row(2).Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        worksheet.Row(2).Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Gray);
+                    }
+
+
+                    package.Save();
+                }
+            }
+
+            if (mode == 8)
+            {
+                List<PbxExcelUploadDetailStringAC> datalistError = new List<PbxExcelUploadDetailStringAC>();
+                datalistError.Add(new PbxExcelUploadDetailStringAC()
+                {
+                    CallDate = "PBX Error List",
+                    ErrorMessage = "PBX Error List"
+                });
+                var result = _iBillUploadRepository.ExportpbxErrorList(fileGuidNo);
+                if (result != null && result.Count() > 0)
+                {
+                    datalistError.AddRange(result);
+                }
+                string fileName = "ExcelUploadPbxError.xlsx";
+                string folderPath = Path.Combine(_hostingEnvironment.WebRootPath, "TempUploadTelePhone");
+                string filePath = Path.Combine(folderPath, fileName);
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+                FileInfo file = new FileInfo(Path.Combine(folderPath, fileName));
+                using (var package = new ExcelPackage(file))
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("ErrorList");
+                    worksheet.Row(1).Height = 20;
+                    worksheet.Row(1).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    worksheet.Row(1).Style.Font.Bold = true;
+
+                    worksheet.Cells.LoadFromCollection(datalistError, true);
+                    if (datalistError.Count() > 0)
+                    {
+
+                        worksheet.Cells["A2:U2"].Merge = true;
+                        worksheet.Row(2).Height = 30;
+                        worksheet.Row(2).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Row(2).Style.Font.Bold = true;
+                        worksheet.Row(2).Style.Font.Color.SetColor(System.Drawing.Color.Blue);
+                        worksheet.Row(2).Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        worksheet.Row(2).Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Gray);
+                    }
+                    package.Save();
+                }
+            }
+
             return Ok();
         }
 
@@ -1676,10 +1772,18 @@ namespace TeleBillingAPI.Controllers
         [Route("uploadnewbillpbx")]
         public async Task<IActionResult> UploadNewBillPbx([FromForm]PbxBillUploadFormDataAC billUploadFormDataAC)
         {
+            long before_excelUploadLogId = 0;
             long TransactionId = _iLogManagement.GenerateTeleBillingTransctionID();
             string logDescription = string.Empty;
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
             string DeviceSelected = String.Empty;
+            bool iserrorDataSaved = false;
+            string FileNameGuid = string.Empty;
+            LogManager.Configuration.Variables["user"] = fullname + '(' + userId + ')';
+            LogManager.Configuration.Variables["stepno"] = "1";
+            _logger.Info("Start : Upload New Bill PBX ---" + JsonConvert.SerializeObject(billUploadFormDataAC.PbxBillUploadAc));
+
             try
             {
                 SaveAllServiceExcelResponseAC responeAC = new SaveAllServiceExcelResponseAC();
@@ -1696,7 +1800,6 @@ namespace TeleBillingAPI.Controllers
                     #endregion
                 }
 
-      
                 PbxBillUploadAC billUploadModel = JsonConvert.DeserializeObject<PbxBillUploadAC>(billUploadFormDataAC.PbxBillUploadAc);
                 var file = billUploadFormDataAC.File;
                 ExcelFileAC excelFileAC = new ExcelFileAC();
@@ -1714,10 +1817,11 @@ namespace TeleBillingAPI.Controllers
                     mappingExcellist = await _iBillUploadRepository.GetPbxExcelMapping(billUploadModel);
                 }
 
-                if (mappingExcellist != null)                {
+                if (mappingExcellist != null)
+                {
                     // Check Mapping is exists for all selected Services
 
-                    if ( mappingExcellist.Count() == 0)
+                    if (mappingExcellist.Count() == 0)
                     {
                         #region --> if mapping is missing for selected device
                         responeAC.StatusCode = (int)EnumList.ExcelUploadResponseType.NoDataFound;
@@ -1729,7 +1833,7 @@ namespace TeleBillingAPI.Controllers
                     }
                 }
                 #endregion
-                
+
                 #region --> Save File to temp Folder                
                 if (file != null)
                 {
@@ -1742,6 +1846,13 @@ namespace TeleBillingAPI.Controllers
                     {
                         logDescription = " File Name :" + exceluploadDetail.FileName + " , FileNameGuid : " + exceluploadDetail.FileName + " , ";
                     }
+                    LogManager.Configuration.Variables["user"] = fullname + '(' + userId + ')';
+                    LogManager.Configuration.Variables["stepno"] = "3";
+                    _logger.Info("File Saved : " + logDescription);
+
+                    FileNameGuid = exceluploadDetail.FileNameGuid;
+                    responeAC.FileGuidNo = FileNameGuid;
+
                 }
                 #endregion
 
@@ -1781,16 +1892,22 @@ namespace TeleBillingAPI.Controllers
                         }
                     }
                 }
-                #endregion
-                
+                #endregion                
 
                 ImportBillDetailAC<PbxUploadListAC> uploadDetailList = new ImportBillDetailAC<PbxUploadListAC>();
                 ImportBillDetailMultipleAC<PbxUploadListAC> uploadDetailListM = new ImportBillDetailMultipleAC<PbxUploadListAC>();
-                
-               
+
 
                 if (mappingExcellist != null)
                 {
+                    LogManager.Configuration.Variables["user"] = fullname + '(' + userId + ')';
+                    LogManager.Configuration.Variables["stepno"] = "4";
+                    _logger.Info("based on mapping call function to read");
+
+                    #region ---> Add New code fpr optimization  | Save file log before detail upload | ADD | 06 12 2019
+                    before_excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLogPbx(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
+                    #endregion
+
                     if (mappingExcellist.Count() == 1)
                     {
                         #region Read Data Service wise one by one for single service selected at once
@@ -1803,6 +1920,8 @@ namespace TeleBillingAPI.Controllers
                                 mappingDetail = mappingExcellist.Find(x => x.DeviceId == (long)EnumList.DeviceType.Cisco);
                                 ImportBillDetailAC<PbxUploadListAC> pbxList = await _iBillUploadRepository.ReadExcelForPbx(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailList = pbxList;
+                                responeAC.mode = 8;
+                                responeAC.FileGuidNo = FileNameGuid;
 
                                 if (uploadDetailList.Status == (int)EnumList.ExcelUploadResponseType.ExceptionError)
                                 {
@@ -1844,14 +1963,17 @@ namespace TeleBillingAPI.Controllers
                                 #region --> store in common class allserviceTypeData
                                 allserviceTypeData.ValidListPbx.AddRange(pbxList.UploadData.Data.ValidPbxList);
                                 allserviceTypeData.InvalidListpbx.AddRange(pbxList.UploadData.Data.InvalidPbxList);
+                                allserviceTypeData.InvalidListPbxAllDB.AddRange(pbxList.UploadData.Data.InvalidAllPbxListDB);
                                 #endregion
                             }
-                           else if (mapservice.DeviceId == (long)EnumList.DeviceType.Avaya)
+                            else if (mapservice.DeviceId == (long)EnumList.DeviceType.Avaya)
                             {
                                 #region --> Read Excel file for Avaya                           
                                 mappingDetail = mappingExcellist.Find(x => x.DeviceId == (long)EnumList.DeviceType.Avaya);
                                 ImportBillDetailAC<PbxUploadListAC> pbxList = await _iBillUploadRepository.ReadExcelForPbx(exceluploadDetail.FilePath, exceluploadDetail.FileNameGuid, mappingDetail, billUploadModel);
                                 uploadDetailList = pbxList;
+                                responeAC.mode = 8;
+                                responeAC.FileGuidNo = FileNameGuid;
 
                                 if (uploadDetailList.Status == (int)EnumList.ExcelUploadResponseType.ExceptionError)
                                 {
@@ -1893,11 +2015,12 @@ namespace TeleBillingAPI.Controllers
                                 #region --> store in common class allserviceTypeData
                                 allserviceTypeData.ValidListPbx.AddRange(pbxList.UploadData.Data.ValidPbxList);
                                 allserviceTypeData.InvalidListpbx.AddRange(pbxList.UploadData.Data.InvalidPbxList);
+                                allserviceTypeData.InvalidListPbxAllDB.AddRange(pbxList.UploadData.Data.InvalidAllPbxListDB);
                                 #endregion
                             }
                         }
                         #endregion
-                    }             
+                    }
 
                     else
                     {
@@ -1915,7 +2038,7 @@ namespace TeleBillingAPI.Controllers
                         responeAC.Message = "Mapping details does not exist!";
                         responeAC.TotalValidCount = "0";
                         responeAC.TotalAmount = "0";
-                        return Ok(responeAC);                        
+                        return Ok(responeAC);
                         #endregion
                     }
                 }
@@ -1937,6 +2060,9 @@ namespace TeleBillingAPI.Controllers
                     responeAC.Message = uploadDetailList.Message;
                     responeAC.TotalAmount = "0";
                     responeAC.TotalValidCount = "0";
+                    responeAC.FileGuidNo = FileNameGuid;
+                    bool isRemove = await _iBillUploadRepository.RemoveExcelUploadLogPbx(before_excelUploadLogId);
+
                     return Ok(responeAC);
                 }
 
@@ -1954,9 +2080,11 @@ namespace TeleBillingAPI.Controllers
                     responeAC.Message = "File not found";
                     responeAC.TotalAmount = "0";
                     responeAC.TotalValidCount = "0";
+                    bool isRemove = await _iBillUploadRepository.RemoveExcelUploadLogPbx(before_excelUploadLogId);
+
                     return Ok(responeAC);
                 }
-                else if (allserviceTypeData.ValidListPbx.Count() == 0 )
+                else if (allserviceTypeData.ValidListPbx.Count() == 0)
                 {
                     #region Transaction Log Entry 
                     logDescription += " Device : " + DeviceSelected + " , Status Code : "
@@ -1970,11 +2098,15 @@ namespace TeleBillingAPI.Controllers
                     responeAC.Message = "All data invalid";
                     responeAC.TotalAmount = "0";
                     responeAC.TotalValidCount = "0";
+                    responeAC.FileGuidNo = FileNameGuid;
 
                     if (allserviceTypeData.InvalidListpbx.Count() > 0)
                     {
-                        responeAC.InvalidListPbx = allserviceTypeData.InvalidListpbx;
+                        responeAC.InvalidListPbx = allserviceTypeData.InvalidListpbx.Take(100).ToList(); ;
                     }
+
+                    iserrorDataSaved = await _iBillUploadRepository.AddExcelDetailError(allserviceTypeData, exceluploadDetail.FileNameGuid);
+                    bool isRemove = await _iBillUploadRepository.RemoveExcelUploadLogPbx(before_excelUploadLogId);
 
                     return Ok(responeAC);
                 }
@@ -1985,6 +2117,7 @@ namespace TeleBillingAPI.Controllers
                     responeAC.Message = "Bill uploaded successfully";
                     responeAC.TotalValidCount = Convert.ToString(allserviceTypeData.ValidList.Count());
                     responeAC.TotalAmount = Convert.ToString(allserviceTypeData.ValidList.Count());
+                    responeAC.FileGuidNo = FileNameGuid;
                     // return Ok(responeAC);
                 }
                 else if (allserviceTypeData.InvalidListpbx.Count() > 0 && allserviceTypeData.ValidListPbx.Count() > 0)
@@ -1993,6 +2126,8 @@ namespace TeleBillingAPI.Controllers
                     responeAC.Message = "Some data upload with error!";
                     responeAC.TotalValidCount = Convert.ToString(allserviceTypeData.ValidList.Count());
                     responeAC.TotalAmount = Convert.ToString(allserviceTypeData.ValidList.Count());
+                    responeAC.FileGuidNo = FileNameGuid;
+
                     //return Ok(responeAC);
                 }
                 else if (allserviceTypeData.InvalidListpbx.Count() == 0 && allserviceTypeData.ValidListPbx.Count() == 0)
@@ -2016,17 +2151,36 @@ namespace TeleBillingAPI.Controllers
                     return Ok(responeAC);
                 }
 
+                #region Save Error Data In Database for temp | Add | 02122019 | sweta patel
+
+                if (responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.SomeDataInvalid
+                    || responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.DataInvalid && !iserrorDataSaved)
+                {
+                    iserrorDataSaved = await _iBillUploadRepository.AddExcelDetailError(allserviceTypeData, exceluploadDetail.FileNameGuid);
+                }
+                #endregion
+
                 if (responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.Success
                   || responeAC.StatusCode == (int)EnumList.ExcelUploadResponseType.SomeDataInvalid)
                 {
                     #region --> Save Data to DB
 
-                    long excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLogPbx(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
+                    // long excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLogPbx(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
                     List<Exceldetailpbx> excelDetailList = allserviceTypeData.ValidListPbx;
-                    if(excelUploadLogId >0)                   
+                    //if(excelUploadLogId >0)                   
+                    //{
+                    //    responeAC.ExcelUploadId = excelUploadLogId;
+                    //}
+
+                    LogManager.Configuration.Variables["user"] = "";
+                    LogManager.Configuration.Variables["stepno"] = "8";
+                    _logger.Info("Start : Data Save Into database");
+                    //  long excelUploadLogId = await _iBillUploadRepository.AddExcelUploadLog(billUploadModel, exceluploadDetail.FileNameGuid, Convert.ToInt64(userId));
+                    if (before_excelUploadLogId > 0)
                     {
-                        responeAC.ExcelUploadId = excelUploadLogId;
+                        responeAC.ExcelUploadId = before_excelUploadLogId;
                     }
+
                     else
                     {
                         ResponseAC responeACd = new ResponseAC();
@@ -2071,10 +2225,16 @@ namespace TeleBillingAPI.Controllers
                             //}
                             #endregion
 
-                            excelDetailList.ForEach(x => x.ExcelUploadLogId = excelUploadLogId);
+                            LogManager.Configuration.Variables["user"] = "";
+                            LogManager.Configuration.Variables["stepno"] = "9";
+                            _logger.Info("Start : Call details  Save Into database");
+                            excelDetailList.ForEach(x => x.ExcelUploadLogId = before_excelUploadLogId);
                             IsSaved = await _iBillUploadRepository.AddPbxExcelDetail(excelDetailList);
+                            LogManager.Configuration.Variables["user"] = "";
+                            LogManager.Configuration.Variables["stepno"] = "10";
+                            _logger.Info("END : Call details  Saved Into database");
                         }
-                    }                   
+                    }
 
                     #endregion
 
@@ -2089,17 +2249,26 @@ namespace TeleBillingAPI.Controllers
                         responeAC.TotalValidCount = Convert.ToString(excelDetailList.Count());
 
 
-						#region --- > Audit Log 
-						string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+                        #region --> Update Amount & Count in excelupload log
+                        Exceluploadlogpbx updateExcelLog = await _iBillUploadRepository.UpdateExcelUploadLogPbx(before_excelUploadLogId, Convert.ToInt64(userId), Convert.ToInt32(responeAC.TotalValidCount), Convert.ToDecimal(responeAC.TotalAmount));
+                        if (updateExcelLog != null)
+                        {
+                            responeAC.TotalAmount = Convert.ToString(updateExcelLog.TotalImportedBillAmount);
+                            responeAC.TotalValidCount = Convert.ToString(updateExcelLog.TotalRecordImportCount);
+                        }
 
-						await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.UploadNewPBXBill, fullname, Convert.ToInt64(userId), "New pbx bill(" + exceluploadDetail.FileName + ")", (int)EnumList.ActionTemplateTypes.Upload, responeAC.ExcelUploadId);
+                        #endregion
 
-						#endregion
+                        #region --- > Audit Log 
+                        fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+                        await _iLogManagement.SaveAuditActionLog((int)EnumList.AuditLogActionType.UploadNewPBXBill, fullname, Convert.ToInt64(userId), "New pbx bill(" + exceluploadDetail.FileName + ")", (int)EnumList.ActionTemplateTypes.Upload, responeAC.ExcelUploadId);
 
-					}
+                        #endregion
 
-					responeAC.InvalidListPbx = allserviceTypeData.InvalidListpbx;
+                    }
 
+                    responeAC.InvalidListPbx = allserviceTypeData.InvalidListpbx.Take(100).ToList();
+                    responeAC.FileGuidNo = FileNameGuid;
                     #region Transaction Log Entry 
                     logDescription += " Device : " + DeviceSelected + " , Status Code : "
                                         + Convert.ToString(responeAC.StatusCode)
@@ -2109,6 +2278,10 @@ namespace TeleBillingAPI.Controllers
 
                     await _iLogManagement.SaveRequestTraseLog(Convert.ToInt64(TransactionId), Convert.ToInt64(userId), Convert.ToInt64(EnumList.TransactionTraseLog.ExcelFileUpload), logDescription);
                     #endregion
+
+                    LogManager.Configuration.Variables["user"] = fullname + '(' + userId + ')';
+                    LogManager.Configuration.Variables["stepno"] = "11";
+                    _logger.Info("END :Bill Upload Process. Status Message : " + responeAC.Message);
 
                     return Ok(responeAC);
                 }
@@ -2150,8 +2323,6 @@ namespace TeleBillingAPI.Controllers
             }
         }
 
-        
-
         #region Bill Allocation
 
         [HttpPost]
@@ -2162,41 +2333,43 @@ namespace TeleBillingAPI.Controllers
         }
 
 
-		[HttpPost]
-		[Route("assignebill")]
-		public async Task<IActionResult> AssgineBill(BillAssigneAC billAssigneAC) {
-			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			return Ok(await _iBillUploadRepository.AssigneBills(billAssigneAC,userId));
-		}
+        [HttpPost]
+        [Route("assignebill")]
+        public async Task<IActionResult> AssgineBill(BillAssigneAC billAssigneAC)
+        {
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            return Ok(await _iBillUploadRepository.AssigneBills(billAssigneAC, userId));
+        }
 
 
-		[HttpGet]
-		[Route("assignedbills/{employeeId}/{exceluploadlogid}/{businessunitId}")]
-		public async Task<IActionResult> AssignedBillList(long employeeId, long exceluploadlogid, long businessunitId){
-			return Ok(await _iBillUploadRepository.GetAssignedBillList(employeeId,exceluploadlogid,businessunitId));
-		}
+        [HttpGet]
+        [Route("assignedbills/{employeeId}/{exceluploadlogid}/{businessunitId}")]
+        public async Task<IActionResult> AssignedBillList(long employeeId, long exceluploadlogid, long businessunitId)
+        {
+            return Ok(await _iBillUploadRepository.GetAssignedBillList(employeeId, exceluploadlogid, businessunitId));
+        }
 
 
-		[HttpPost]
-		[Route("unassignecalllog")]
-		public async Task<IActionResult> UnAssgineCallLogs([FromBody]List<UnAssignedBillAC> unAssignedBillACs) {
-			return Ok(await _iBillUploadRepository.UnAssgineCallLogs(unAssignedBillACs));
-		}
+        [HttpPost]
+        [Route("unassignecalllog")]
+        public async Task<IActionResult> UnAssgineCallLogs([FromBody]List<UnAssignedBillAC> unAssignedBillACs)
+        {
+            return Ok(await _iBillUploadRepository.UnAssgineCallLogs(unAssignedBillACs));
+        }
 
 
-		[HttpPost]
-		[Route("billallocation")]
-		public async Task<IActionResult> BillAllocation(BillAllocationAC billAllocationAC)
-		{
-			string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _iBillUploadRepository.BillAllocation(billAllocationAC,Convert.ToInt64(userId),fullname));
-		}
+        [HttpPost]
+        [Route("billallocation")]
+        public async Task<IActionResult> BillAllocation(BillAllocationAC billAllocationAC)
+        {
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _iBillUploadRepository.BillAllocation(billAllocationAC, Convert.ToInt64(userId), fullname));
+        }
 
 
         #endregion
 
-        
         #region --> Bill delegates
         [HttpGet]
         [Route("delegatelist")]
@@ -2204,7 +2377,6 @@ namespace TeleBillingAPI.Controllers
         {
             return Ok(await _ibillDelegateRepository.GetDelegates());
         }
-
 
         [HttpGet]
         [Route("delegate/{id}")]
@@ -2217,28 +2389,27 @@ namespace TeleBillingAPI.Controllers
         [Route("delegate/add")]
         public async Task<IActionResult> AddDelegate(BillDelegatesAC DelegateDetailAC)
         {
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _ibillDelegateRepository.AddDelegate(DelegateDetailAC, Convert.ToInt64(userId),fullname));
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _ibillDelegateRepository.AddDelegate(DelegateDetailAC, Convert.ToInt64(userId), fullname));
         }
-
 
         [HttpPut]
         [Route("delegate/edit")]
         public async Task<IActionResult> EditDelegate(BillDelegatesAC DelegateDetailAC)
         {
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _ibillDelegateRepository.EditDelegate(DelegateDetailAC, Convert.ToInt64(userId), fullname));
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _ibillDelegateRepository.EditDelegate(DelegateDetailAC, Convert.ToInt64(userId), fullname));
         }
 
         [HttpGet]
         [Route("delegate/delete/{id}")]
         public async Task<IActionResult> DeleteDelegates(long id)
         {
-            string userId =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
-			string fullname =  HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
-			return Ok(await _ibillDelegateRepository.DeleteDelegate(id, Convert.ToInt64(userId), fullname));
+            string userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "user_id").Value;
+            string fullname = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "fullname").Value;
+            return Ok(await _ibillDelegateRepository.DeleteDelegate(id, Convert.ToInt64(userId), fullname));
         }
 
         [HttpPost]
@@ -2267,10 +2438,9 @@ namespace TeleBillingAPI.Controllers
             }
 
         }
-
         #endregion
 
-        #region --> OLd Backup Of Upload Bill Functions
+        #region --> Old Backup Of Upload Bill Functions
 
         //[HttpPost]
         //[Route("uploadnewbillold")]
@@ -3546,9 +3716,7 @@ namespace TeleBillingAPI.Controllers
 
         //        return Ok(responeAC);
         //    }
-        //}
-
-
+        //}        
 
         #endregion
 

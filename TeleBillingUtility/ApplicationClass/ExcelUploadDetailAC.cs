@@ -1,13 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
 
     public class MobilityExcelUploadDetailStringAC
-    {       
+    {
 
         [JsonProperty("calldate")]
         public string CallDate { get; set; }
@@ -192,7 +189,7 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("finalannualchargeskd")]
         public string FinalAnnualChargesKd { get; set; }
-       
+
         [JsonProperty("erromessage")]
         public string ErrorMessage { get; set; }
 
@@ -235,7 +232,7 @@ namespace TeleBillingUtility.ApplicationClass
 
     public class DataCenterFacilityExcelUploadDetailStringAC
     {
-       
+
         [JsonProperty("servicename")]
         public string ServiceName { get; set; }
 
@@ -270,7 +267,7 @@ namespace TeleBillingUtility.ApplicationClass
 
     public class ManagedHostingServiceExcelUploadDetailStringAC
     {
-       
+
 
         [JsonProperty("servicename")]
         public string ServiceName { get; set; }
@@ -317,25 +314,24 @@ namespace TeleBillingUtility.ApplicationClass
         public string CallDuration { get; set; }
 
         [JsonProperty("callernumber")]
-        public string CallerNumber { get; set; }    
+        public string CallerNumber { get; set; }
 
         [JsonProperty("receivernumber")]
         public string ReceiverNumber { get; set; }
-        
+
         [JsonProperty("callamount")]
         public string CallAmount { get; set; }
 
         [JsonProperty("description")]
         public string Description { get; set; }
-        
+
         [JsonProperty("erromessage")]
         public string ErrorMessage { get; set; }
 
     }
 
-     public class PbxExcelUploadDetailStringAC
+    public class PbxExcelUploadDetailStringAC
     {
-
         [JsonProperty("calldate")]
         public string CallDate { get; set; }
 
@@ -394,11 +390,12 @@ namespace TeleBillingUtility.ApplicationClass
         public string RingingTime { get; set; }
 
         [JsonProperty("description")]
-        public string Description { get; set; }    
-
+        public string Description { get; set; }
 
         [JsonProperty("erromessage")]
         public string ErrorMessage { get; set; }
+
+
 
     }
 }

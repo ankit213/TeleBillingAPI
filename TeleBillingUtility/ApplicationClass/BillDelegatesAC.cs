@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
@@ -15,13 +13,13 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("delegateemployeeid")]
         public long DelegateEmployeeId { get; set; }
-               
+
         [JsonProperty("employeename")]
         public string EmployeeName { get; set; }
 
         [JsonProperty("delegateemployeename")]
         public string DelegateEmployeeName { get; set; }
-        
+
         [JsonProperty("allowbillidentification")]
         public bool AllowBillIdentification { get; set; }
 
@@ -48,7 +46,7 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("delegateemployeename")]
         public EmployeeAC DelegateEmployee { get; set; }
-       
+
         [JsonProperty("allowbillidentification")]
         public bool AllowBillIdentification { get; set; }
 

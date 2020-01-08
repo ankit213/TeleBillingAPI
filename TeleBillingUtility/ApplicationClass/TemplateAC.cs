@@ -2,21 +2,22 @@
 
 namespace TeleBillingUtility.ApplicationClass
 {
-	public class TemplateAC {
-		
-		[JsonProperty("id")]
-		public long Id { get; set; }
+    public class TemplateAC
+    {
 
-		[JsonProperty("templatetype")]
-		public string TemplateType { get; set; }
+        [JsonProperty("id")]
+        public long Id { get; set; }
 
-		[JsonProperty("subject")]
-		public string Subject { get; set; }
+        [JsonProperty("templatetype")]
+        public string TemplateType { get; set; }
 
-		[JsonProperty("from")]
-		public string EmailFrom { get; set; }
+        [JsonProperty("subject")]
+        public string Subject { get; set; }
 
-		[JsonProperty("bcc")]
-		public string EmailBcc { get; set; }	
-	}
+        [JsonProperty("from")]
+        public string EmailFrom { get; set; }
+
+        [JsonProperty("bcc")]
+        public string EmailBcc { get; set; }
+    }
 }

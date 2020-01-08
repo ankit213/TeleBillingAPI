@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace TeleBillingUtility.Models
 {
@@ -8,7 +7,7 @@ namespace TeleBillingUtility.Models
         public long Id { get; set; }
         public long ExcelUploadLogId { get; set; }
         public long? MergeExcelUploadId { get; set; }
-        
+
         public long ServiceTypeId { get; set; }
         public DateTime? CallDate { get; set; }
         public TimeSpan? CallTime { get; set; }

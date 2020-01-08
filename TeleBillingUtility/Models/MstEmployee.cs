@@ -8,20 +8,20 @@ namespace TeleBillingUtility.Models
     {
         public MstEmployee()
         {
-			Auditactionlog = new HashSet<Auditactionlog>();
-			BilldelegateDelegateEmployee = new HashSet<Billdelegate>();
+            Auditactionlog = new HashSet<Auditactionlog>();
+            BilldelegateDelegateEmployee = new HashSet<Billdelegate>();
             BilldelegateEmployee = new HashSet<Billdelegate>();
-			EmployeebillmasterBillDelegatedEmp = new HashSet<Employeebillmaster>();
-			Billmaster = new HashSet<Billmaster>();
+            EmployeebillmasterBillDelegatedEmp = new HashSet<Employeebillmaster>();
+            Billmaster = new HashSet<Billmaster>();
             EmployeebillmasterEmployee = new HashSet<Employeebillmaster>();
             EmployeebillmasterLinemanager = new HashSet<Employeebillmaster>();
             Exceldetail = new HashSet<Exceldetail>();
             InverseLineManager = new HashSet<MstEmployee>();
             Operatorcalllog = new HashSet<Operatorcalllog>();
-			NotificationlogActionUser = new HashSet<Notificationlog>();
-			NotificationlogUser = new HashSet<Notificationlog>();
-			Telephonenumberallocation = new HashSet<Telephonenumberallocation>();
-		}
+            NotificationlogActionUser = new HashSet<Notificationlog>();
+            NotificationlogUser = new HashSet<Notificationlog>();
+            Telephonenumberallocation = new HashSet<Telephonenumberallocation>();
+        }
 
         public long UserId { get; set; }
         public long RoleId { get; set; }
@@ -50,15 +50,15 @@ namespace TeleBillingUtility.Models
         public long? TransactionId { get; set; }
         public bool IsPresidentOffice { get; set; }
         public bool IsSystemUser { get; set; }
-		public string ImagePath { get; set; }
+        public string ImagePath { get; set; }
 
         public virtual MstCostcenter CostCenter { get; set; }
         public virtual MstDepartment Department { get; set; }
         public virtual MstEmployee LineManager { get; set; }
         public virtual MstRole Role { get; set; }
         public virtual ICollection<Billdelegate> BilldelegateDelegateEmployee { get; set; }
-		public virtual ICollection<Employeebillmaster> EmployeebillmasterBillDelegatedEmp { get; set; }
-		public virtual ICollection<Billdelegate> BilldelegateEmployee { get; set; }
+        public virtual ICollection<Employeebillmaster> EmployeebillmasterBillDelegatedEmp { get; set; }
+        public virtual ICollection<Billdelegate> BilldelegateEmployee { get; set; }
         public virtual ICollection<Billmaster> Billmaster { get; set; }
         public virtual ICollection<Employeebillmaster> EmployeebillmasterEmployee { get; set; }
         public virtual ICollection<Employeebillmaster> EmployeebillmasterLinemanager { get; set; }
@@ -66,9 +66,9 @@ namespace TeleBillingUtility.Models
         public virtual ICollection<MstEmployee> InverseLineManager { get; set; }
         public virtual ICollection<Operatorcalllog> Operatorcalllog { get; set; }
         public virtual ICollection<Telephonenumberallocation> Telephonenumberallocation { get; set; }
-		public virtual ICollection<Notificationlog> NotificationlogActionUser { get; set; }
-		public virtual ICollection<Notificationlog> NotificationlogUser { get; set; }
+        public virtual ICollection<Notificationlog> NotificationlogActionUser { get; set; }
+        public virtual ICollection<Notificationlog> NotificationlogUser { get; set; }
 
-		public virtual ICollection<Auditactionlog> Auditactionlog { get; set; }
-	}
+        public virtual ICollection<Auditactionlog> Auditactionlog { get; set; }
+    }
 }

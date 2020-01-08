@@ -17,8 +17,8 @@ namespace TeleBillingUtility.Models
         public int? ViewIndex { get; set; }
         public long CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
-		[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-		public long? CreatedDateInt { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public long? CreatedDateInt { get; set; }
 
         public virtual ICollection<MstLink> MstLink { get; set; }
     }

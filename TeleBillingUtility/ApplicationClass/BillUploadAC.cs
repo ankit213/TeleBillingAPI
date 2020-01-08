@@ -1,11 +1,9 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-  public class BillUploadAC
+    public class BillUploadAC
     {
         BillUploadAC()
         {
@@ -81,10 +79,11 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("excelfilename1")]
         public string ExcelFileName1 { get; set; }
-               
+
     }
 
-    public class ExcelUploadIdCountAC{
+    public class ExcelUploadIdCountAC
+    {
 
         [JsonProperty("id")]
         public long Id { get; set; }

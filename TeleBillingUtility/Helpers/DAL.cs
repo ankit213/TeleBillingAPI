@@ -2,14 +2,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 
@@ -17,17 +14,17 @@ namespace TeleBillingUtility.Helpers
 {
     public class DAL
     {
-		public readonly string _ConnString;
-		public DAL()
-		{
-			var builder = new ConfigurationBuilder()
-					.AddJsonFile("appsettings.json", true, true);
+        public readonly string _ConnString;
+        public DAL()
+        {
+            var builder = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json", true, true);
 
-			IConfigurationRoot configuration = builder.Build();
+            IConfigurationRoot configuration = builder.Build();
 
-			_ConnString = configuration.GetConnectionString("DefaultConnection");
-		}
-		public SqlDataReader GetDataReader(string sSQL)
+            _ConnString = configuration.GetConnectionString("DefaultConnection");
+        }
+        public SqlDataReader GetDataReader(string sSQL)
         {
             // Create Instance of Connection and Command Object
             SqlConnection myConnection = new SqlConnection(_ConnString);
@@ -658,7 +655,7 @@ namespace TeleBillingUtility.Helpers
                         myConnection.Close();
                     }
                 }
-                catch (Exception  ex2)
+                catch (Exception ex2)
                 {
                     //ErrorHandler.WriteError(Convert.ToString(ex2));
                     return null;
@@ -698,7 +695,7 @@ namespace TeleBillingUtility.Helpers
             return dataTable;
         }
 
-        public  List<T> ConvertDataTableToGenericList<T>(DataTable dt)
+        public List<T> ConvertDataTableToGenericList<T>(DataTable dt)
         {
             var columnNames = dt.Columns.Cast<DataColumn>()
                    .Select(c => c.ColumnName)

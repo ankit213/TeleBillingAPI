@@ -1,11 +1,8 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TeleBillingUtility.ApplicationClass
 {
-   public class ExcelMappingListAC
+    public class ExcelMappingListAC
     {
         [JsonProperty("id")]
         public long Id { get; set; }
@@ -18,11 +15,11 @@ namespace TeleBillingUtility.ApplicationClass
 
         [JsonProperty("mergeservices")]
         public string MergeServices { get; set; }
-        
+
 
         [JsonProperty("worksheetno")]
         public string WorkSheetNo { get; set; }
-      
+
         [JsonProperty("titlename")]
         public string TitleName { get; set; }
 
